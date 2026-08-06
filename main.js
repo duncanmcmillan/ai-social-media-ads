@@ -176,14 +176,15 @@ app.whenReady().then(() => {
 
     const tokens = await response.json();
 
-    // Persist access token
-    safeWrite(TOKEN_PATH(), {
+    // Normalise field names and persist
+    const normalised = {
       accessToken: tokens.access_token,
-      tokenType:   tokens.token_type,
+      tokenType:   tokens.token_type ?? 'bearer',
       expiresAt:   tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : null,
-    });
+    };
+    safeWrite(TOKEN_PATH(), normalised);
 
-    return tokens;
+    return normalised;
   });
 
   // ── Tokens: refresh access token (stub — use long-lived tokens for now) ─
