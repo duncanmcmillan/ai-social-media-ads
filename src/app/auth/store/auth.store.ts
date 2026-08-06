@@ -199,7 +199,7 @@ export const AuthStore = signalStore(
         return;
       }
       patchState(store, { isLoading: true, error: null });
-      const redirectUri = 'fb-ads://oauth/callback';
+      const redirectUri = 'https://localhost/oauth/callback';
       const scope = 'ads_management,ads_read,business_management,pages_read_engagement';
       const authUrl = [
         'https://www.facebook.com/v22.0/dialog/oauth',

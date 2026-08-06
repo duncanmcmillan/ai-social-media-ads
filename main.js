@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, safeStorage, nativeTheme } = require('electron/main');
+const { app, BrowserWindow, ipcMain, safeStorage, nativeTheme } = require('electron/main');
 const path = require('node:path');
 const fs = require('node:fs');
 const { URL } = require('node:url');
@@ -8,55 +8,7 @@ const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
 const CONFIG_PATH  = () => path.join(app.getPath('userData'), 'fb-config.enc');
 const CONSENT_PATH = () => path.join(app.getPath('userData'), 'gdpr-consent.json');
 
-// ── OAuth callback state ───────────────────────────────────────────────────
-let oauthResolve = null;
-let oauthReject  = null;
-let oauthTimeout = null;
-
-// ── Custom protocol (OAuth redirect URI: fb-ads://oauth/callback) ──────────
-// Must be called before app is ready
-if (process.defaultApp) {
-  if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('fb-ads', process.execPath, [path.resolve(process.argv[1])]);
-  }
-} else {
-  app.setAsDefaultProtocolClient('fb-ads');
-}
-
-function handleOAuthCallback(url) {
-  try {
-    const parsed = new URL(url);
-    const code  = parsed.searchParams.get('code');
-    const state = parsed.searchParams.get('state');
-    const error = parsed.searchParams.get('error');
-
-    clearTimeout(oauthTimeout);
-
-    if (error) {
-      oauthReject?.(new Error(`Facebook OAuth error: ${error}`));
-    } else if (code) {
-      oauthResolve?.({ code, state });
-    } else {
-      oauthReject?.(new Error('OAuth callback missing code'));
-    }
-  } catch (e) {
-    oauthReject?.(e);
-  } finally {
-    oauthResolve = null;
-    oauthReject  = null;
-  }
-}
-
-// macOS (packaged app): protocol fires via Apple Event → open-url on running instance
-app.on('open-url', (event, url) => {
-  event.preventDefault();
-  console.log('[main] open-url fired:', url);
-  handleOAuthCallback(url);
-});
-
-// Windows/Linux: app is re-launched with URL as argv.
-// Also handles macOS dev mode where macOS can't route via Apple Events to the running
-// electron binary (no .app bundle), so it launches a second instance instead.
+// ── Single-instance lock (focus existing window if re-launched) ────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -116,11 +68,7 @@ const createWindow = () => {
 };
 
 // ── IPC Handlers ───────────────────────────────────────────────────────────
-if (gotLock) app.on('second-instance', (_event, argv) => {
-  console.log('[main] second-instance fired, argv:', argv);
-  const url = argv.find(a => a.startsWith('fb-ads://'));
-  if (url) handleOAuthCallback(url);
-
+if (gotLock) app.on('second-instance', () => {
   const win = BrowserWindow.getAllWindows()[0];
   if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
 });
@@ -138,19 +86,56 @@ app.whenReady().then(() => {
   nativeTheme.on('updated', pushA11yPreferences);
   app.on('accessibility-support-changed', pushA11yPreferences);
 
-  // ── OAuth: open system browser and wait for Facebook callback ─────────
+  // ── OAuth: open a BrowserWindow for Facebook login and intercept the redirect ──
+  // Redirect URI must be registered in the Facebook app as: https://localhost/oauth/callback
+  // Facebook accepts localhost URLs; we intercept the navigation before it resolves.
   ipcMain.handle('facebook:start-oauth', (_event, { authUrl }) => {
     return new Promise((resolve, reject) => {
-      oauthResolve = resolve;
-      oauthReject  = reject;
+      const REDIRECT_PREFIX = 'https://localhost/oauth/callback';
 
-      shell.openExternal(authUrl);
+      const authWindow = new BrowserWindow({
+        width:  560,
+        height: 680,
+        title:  'Connect to Facebook',
+        webPreferences: {
+          nodeIntegration:  false,
+          contextIsolation: true,
+        },
+      });
 
-      oauthTimeout = setTimeout(() => {
-        oauthReject?.(new Error('OAuth timed out after 5 minutes'));
-        oauthResolve = null;
-        oauthReject  = null;
+      const timeout = setTimeout(() => {
+        if (!authWindow.isDestroyed()) authWindow.close();
+        reject(new Error('OAuth timed out after 5 minutes'));
       }, 5 * 60 * 1000);
+
+      function handleRedirectUrl(url) {
+        if (!url.startsWith(REDIRECT_PREFIX)) return;
+        clearTimeout(timeout);
+        if (!authWindow.isDestroyed()) authWindow.close();
+
+        try {
+          const parsed = new URL(url);
+          const code   = parsed.searchParams.get('code');
+          const error  = parsed.searchParams.get('error');
+          if (error)  reject(new Error(`Facebook OAuth error: ${error}`));
+          else if (code) resolve({ code, state: parsed.searchParams.get('state') ?? '' });
+          else        reject(new Error('OAuth callback missing code'));
+        } catch (e) {
+          reject(e);
+        }
+      }
+
+      // Intercept the redirect before it tries to navigate to localhost
+      authWindow.webContents.on('will-redirect',  (_e, url) => handleRedirectUrl(url));
+      authWindow.webContents.on('will-navigate',  (_e, url) => handleRedirectUrl(url));
+      authWindow.webContents.on('did-navigate',   (_e, url) => handleRedirectUrl(url));
+
+      authWindow.on('closed', () => {
+        clearTimeout(timeout);
+        reject(new Error('Facebook login window was closed'));
+      });
+
+      authWindow.loadURL(authUrl);
     });
   });
 
