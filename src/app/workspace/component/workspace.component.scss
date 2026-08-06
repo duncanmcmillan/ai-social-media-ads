@@ -35,13 +35,40 @@
   padding: 3px 8px;
 }
 
-.ws-body {
-  max-width: 720px;
+/* ── Two-column layout ───────────────────────────────────────────────── */
+.ws-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.ws-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 680px;
 }
 
 /* ── Sections ────────────────────────────────────────────────────────── */
 .ws-section {
-  margin-bottom: 32px;
+  margin-bottom: 8px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--neutral-0);
+
+  &--last { margin-bottom: 0; }
+}
+
+/* ── Section header (accordion toggle) ──────────────────────────────── */
+.ws-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover { background: var(--neutral-50, #fafafa); }
 }
 
 .ws-section-title {
@@ -50,22 +77,64 @@
   font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--neutral-500);
-  margin-bottom: 4px;
+  color: var(--neutral-600);
+  margin: 0;
+}
+
+/* ── Chevron toggle button ───────────────────────────────────────────── */
+.ws-chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--neutral-400);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: color 0.15s ease, transform 0.2s ease;
+  transform: rotate(0deg); /* pointing right = collapsed */
+  flex-shrink: 0;
+
+  &:hover { color: var(--neutral-600); background: var(--neutral-100); }
+
+  /* When open, rotate 90° to point down */
+  &--open { transform: rotate(90deg); }
+}
+
+/* ── Collapsible body (CSS grid trick for smooth height animation) ───── */
+.ws-section-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease;
+
+  &--open { grid-template-rows: 1fr; }
+}
+
+.ws-section-body-inner {
+  overflow: hidden;
+  padding: 0 0 0 0;
+
+  /* Padding inside the open state so it collapses cleanly to zero */
+  .ws-section-body--open & {
+    padding-bottom: 1px; /* prevent border collapse at 0 height */
+  }
 }
 
 .ws-section-sub {
   font-size: 12px;
   color: var(--neutral-400);
-  margin-bottom: 12px;
+  padding: 0 16px 10px;
 }
 
 /* ── Card ─────────────────────────────────────────────────────────────── */
 .ws-card {
   background: var(--neutral-0);
-  border: 1px solid var(--neutral-200);
-  border-radius: 6px;
-  overflow: hidden;
+  border-top: 1px solid var(--neutral-150);
 }
 
 .ws-card-footer {
@@ -80,9 +149,7 @@
   padding: 16px;
   border-bottom: 1px solid var(--neutral-150);
 
-  &--last {
-    border-bottom: none;
-  }
+  &--last { border-bottom: none; }
 }
 
 .ws-field-row {
@@ -230,7 +297,6 @@
 
 .toggle-switch input:checked + .toggle-track {
   background: var(--orange-500);
-
   &::after { transform: translateX(18px); }
 }
 
@@ -260,10 +326,7 @@
   font-size: 16px;
   flex-shrink: 0;
 
-  &--meta {
-    background: #1877f2;
-    color: #fff;
-  }
+  &--meta { background: #1877f2; color: #fff; }
 }
 
 .platform-info {
@@ -282,10 +345,7 @@
   gap: 6px;
 }
 
-.platform-sub {
-  font-size: 12px;
-  color: var(--neutral-400);
-}
+.platform-sub { font-size: 12px; color: var(--neutral-400); }
 
 .platform-account {
   font-size: 11px;
@@ -335,6 +395,51 @@
   line-height: 1.4;
 }
 
+/* ── Sticky ToC nav ──────────────────────────────────────────────────── */
+.ws-toc {
+  width: 172px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+}
+
+.ws-toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--neutral-500);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: var(--neutral-100);
+    color: var(--neutral-700);
+  }
+
+  &--active {
+    background: var(--orange-50, #fff7ed);
+    color: var(--orange-600);
+    font-weight: 400;
+  }
+}
+
 /* ── Button overrides (local variants) ───────────────────────────────── */
 .btn-sm {
   padding: 5px 12px;
@@ -355,15 +460,17 @@
 /* ── Dark theme overrides ─────────────────────────────────────────────── */
 :host-context(html.dark-theme) {
   .ws-title { color: var(--neutral-100); }
+  .ws-section { background: var(--neutral-850); border-color: var(--neutral-700); }
+  .ws-section-header:hover { background: var(--neutral-800); }
+  .ws-section-title { color: var(--neutral-400); }
+  .ws-chevron-btn { color: var(--neutral-500); &:hover { background: var(--neutral-700); color: var(--neutral-200); } }
   .ws-card { background: var(--neutral-850); border-color: var(--neutral-700); }
   .ws-field { border-color: var(--neutral-700); }
-  .ws-input, .ws-select {
-    background: var(--neutral-800);
-    border-color: var(--neutral-700);
-    color: var(--neutral-200);
-  }
+  .ws-input, .ws-select { background: var(--neutral-800); border-color: var(--neutral-700); color: var(--neutral-200); }
   .ws-toggle-label { color: var(--neutral-200); }
   .platform-card--connected .platform-name { color: var(--neutral-200); }
   .ws-card-footer { border-color: var(--neutral-700); }
   .ws-rule-group { border-color: var(--neutral-700); }
+  .ws-toc { background: var(--neutral-850); border-color: var(--neutral-700); }
+  .ws-toc-item { color: var(--neutral-400); &:hover { background: var(--neutral-700); color: var(--neutral-200); } &--active { background: rgba(249,115,22,0.12); color: var(--orange-400); } }
 }
