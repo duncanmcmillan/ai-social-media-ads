@@ -71,6 +71,10 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Expose enum to template for status comparisons. */
   protected readonly AdAccountStatus = AdAccountStatus;
 
+  /** Literal token reference shown beneath the naming template fields. */
+  protected readonly namingTokens =
+    '{{campaign.name}} · {{adset.name}} · {{creative.id}} · {{ad.id}} · {{targeting.location}} · {{date}}';
+
   // ── Account Details — credential form draft state ─────────────────────────
 
   /** Draft App ID input — pre-populated from store on first load. */

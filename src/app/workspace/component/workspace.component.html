@@ -447,6 +447,7 @@
 
             <div class="ws-field">
               <label class="ws-label">Naming &amp; UTM</label>
+              <p class="ws-field-hint">Available tokens: {{ namingTokens }}</p>
               <label class="ws-sublabel" for="creative-name-tmpl">Creative Name Template</label>
               <input id="creative-name-tmpl" class="ws-input ws-input--mono" type="text"
                 [value]="workspaceStore.enhancements().creativeNameTemplate"
@@ -463,6 +464,7 @@
 
             <div class="ws-field ws-field--last">
               <label class="ws-label">EU Advertising Identity (DSA)</label>
+              <p class="ws-field-hint">Required for ads targeting EU audiences. Maps to <code>beneficiary</code> and <code>payer</code> on the Facebook AdCreative object.</p>
               <div class="ws-field-row">
                 <div class="ws-field-col">
                   <label class="ws-sublabel" for="beneficiary">Beneficiary Name</label>
