@@ -1,7 +1,13 @@
-const { app, BrowserWindow, ipcMain, safeStorage, nativeTheme } = require('electron/main');
+const { app, BrowserWindow, ipcMain, shell, safeStorage, nativeTheme } = require('electron/main');
 const path = require('node:path');
-const fs = require('node:fs');
+const fs   = require('node:fs');
+const http = require('node:http');
 const { URL } = require('node:url');
+
+// Port for the local OAuth callback server.
+// Register http://localhost:7331/callback as a Valid OAuth Redirect URI
+// in the Facebook app dashboard (App → Facebook Login → Settings).
+const OAUTH_PORT = 7331;
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
@@ -86,56 +92,61 @@ app.whenReady().then(() => {
   nativeTheme.on('updated', pushA11yPreferences);
   app.on('accessibility-support-changed', pushA11yPreferences);
 
-  // ── OAuth: open a BrowserWindow for Facebook login and intercept the redirect ──
-  // Redirect URI must be registered in the Facebook app as: https://localhost/oauth/callback
-  // Facebook accepts localhost URLs; we intercept the navigation before it resolves.
+  // ── OAuth: open system browser + local HTTP server to catch the callback ──
+  // Facebook blocks OAuth in embedded WebViews, so we use shell.openExternal
+  // to open the login page in the user's default browser.  A temporary HTTP
+  // server on localhost catches the redirect and resolves the promise.
+  //
+  // Register http://localhost:7331/callback as a Valid OAuth Redirect URI in
+  // the Facebook app dashboard: App → Facebook Login → Settings.
   ipcMain.handle('facebook:start-oauth', (_event, { authUrl }) => {
     return new Promise((resolve, reject) => {
-      const REDIRECT_PREFIX = 'https://localhost/oauth/callback';
-
-      const authWindow = new BrowserWindow({
-        width:  560,
-        height: 680,
-        title:  'Connect to Facebook',
-        webPreferences: {
-          nodeIntegration:  false,
-          contextIsolation: true,
-        },
-      });
+      let server;
 
       const timeout = setTimeout(() => {
-        if (!authWindow.isDestroyed()) authWindow.close();
+        server?.close();
         reject(new Error('OAuth timed out after 5 minutes'));
       }, 5 * 60 * 1000);
 
-      function handleRedirectUrl(url) {
-        if (!url.startsWith(REDIRECT_PREFIX)) return;
-        clearTimeout(timeout);
-        if (!authWindow.isDestroyed()) authWindow.close();
-
+      server = http.createServer((req, res) => {
         try {
-          const parsed = new URL(url);
-          const code   = parsed.searchParams.get('code');
-          const error  = parsed.searchParams.get('error');
-          if (error)  reject(new Error(`Facebook OAuth error: ${error}`));
-          else if (code) resolve({ code, state: parsed.searchParams.get('state') ?? '' });
-          else        reject(new Error('OAuth callback missing code'));
+          const url   = new URL(req.url, `http://localhost:${OAUTH_PORT}`);
+          const code  = url.searchParams.get('code');
+          const error = url.searchParams.get('error');
+          const state = url.searchParams.get('state') ?? '';
+
+          const body = error
+            ? `<h2>Connection failed</h2><p>${error}</p><p>You can close this tab.</p>`
+            : `<h2>Connected!</h2><p>You can close this tab and return to the app.</p>`;
+
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(`<!DOCTYPE html><html><head><title>Facebook Login</title></head>
+<body style="font-family:system-ui,sans-serif;text-align:center;padding:60px;color:#333">
+${body}</body></html>`);
+
+          clearTimeout(timeout);
+          server.close();
+
+          if (error)      reject(new Error(`Facebook OAuth error: ${error}`));
+          else if (code)  resolve({ code, state });
+          else            reject(new Error('OAuth callback missing code'));
         } catch (e) {
+          res.writeHead(500);
+          res.end('Internal error');
+          clearTimeout(timeout);
+          server.close();
           reject(e);
         }
-      }
-
-      // Intercept the redirect before it tries to navigate to localhost
-      authWindow.webContents.on('will-redirect',  (_e, url) => handleRedirectUrl(url));
-      authWindow.webContents.on('will-navigate',  (_e, url) => handleRedirectUrl(url));
-      authWindow.webContents.on('did-navigate',   (_e, url) => handleRedirectUrl(url));
-
-      authWindow.on('closed', () => {
-        clearTimeout(timeout);
-        reject(new Error('Facebook login window was closed'));
       });
 
-      authWindow.loadURL(authUrl);
+      server.on('error', err => {
+        clearTimeout(timeout);
+        reject(new Error(`Local OAuth server error: ${err.message}`));
+      });
+
+      server.listen(OAUTH_PORT, '127.0.0.1', () => {
+        shell.openExternal(authUrl);
+      });
     });
   });
 
