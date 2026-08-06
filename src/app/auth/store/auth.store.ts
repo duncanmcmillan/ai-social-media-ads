@@ -10,6 +10,8 @@ import type {
   FacebookConfig,
   FacebookUser,
   FacebookAdAccount,
+  FacebookPage,
+  FacebookPixel,
 } from '../model/auth.model';
 
 // ── Graph API helper ────────────────────────────────────────────────────────
@@ -98,6 +100,14 @@ interface AuthState {
   selectedAccount: FacebookAdAccount | null;
   /** Whether the user has connected a TikTok account (future use). */
   tiktokConnected: boolean;
+  /** Facebook Pages administered by the current user. */
+  pages: FacebookPage[];
+  /** Meta Pixels linked to the selected ad account. */
+  pixels: FacebookPixel[];
+  /** Whether a page-list fetch is in progress. */
+  pagesLoading: boolean;
+  /** Whether a pixel-list fetch is in progress. */
+  pixelsLoading: boolean;
 }
 
 const initialState: AuthState = {
@@ -111,6 +121,10 @@ const initialState: AuthState = {
   adAccounts: [],
   selectedAccount: null,
   tiktokConnected: false,
+  pages: [],
+  pixels: [],
+  pagesLoading: false,
+  pixelsLoading: false,
 };
 
 type FacebookBridge = {
@@ -187,6 +201,8 @@ export const AuthStore = signalStore(
         user: null,
         adAccounts: [],
         selectedAccount: null,
+        pages: [],
+        pixels: [],
         error: null,
       });
     },
@@ -333,6 +349,62 @@ export const AuthStore = signalStore(
           error: e instanceof Error ? e.message : 'Failed to refresh ad accounts',
           isLoading: false,
         });
+      }
+    },
+
+    /**
+     * Fetches Facebook Pages administered by the current user.
+     * API: GET /me/accounts?fields=id,name,category
+     */
+    async fetchPages(): Promise<void> {
+      const token = store.accessToken();
+      if (!token) return;
+      patchState(store, { pagesLoading: true });
+      try {
+        const res = await fetch(
+          `${GRAPH_BASE}/me/accounts?fields=id,name,category&limit=50&access_token=${encodeURIComponent(token)}`
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: { message: string } };
+          console.warn('[AuthStore] /me/accounts failed:', err?.error?.message ?? res.status);
+          return;
+        }
+        const raw = await res.json() as { data?: { id: string; name: string; category?: string }[] };
+        patchState(store, {
+          pages: (raw.data ?? []).map(p => ({ id: p.id, name: p.name, category: p.category })),
+        });
+      } catch (e: unknown) {
+        console.warn('[AuthStore] fetchPages error:', e instanceof Error ? e.message : e);
+      } finally {
+        patchState(store, { pagesLoading: false });
+      }
+    },
+
+    /**
+     * Fetches Meta Pixels linked to the selected ad account.
+     * API: GET /{ad-account-id}/adspixels?fields=id,name
+     */
+    async fetchPixels(adAccountId: string): Promise<void> {
+      const token = store.accessToken();
+      if (!token || !adAccountId) return;
+      patchState(store, { pixelsLoading: true });
+      try {
+        const res = await fetch(
+          `${GRAPH_BASE}/${adAccountId}/adspixels?fields=id,name&limit=50&access_token=${encodeURIComponent(token)}`
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: { message: string } };
+          console.warn('[AuthStore] /adspixels failed:', err?.error?.message ?? res.status);
+          return;
+        }
+        const raw = await res.json() as { data?: { id: string; name: string }[] };
+        patchState(store, {
+          pixels: (raw.data ?? []).map(p => ({ id: p.id, name: p.name })),
+        });
+      } catch (e: unknown) {
+        console.warn('[AuthStore] fetchPixels error:', e instanceof Error ? e.message : e);
+      } finally {
+        patchState(store, { pixelsLoading: false });
       }
     },
   }))

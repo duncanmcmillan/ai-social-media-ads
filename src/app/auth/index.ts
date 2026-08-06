@@ -5,6 +5,8 @@ export type {
   FacebookConfig,
   FacebookUser,
   FacebookAdAccount,
+  FacebookPage,
+  FacebookPixel,
   TikTokTokens,
   TikTokConfig,
 } from './model/auth.model';

@@ -192,14 +192,33 @@
             <div class="ws-field">
               <label class="ws-label" for="fb-page-id">Facebook Page</label>
               <p class="ws-field-hint">Required for ad identity</p>
-              <input
-                id="fb-page-id"
-                class="ws-input"
-                type="text"
-                placeholder="Facebook Page ID (e.g. 123456789)"
-                [value]="workspaceStore.metaDefaults().facebookPageId"
-                (input)="setPageId($any($event.target).value)"
-              />
+              @if (authStore.isAuthenticated() && authStore.pages().length > 0) {
+                <select
+                  id="fb-page-id"
+                  class="ws-select ws-select--full"
+                  [value]="workspaceStore.metaDefaults().facebookPageId"
+                  (change)="setPageId($any($event.target).value)"
+                >
+                  <option value="">— Select a Facebook Page —</option>
+                  @for (page of authStore.pages(); track page.id) {
+                    <option [value]="page.id">{{ page.name }}</option>
+                  }
+                </select>
+              } @else {
+                <input
+                  id="fb-page-id"
+                  class="ws-input"
+                  type="text"
+                  placeholder="Facebook Page ID (e.g. 123456789)"
+                  [value]="workspaceStore.metaDefaults().facebookPageId"
+                  (input)="setPageId($any($event.target).value)"
+                />
+              }
+              @if (authStore.pagesLoading()) {
+                <span class="ws-field-loading">Loading pages…</span>
+              } @else if (authStore.isAuthenticated()) {
+                <button class="ws-link-btn" type="button" (click)="loadPages()">Refresh pages</button>
+              }
             </div>
 
             <div class="ws-field">
@@ -219,14 +238,33 @@
             <div class="ws-field">
               <label class="ws-label" for="pixel-id">Meta Pixel</label>
               <p class="ws-field-hint">Required for conversion tracking</p>
-              <input
-                id="pixel-id"
-                class="ws-input"
-                type="text"
-                placeholder="Pixel / Dataset ID"
-                [value]="workspaceStore.metaDefaults().pixelId"
-                (input)="setPixelId($any($event.target).value)"
-              />
+              @if (authStore.isAuthenticated() && authStore.adAccountId() && authStore.pixels().length > 0) {
+                <select
+                  id="pixel-id"
+                  class="ws-select ws-select--full"
+                  [value]="workspaceStore.metaDefaults().pixelId"
+                  (change)="setPixelId($any($event.target).value)"
+                >
+                  <option value="">— Select a Pixel —</option>
+                  @for (pixel of authStore.pixels(); track pixel.id) {
+                    <option [value]="pixel.id">{{ pixel.name }} ({{ pixel.id }})</option>
+                  }
+                </select>
+              } @else {
+                <input
+                  id="pixel-id"
+                  class="ws-input"
+                  type="text"
+                  placeholder="Pixel / Dataset ID"
+                  [value]="workspaceStore.metaDefaults().pixelId"
+                  (input)="setPixelId($any($event.target).value)"
+                />
+              }
+              @if (authStore.pixelsLoading()) {
+                <span class="ws-field-loading">Loading pixels…</span>
+              } @else if (authStore.isAuthenticated() && authStore.adAccountId()) {
+                <button class="ws-link-btn" type="button" (click)="loadPixels()">Refresh pixels</button>
+              }
             </div>
 
             <div class="ws-field">

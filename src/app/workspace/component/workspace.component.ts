@@ -10,6 +10,7 @@ import {
   Component,
   DestroyRef,
   NgZone,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -50,6 +51,22 @@ export class WorkspaceComponent implements AfterViewInit {
   private readonly ngZone = inject(NgZone);
 
   protected readonly sections = SECTIONS;
+
+  constructor() {
+    // Auto-fetch pages when the user authenticates.
+    effect(() => {
+      if (this.authStore.isAuthenticated()) {
+        void this.authStore.fetchPages();
+      }
+    });
+    // Auto-fetch pixels when an ad account is selected.
+    effect(() => {
+      const accountId = this.authStore.adAccountId();
+      if (this.authStore.isAuthenticated() && accountId) {
+        void this.authStore.fetchPixels(accountId);
+      }
+    });
+  }
 
   /** Expose enum to template for status comparisons. */
   protected readonly AdAccountStatus = AdAccountStatus;
@@ -238,6 +255,17 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Re-fetches ad accounts from GET /me/adaccounts and updates the store. */
   protected async refreshAccounts(): Promise<void> {
     await this.authStore.refreshAdAccounts();
+  }
+
+  /** Re-fetches Facebook Pages from GET /me/accounts. */
+  protected async loadPages(): Promise<void> {
+    await this.authStore.fetchPages();
+  }
+
+  /** Re-fetches Meta Pixels from GET /{adAccountId}/adspixels. */
+  protected async loadPixels(): Promise<void> {
+    const accountId = this.authStore.adAccountId();
+    if (accountId) await this.authStore.fetchPixels(accountId);
   }
 
   protected async signOut(): Promise<void> {

@@ -233,6 +233,29 @@
   &:focus { outline: none; border-color: var(--orange-400); }
 }
 
+/* ── Inline field helpers ────────────────────────────────────────────── */
+.ws-field-loading {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--neutral-400);
+  margin-top: 6px;
+}
+
+.ws-link-btn {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--orange-500);
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 6px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: var(--orange-600); }
+}
+
 /* ── Toggle switch ───────────────────────────────────────────────────── */
 .ws-toggle-row {
   display: flex;
@@ -494,4 +517,6 @@
   .ws-toc { background: var(--neutral-850); border-color: var(--neutral-700); }
   .ws-toc-item { color: var(--neutral-400); &:hover { background: var(--neutral-700); color: var(--neutral-200); } &--active { background: rgba(249,115,22,0.12); color: var(--orange-400); } }
   .ws-account-meta-value { color: var(--neutral-200); }
+  .ws-field-loading { color: var(--neutral-500); }
+  .ws-link-btn { color: var(--orange-400); &:hover { color: var(--orange-300); } }
 }
