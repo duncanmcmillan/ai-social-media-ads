@@ -48,6 +48,9 @@ async function fetchUserData(accessToken: string): Promise<{
   if (userRes.ok) {
     const raw = await userRes.json() as { id: string; name: string };
     user = { id: raw.id, name: raw.name };
+  } else {
+    const err = await userRes.json().catch(() => ({})) as { error?: { message: string } };
+    console.warn('[AuthStore] /me failed:', err?.error?.message ?? userRes.status);
   }
 
   let accounts: FacebookAdAccount[] = [];
@@ -61,6 +64,11 @@ async function fetchUserData(accessToken: string): Promise<{
       accountStatus: a.account_status as AdAccountStatus,
       businessName: a.business?.name,
     }));
+  } else {
+    const err = await accountsRes.json().catch(() => ({})) as { error?: { message: string } };
+    const msg = err?.error?.message ?? `HTTP ${accountsRes.status}`;
+    console.warn('[AuthStore] /me/adaccounts failed:', msg);
+    throw new Error(`Could not load ad accounts: ${msg}`);
   }
 
   return { user, accounts };
@@ -294,8 +302,9 @@ export const AuthStore = signalStore(
           if (autoSelect) {
             bridge.saveAccountId(autoSelect.id).catch(() => {});
           }
-        } catch {
-          // Non-fatal — OAuth succeeded even if profile fetch fails
+        } catch (e: unknown) {
+          // Surface the error — OAuth still succeeded so don't clear isAuthenticated
+          patchState(store, { error: e instanceof Error ? e.message : 'Failed to load ad accounts' });
         }
         patchState(store, { isLoading: false });
       } catch (e: unknown) {
