@@ -162,5 +162,67 @@ export const AuthStore = signalStore(
     selectAccount(account: FacebookAdAccount): void {
       patchState(store, { selectedAccount: account, adAccountId: account.id });
     },
+
+    /**
+     * Saves the App ID and App Secret to Electron's encrypted storage.
+     * The App Secret never enters Angular state; only the App ID is retained.
+     */
+    async saveCredentials(appId: string, appSecret: string): Promise<void> {
+      if (!bridge) return;
+      patchState(store, { isLoading: true, error: null });
+      try {
+        await bridge.saveConfig(appId, appSecret, store.adAccountId() ?? '');
+        patchState(store, { appId, isLoading: false });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'Failed to save credentials',
+          isLoading: false,
+        });
+      }
+    },
+
+    /**
+     * Starts the Facebook OAuth flow via the Electron bridge.
+     * On success, sets isAuthenticated and stores the access token.
+     * Requires appId to be saved first (via saveCredentials).
+     *
+     * API: facebook.com/v22.0/dialog/oauth → /oauth/access_token (via Electron main)
+     */
+    async connectFacebook(): Promise<void> {
+      if (!bridge) {
+        patchState(store, { error: 'Facebook connection requires the desktop app.' });
+        return;
+      }
+      const appId = store.appId();
+      if (!appId) {
+        patchState(store, { error: 'Save your App ID and App Secret before connecting.' });
+        return;
+      }
+      patchState(store, { isLoading: true, error: null });
+      const redirectUri = 'fb-ads://oauth/callback';
+      const scope = 'ads_management,ads_read,business_management,pages_read_engagement';
+      const authUrl = [
+        'https://www.facebook.com/v22.0/dialog/oauth',
+        `?client_id=${appId}`,
+        `&redirect_uri=${encodeURIComponent(redirectUri)}`,
+        `&scope=${scope}`,
+        '&response_type=code',
+      ].join('');
+      try {
+        const { code } = await bridge.startOAuth(authUrl);
+        const tokenUrl = 'https://graph.facebook.com/v22.0/oauth/access_token';
+        const tokens = await bridge.exchangeToken(tokenUrl, code, redirectUri);
+        patchState(store, {
+          isAuthenticated: true,
+          accessToken: tokens.accessToken,
+          isLoading: false,
+        });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'Facebook OAuth failed',
+          isLoading: false,
+        });
+      }
+    },
   }))
 );

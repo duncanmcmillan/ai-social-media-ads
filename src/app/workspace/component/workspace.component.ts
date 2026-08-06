@@ -14,6 +14,7 @@ import {
   signal,
 } from '@angular/core';
 import { AuthStore } from '../../auth';
+import { AdAccountStatus } from '../../auth';
 import { WorkspaceStore } from '../store/workspace.store';
 
 /** Metadata for each collapsible workspace section. */
@@ -49,6 +50,16 @@ export class WorkspaceComponent implements AfterViewInit {
   private readonly ngZone = inject(NgZone);
 
   protected readonly sections = SECTIONS;
+
+  /** Expose enum to template for status comparisons. */
+  protected readonly AdAccountStatus = AdAccountStatus;
+
+  // ── Account Details — credential form draft state ─────────────────────────
+
+  /** Draft App ID input — pre-populated from store on first load. */
+  protected readonly appIdDraft = signal('');
+  /** Draft App Secret input — always starts blank (write-only field). */
+  protected readonly appSecretDraft = signal('');
 
   /** Map of section id → collapsed state (true = collapsed). */
   protected readonly collapsed = signal<Record<string, boolean>>({});
@@ -202,7 +213,35 @@ export class WorkspaceComponent implements AfterViewInit {
     });
   }
 
-  // ── Auth ───────────────────────────────────────────────────────────────────
+  // ── Account Details ────────────────────────────────────────────────────────
+
+  /** Saves App ID + Secret to Electron encrypted storage, then clears the draft secret. */
+  protected async saveCredentials(): Promise<void> {
+    await this.authStore.saveCredentials(this.appIdDraft(), this.appSecretDraft());
+    this.appSecretDraft.set('');
+  }
+
+  /** Triggers the Facebook OAuth flow via the Electron bridge. */
+  protected async connectMeta(): Promise<void> {
+    await this.authStore.connectFacebook();
+  }
+
+  /**
+   * Selects the ad account matching the given ID.
+   * Called from the account selector `<select>` change event.
+   */
+  protected onAccountSelect(id: string): void {
+    const account = this.authStore.adAccounts().find(a => a.id === id);
+    if (account) this.authStore.selectAccount(account);
+  }
+
+  /**
+   * Stub — will call MarketingApiService.getAdAccounts() once implemented.
+   * Fetches the user's available ad accounts from GET /me/adaccounts.
+   */
+  protected refreshAccounts(): void {
+    // TODO: inject MarketingApiService and call getAdAccounts()
+  }
 
   protected async signOut(): Promise<void> {
     await this.authStore.signOut();

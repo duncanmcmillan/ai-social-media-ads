@@ -366,6 +366,40 @@
   &--off { background: var(--neutral-300); }
 }
 
+/* ── Account Details ──────────────────────────────────────────────────── */
+.ws-auth-error {
+  font-size: 12px;
+  color: var(--color-error, #dc2626);
+  padding: 8px 16px 12px;
+  margin: 0;
+}
+
+.ws-account-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.ws-account-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ws-account-meta-value {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--neutral-700);
+}
+
+.ws-account-status--active {
+  color: var(--color-success);
+}
+
+.ws-select--full {
+  width: 100%;
+}
+
 /* ── Learning rule groups ────────────────────────────────────────────── */
 .ws-rule-group {
   padding: 16px;
@@ -475,4 +509,5 @@
   .ws-rule-group { border-color: var(--neutral-700); }
   .ws-toc { background: var(--neutral-850); border-color: var(--neutral-700); }
   .ws-toc-item { color: var(--neutral-400); &:hover { background: var(--neutral-700); color: var(--neutral-200); } &--active { background: rgba(249,115,22,0.12); color: var(--orange-400); } }
+  .ws-account-meta-value { color: var(--neutral-200); }
 }

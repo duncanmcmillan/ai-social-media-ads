@@ -25,31 +25,140 @@
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-account')">
         <div class="ws-section-body-inner">
+          <p class="ws-section-sub">Save your Facebook app credentials, then connect your account to start managing ads.</p>
+
+          <!-- ① App Credentials -->
+          <div class="ws-card">
+            <div class="ws-field">
+              <label class="ws-label" for="ws-app-id">App ID</label>
+              <input
+                id="ws-app-id"
+                class="ws-input"
+                type="text"
+                [placeholder]="authStore.appId() || 'Enter your Facebook App ID'"
+                [value]="appIdDraft()"
+                (input)="appIdDraft.set($any($event.target).value)"
+                autocomplete="off"
+              />
+            </div>
+            <div class="ws-field ws-field--last">
+              <label class="ws-label" for="ws-app-secret">App Secret</label>
+              <input
+                id="ws-app-secret"
+                class="ws-input"
+                type="password"
+                [placeholder]="authStore.appId() ? 'Stored securely — enter to update' : 'Enter your Facebook App Secret'"
+                [value]="appSecretDraft()"
+                (input)="appSecretDraft.set($any($event.target).value)"
+                autocomplete="new-password"
+              />
+              <p class="ws-field-hint">Stored in encrypted system storage. Never leaves this device.</p>
+            </div>
+            <div class="ws-card-footer">
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                [disabled]="!appIdDraft() || !appSecretDraft() || authStore.isLoading()"
+                (click)="saveCredentials()"
+              >{{ authStore.isLoading() ? 'Saving…' : 'Save Credentials' }}</button>
+            </div>
+          </div>
+
+          <!-- ② Meta Connection -->
           <div class="ws-card">
             @if (authStore.isAuthenticated()) {
               <div class="platform-card platform-card--connected">
                 <div class="platform-icon platform-icon--meta">f</div>
                 <div class="platform-info">
-                  <span class="platform-name">Meta <span class="status-dot status-dot--on"></span> Connected</span>
+                  <span class="platform-name">
+                    {{ authStore.user()?.name ?? 'Meta' }}
+                    <span class="status-dot status-dot--on"></span>
+                  </span>
                   <span class="platform-sub">Facebook &amp; Instagram ads</span>
                   @if (authStore.adAccountId()) {
                     <span class="platform-account">{{ authStore.adAccountId() }}</span>
                   }
                 </div>
-                <button class="btn btn-outline btn-sm" (click)="signOut()">Disconnect</button>
+                <button class="btn btn-outline btn-sm" type="button" (click)="signOut()">Disconnect</button>
               </div>
             } @else {
               <div class="platform-card">
                 <div class="platform-icon platform-icon--meta">f</div>
                 <div class="platform-info">
-                  <span class="platform-name">Meta <span class="status-dot status-dot--off"></span> Not connected</span>
+                  <span class="platform-name">
+                    Meta <span class="status-dot status-dot--off"></span> Not connected
+                  </span>
                   <span class="platform-sub">Facebook &amp; Instagram ads</span>
                 </div>
-                <button class="btn btn-primary btn-sm" type="button">Connect</button>
+                <button
+                  class="btn btn-primary btn-sm"
+                  type="button"
+                  [disabled]="!authStore.appId() || authStore.isLoading()"
+                  (click)="connectMeta()"
+                >{{ authStore.isLoading() ? 'Connecting…' : 'Connect' }}</button>
               </div>
             }
+            @if (authStore.error()) {
+              <p class="ws-auth-error">{{ authStore.error() }}</p>
+            }
+          </div>
 
-            <!-- TikTok — placeholder for future implementation -->
+          <!-- ③ Ad Account selector — shown once authenticated -->
+          @if (authStore.isAuthenticated()) {
+            <div class="ws-card">
+              <div class="ws-field" [class.ws-field--last]="!authStore.selectedAccount()">
+                <label class="ws-label" for="ws-ad-account">Ad Account</label>
+                @if (authStore.adAccounts().length > 0) {
+                  <select
+                    id="ws-ad-account"
+                    class="ws-select ws-select--full"
+                    [value]="authStore.adAccountId() ?? ''"
+                    (change)="onAccountSelect($any($event.target).value)"
+                  >
+                    <option value="">— Select an account —</option>
+                    @for (acct of authStore.adAccounts(); track acct.id) {
+                      <option [value]="acct.id">{{ acct.name }} ({{ acct.currency }})</option>
+                    }
+                  </select>
+                } @else {
+                  <p class="ws-field-hint">No ad accounts loaded yet.</p>
+                  <button class="btn btn-outline btn-sm" type="button" (click)="refreshAccounts()">
+                    Refresh accounts
+                  </button>
+                }
+              </div>
+              @if (authStore.selectedAccount(); as acct) {
+                <div class="ws-field ws-field--last">
+                  <div class="ws-account-meta">
+                    <div class="ws-account-meta-item">
+                      <span class="ws-sublabel">Currency</span>
+                      <span class="ws-account-meta-value">{{ acct.currency }}</span>
+                    </div>
+                    <div class="ws-account-meta-item">
+                      <span class="ws-sublabel">Timezone</span>
+                      <span class="ws-account-meta-value">{{ acct.timezoneName }}</span>
+                    </div>
+                    <div class="ws-account-meta-item">
+                      <span class="ws-sublabel">Status</span>
+                      <span
+                        class="ws-account-meta-value"
+                        [class.ws-account-status--active]="acct.accountStatus === AdAccountStatus.Active"
+                      >{{ acct.accountStatus === AdAccountStatus.Active ? 'Active' : 'Inactive' }}</span>
+                    </div>
+                    @if (acct.businessName) {
+                      <div class="ws-account-meta-item">
+                        <span class="ws-sublabel">Business</span>
+                        <span class="ws-account-meta-value">{{ acct.businessName }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ④ TikTok — coming soon -->
+          <div class="ws-card">
             <div class="platform-card platform-card--coming-soon">
               <div class="platform-icon platform-icon--tiktok">T</div>
               <div class="platform-info">
@@ -58,6 +167,7 @@
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
