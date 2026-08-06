@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  NgZone,
   inject,
   signal,
 } from '@angular/core';
@@ -45,6 +46,7 @@ export class WorkspaceComponent implements AfterViewInit {
   protected readonly authStore = inject(AuthStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
 
   protected readonly sections = SECTIONS;
 
@@ -59,13 +61,16 @@ export class WorkspaceComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.observer = new IntersectionObserver(
       entries => {
-        // Pick the entry closest to the top of the viewport that is intersecting.
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible.length > 0) {
-          this.activeSection.set(visible[0].target.id);
-        }
+        // NgZone.run ensures the signal write triggers CD in ng serve (zone.js) mode.
+        this.ngZone.run(() => {
+          // Pick the entry closest to the top of the viewport that is intersecting.
+          const visible = entries
+            .filter(e => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible.length > 0) {
+            this.activeSection.set(visible[0].target.id);
+          }
+        });
       },
       { rootMargin: '0px 0px -75% 0px', threshold: 0 }
     );
