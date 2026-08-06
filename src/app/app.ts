@@ -41,6 +41,11 @@ export class App implements AfterViewInit {
   /** Whether the GDPR consent banner should be shown. */
   protected readonly showConsentBanner = signal(false);
 
+  /**
+   * Checks GDPR consent and loads stored auth tokens after the view initialises.
+   * No-op when not running inside Electron.
+   * @returns Promise that resolves when initialisation is complete.
+   */
   async ngAfterViewInit(): Promise<void> {
     if (!isElectron) return;
 
@@ -54,7 +59,10 @@ export class App implements AfterViewInit {
     await this.authStore.loadStoredTokens();
   }
 
-  /** Records GDPR consent when the user accepts the privacy notice. */
+  /**
+   * Records GDPR consent when the user accepts the privacy notice.
+   * @returns Promise that resolves once the consent record has been written.
+   */
   protected async acceptConsent(): Promise<void> {
     await eWin.gdpr.setConsent();
     this.showConsentBanner.set(false);

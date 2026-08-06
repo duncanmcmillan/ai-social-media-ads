@@ -87,7 +87,10 @@ import { AuthStore } from '../store/auth.store';
 export class AuthComponent {
   protected readonly store = inject(AuthStore);
 
-  /** Initiates Facebook OAuth flow via the Electron IPC bridge. */
+  /**
+   * Initiates Facebook OAuth flow via the Electron IPC bridge.
+   * @returns Promise that resolves once the OAuth attempt has completed or errored.
+   */
   protected async signIn(): Promise<void> {
     this.store.setError('');
     // OAuth flow will be implemented once App ID is configured.
@@ -95,7 +98,10 @@ export class AuthComponent {
     this.store.setError('Configure your Facebook App ID in settings to enable OAuth login.');
   }
 
-  /** Signs the user out and clears stored tokens. */
+  /**
+   * Signs the user out and clears stored tokens.
+   * @returns Promise that resolves once tokens have been cleared.
+   */
   protected async signOut(): Promise<void> {
     await this.store.signOut();
   }
