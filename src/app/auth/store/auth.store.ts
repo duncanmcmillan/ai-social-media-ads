@@ -4,12 +4,69 @@
  */
 import { computed } from '@angular/core';
 import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
+import { AdAccountStatus } from '../model/auth.model';
 import type {
   FacebookTokens,
   FacebookConfig,
   FacebookUser,
   FacebookAdAccount,
 } from '../model/auth.model';
+
+// ── Graph API helper ────────────────────────────────────────────────────────
+
+const GRAPH_BASE = 'https://graph.facebook.com/v22.0';
+
+/** Raw shape of a /me/adaccounts entry from the Graph API. */
+interface RawAdAccount {
+  id: string;
+  name: string;
+  currency: string;
+  timezone_name: string;
+  account_status: number;
+  business?: { name: string };
+}
+
+/**
+ * Fetches the user's profile and accessible ad accounts from the Graph API.
+ * Called after OAuth completes and on app startup when stored tokens exist.
+ *
+ * APIs:
+ *  GET /me?fields=id,name
+ *  GET /me/adaccounts?fields=id,name,currency,timezone_name,account_status,business&limit=50
+ */
+async function fetchUserData(accessToken: string): Promise<{
+  user: FacebookUser | null;
+  accounts: FacebookAdAccount[];
+}> {
+  const token = encodeURIComponent(accessToken);
+  const [userRes, accountsRes] = await Promise.all([
+    fetch(`${GRAPH_BASE}/me?fields=id,name&access_token=${token}`),
+    fetch(`${GRAPH_BASE}/me/adaccounts?fields=id,name,currency,timezone_name,account_status,business&limit=50&access_token=${token}`),
+  ]);
+
+  let user: FacebookUser | null = null;
+  if (userRes.ok) {
+    const raw = await userRes.json() as { id: string; name: string };
+    user = { id: raw.id, name: raw.name };
+  }
+
+  let accounts: FacebookAdAccount[] = [];
+  if (accountsRes.ok) {
+    const raw = await accountsRes.json() as { data?: RawAdAccount[] };
+    accounts = (raw.data ?? []).map(a => ({
+      id: a.id,
+      name: a.name,
+      currency: a.currency,
+      timezoneName: a.timezone_name,
+      accountStatus: a.account_status as AdAccountStatus,
+      businessName: a.business?.name,
+    }));
+  }
+
+  return { user, accounts };
+}
+
+// ── Store ───────────────────────────────────────────────────────────────────
 
 /** Shape of the authentication store state. */
 interface AuthState {
@@ -55,6 +112,7 @@ type FacebookBridge = {
   startOAuth: (authUrl: string) => Promise<{ code: string; state: string }>;
   exchangeToken: (tokenUrl: string, code: string, redirectUri: string) => Promise<FacebookTokens>;
   saveConfig: (appId: string, appSecret: string, adAccountId: string) => Promise<void>;
+  saveAccountId: (adAccountId: string) => Promise<void>;
   clearConfig: () => Promise<void>;
 };
 
@@ -73,7 +131,8 @@ export const AuthStore = signalStore(
   withMethods((store) => ({
     /**
      * Loads stored tokens and config from Electron's encrypted storage.
-     * Sets isAuthenticated to true if a valid token is found.
+     * If a valid token is found, also fetches the user profile and ad accounts
+     * from the Graph API and restores the previously selected account.
      */
     async loadStoredTokens(): Promise<void> {
       if (!bridge) return;
@@ -87,6 +146,14 @@ export const AuthStore = signalStore(
             adAccountId: config?.adAccountId ?? null,
             appId: config?.appId ?? null,
           });
+          // Restore user profile and ad accounts (non-fatal if API is unavailable)
+          try {
+            const { user, accounts } = await fetchUserData(tokens.accessToken);
+            const selectedAccount = accounts.find(a => a.id === config?.adAccountId) ?? null;
+            patchState(store, { user, adAccounts: accounts, selectedAccount });
+          } catch {
+            // Token is still valid; profile data will refresh on next explicit action
+          }
         }
       } catch (e: unknown) {
         patchState(store, { error: e instanceof Error ? e.message : 'Failed to load auth state' });
@@ -133,7 +200,6 @@ export const AuthStore = signalStore(
 
     /**
      * Sets an error message in the store.
-     * @param error - The error message to display.
      */
     setError(error: string): void {
       patchState(store, { error, isLoading: false });
@@ -141,7 +207,6 @@ export const AuthStore = signalStore(
 
     /**
      * Stores the authenticated Facebook user's profile.
-     * Called after a successful /me API response.
      */
     setUser(user: FacebookUser): void {
       patchState(store, { user });
@@ -149,18 +214,18 @@ export const AuthStore = signalStore(
 
     /**
      * Replaces the full list of available ad accounts.
-     * Called after a successful /me/adaccounts API response.
      */
     setAdAccounts(accounts: FacebookAdAccount[]): void {
       patchState(store, { adAccounts: accounts });
     },
 
     /**
-     * Selects an ad account and syncs the adAccountId shorthand.
-     * @param account - The account to activate.
+     * Selects an ad account, syncs the adAccountId shorthand, and persists
+     * the selection to encrypted storage (without requiring the App Secret again).
      */
     selectAccount(account: FacebookAdAccount): void {
       patchState(store, { selectedAccount: account, adAccountId: account.id });
+      bridge?.saveAccountId(account.id).catch(() => {});
     },
 
     /**
@@ -183,10 +248,13 @@ export const AuthStore = signalStore(
 
     /**
      * Starts the Facebook OAuth flow via the Electron bridge.
-     * On success, sets isAuthenticated and stores the access token.
-     * Requires appId to be saved first (via saveCredentials).
+     * On success, fetches the user's profile and ad accounts automatically.
+     * Auto-selects the account if only one is accessible.
      *
-     * API: facebook.com/v22.0/dialog/oauth → /oauth/access_token (via Electron main)
+     * APIs called:
+     *  facebook.com/v22.0/dialog/oauth → /oauth/access_token (via Electron main)
+     *  GET /me?fields=id,name
+     *  GET /me/adaccounts?fields=id,name,currency,timezone_name,account_status,business
      */
     async connectFacebook(): Promise<void> {
       if (!bridge) {
@@ -212,14 +280,48 @@ export const AuthStore = signalStore(
         const { code } = await bridge.startOAuth(authUrl);
         const tokenUrl = 'https://graph.facebook.com/v22.0/oauth/access_token';
         const tokens = await bridge.exchangeToken(tokenUrl, code, redirectUri);
-        patchState(store, {
-          isAuthenticated: true,
-          accessToken: tokens.accessToken,
-          isLoading: false,
-        });
+        patchState(store, { isAuthenticated: true, accessToken: tokens.accessToken });
+
+        // Fetch user profile and ad accounts immediately after OAuth
+        try {
+          const { user, accounts } = await fetchUserData(tokens.accessToken);
+          const autoSelect = accounts.length === 1 ? accounts[0] : null;
+          patchState(store, {
+            user,
+            adAccounts: accounts,
+            ...(autoSelect ? { selectedAccount: autoSelect, adAccountId: autoSelect.id } : {}),
+          });
+          if (autoSelect) {
+            bridge.saveAccountId(autoSelect.id).catch(() => {});
+          }
+        } catch {
+          // Non-fatal — OAuth succeeded even if profile fetch fails
+        }
+        patchState(store, { isLoading: false });
       } catch (e: unknown) {
         patchState(store, {
           error: e instanceof Error ? e.message : 'Facebook OAuth failed',
+          isLoading: false,
+        });
+      }
+    },
+
+    /**
+     * Re-fetches the list of ad accounts from the Graph API.
+     * Used by the "Refresh accounts" button in the Account Details panel.
+     *
+     * API: GET /me/adaccounts?fields=id,name,currency,timezone_name,account_status,business
+     */
+    async refreshAdAccounts(): Promise<void> {
+      const token = store.accessToken();
+      if (!token) return;
+      patchState(store, { isLoading: true, error: null });
+      try {
+        const { accounts } = await fetchUserData(token);
+        patchState(store, { adAccounts: accounts, isLoading: false });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'Failed to refresh ad accounts',
           isLoading: false,
         });
       }

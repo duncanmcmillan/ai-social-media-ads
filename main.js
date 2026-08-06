@@ -207,6 +207,14 @@ ${body}</body></html>`);
     safeWrite(CONFIG_PATH(), { appId, appSecret, adAccountId });
   });
 
+  // ── Config: update Ad Account ID without touching the App Secret ──────
+  ipcMain.handle('facebook:save-account-id', (_event, { adAccountId }) => {
+    const json = safeRead(CONFIG_PATH());
+    if (!json) return;
+    const config = JSON.parse(json);
+    safeWrite(CONFIG_PATH(), { ...config, adAccountId });
+  });
+
   // ── Config: load App ID and Ad Account ID (never expose secret) ───────
   ipcMain.handle('facebook:load-config', () => {
     const json = safeRead(CONFIG_PATH());

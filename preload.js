@@ -61,6 +61,10 @@ contextBridge.exposeInMainWorld('facebook', {
   saveConfig: (appId, appSecret, adAccountId) =>
     ipcRenderer.invoke('facebook:save-config', { appId, appSecret, adAccountId }),
 
+  /** Persist the selected Ad Account ID without requiring the App Secret again */
+  saveAccountId: (adAccountId) =>
+    ipcRenderer.invoke('facebook:save-account-id', { adAccountId }),
+
   /** Load stored App ID and Ad Account ID (secret is never returned to renderer) */
   loadConfig: () =>
     ipcRenderer.invoke('facebook:load-config'),

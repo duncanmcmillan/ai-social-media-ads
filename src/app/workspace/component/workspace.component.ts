@@ -235,12 +235,9 @@ export class WorkspaceComponent implements AfterViewInit {
     if (account) this.authStore.selectAccount(account);
   }
 
-  /**
-   * Stub — will call MarketingApiService.getAdAccounts() once implemented.
-   * Fetches the user's available ad accounts from GET /me/adaccounts.
-   */
-  protected refreshAccounts(): void {
-    // TODO: inject MarketingApiService and call getAdAccounts()
+  /** Re-fetches ad accounts from GET /me/adaccounts and updates the store. */
+  protected async refreshAccounts(): Promise<void> {
+    await this.authStore.refreshAdAccounts();
   }
 
   protected async signOut(): Promise<void> {
