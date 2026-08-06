@@ -20,6 +20,15 @@ html {
     ),
     density: -1,
   ));
+
+  &.dark-theme {
+    @include mat.theme((
+      color: (
+        primary: mat.$orange-palette,
+        theme-type: dark,
+      ),
+    ));
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -84,6 +93,11 @@ body {
   color: var(--neutral-600);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark-theme body {
+  background-color: var(--neutral-900);
+  color: var(--neutral-200);
 }
 
 /* ─────────────────────────────────────────────

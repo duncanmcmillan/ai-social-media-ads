@@ -9,6 +9,13 @@
   <a class="nav-item" routerLink="/optimisation" routerLinkActive="active" #rlaOpt="routerLinkActive" [attr.aria-current]="rlaOpt.isActive ? 'page' : null">Optimisation</a>
   <a class="nav-item" routerLink="/preview" routerLinkActive="active" #rlaPrv="routerLinkActive" [attr.aria-current]="rlaPrv.isActive ? 'page' : null">Preview</a>
   <span class="nav-spacer"></span>
+  <button
+    class="theme-toggle"
+    (click)="toggleTheme()"
+    [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+    [attr.aria-pressed]="isDark()"
+    type="button"
+  >{{ isDark() ? '&#9728;' : '&#9790;' }}</button>
   <a class="nav-item" routerLink="/auth" routerLinkActive="active" #rlaAuth="routerLinkActive" [attr.aria-current]="rlaAuth.isActive ? 'page' : null">Auth</a>
   <span class="nav-meta" aria-hidden="true">{{ info }}</span>
 </nav>

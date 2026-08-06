@@ -14,6 +14,8 @@ import {
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from './auth';
 
+const THEME_KEY = 'theme';
+
 type ElectronWindow = Window & {
   versions: { node: () => string; chrome: () => string; electron: () => string; ping: () => Promise<string> };
   gdpr: { checkConsent: () => Promise<{ consented: boolean }>; setConsent: () => Promise<void> };
@@ -41,6 +43,14 @@ export class App implements AfterViewInit {
   /** Whether the GDPR consent banner should be shown. */
   protected readonly showConsentBanner = signal(false);
 
+  /** Whether the dark theme is currently active. */
+  protected readonly isDark = signal(localStorage.getItem(THEME_KEY) === 'dark');
+
+  constructor() {
+    // Apply persisted theme class before first render to avoid a flash.
+    document.documentElement.classList.toggle('dark-theme', this.isDark());
+  }
+
   /**
    * Checks GDPR consent and loads stored auth tokens after the view initialises.
    * No-op when not running inside Electron.
@@ -66,5 +76,15 @@ export class App implements AfterViewInit {
   protected async acceptConsent(): Promise<void> {
     await eWin.gdpr.setConsent();
     this.showConsentBanner.set(false);
+  }
+
+  /**
+   * Toggles between light and dark themes and persists the preference to localStorage.
+   */
+  protected toggleTheme(): void {
+    const next = !this.isDark();
+    this.isDark.set(next);
+    document.documentElement.classList.toggle('dark-theme', next);
+    localStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
   }
 }
