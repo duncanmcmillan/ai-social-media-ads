@@ -1,0 +1,211 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Skip link (visible only on keyboard focus) ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--neutral-900);
+  color: var(--neutral-0);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  border-radius: 0 0 4px 4px;
+  transition: top 0.1s ease;
+
+  &:focus-visible {
+    top: 0;
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Top nav ── */
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 24px;
+  height: 48px;
+  background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-150);
+  flex-shrink: 0;
+}
+
+.nav-brand {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--neutral-700);
+  letter-spacing: -0.01em;
+  margin-right: 20px;
+
+  span {
+    color: var(--orange-600);
+  }
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 48px;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--neutral-400);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--neutral-700);
+  }
+
+  &.active {
+    color: var(--orange-600);
+    border-bottom-color: var(--orange-500);
+  }
+}
+
+.nav-spacer { flex: 1; }
+
+.nav-meta {
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--neutral-400);
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 3px;
+}
+
+/* ── Main content ── */
+.app-content {
+  flex: 1;
+  overflow: auto;
+  padding: 32px;
+}
+
+/* ── GDPR consent banner ── */
+.consent-banner {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.consent-content {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 24px;
+}
+
+.consent-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--neutral-800);
+  margin-bottom: 12px;
+}
+
+.consent-body {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--neutral-500);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.consent-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Buttons (global convenience classes) ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--orange-500);
+  color: var(--neutral-0);
+  border-color: var(--orange-500);
+
+  &:hover {
+    background: var(--orange-600);
+    border-color: var(--orange-600);
+  }
+}
+
+/* ── Placeholder state (used by stub feature components) ── */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  text-align: center;
+}
+
+.placeholder-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--neutral-400);
+}
+
+.placeholder-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 200;
+  color: var(--neutral-700);
+  letter-spacing: -0.02em;
+}
+
+.placeholder-sub {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--neutral-400);
+  margin-top: 4px;
+}
+
+.placeholder-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange-500);
+  margin-bottom: 16px;
+  opacity: 0.7;
+}

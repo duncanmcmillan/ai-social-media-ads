@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style Guide — AI Social Media Ads</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&family=Inter+Tight:wght@100;200;300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─────────────────────────────────────────────
+       TOKENS
+    ───────────────────────────────────────────── */
+    :root {
+      --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-heading: "Inter Tight", "Inter", sans-serif;
+
+      /* Orange scale */
+      --orange-50:  #fff7ed;
+      --orange-100: #ffedd5;
+      --orange-200: #fed7aa;
+      --orange-300: #fdba74;
+      --orange-400: #fb923c;
+      --orange-500: #f97316;
+      --orange-600: #ea6c0a;
+      --orange-700: #c2540a;
+
+      /* Neutral scale */
+      --neutral-0:   #ffffff;
+      --neutral-50:  #fafaf9;
+      --neutral-100: #f5f5f4;
+      --neutral-150: #ebebeb;
+      --neutral-200: #e7e5e4;
+      --neutral-300: #d6d3d1;
+      --neutral-400: #a8a29e;
+      --neutral-500: #78716c;
+      --neutral-600: #57534e;
+      --neutral-700: #44403c;
+      --neutral-800: #292524;
+      --neutral-850: #1c1917;
+      --neutral-900: #0f0f0e;
+      --neutral-950: #090908;
+
+      /* Semantic status */
+      --color-success: #4ade80;
+      --color-warning: #fbbf24;
+      --color-error:   #f87171;
+      --color-info:    #60a5fa;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET & BASE
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* ─────────────────────────────────────────────
+       LAYOUT SCAFFOLDING
+    ───────────────────────────────────────────── */
+    .theme-section {
+      padding: 60px 48px;
+      min-height: 100vh;
+    }
+
+    .section-label {
+      font-family: var(--font-heading);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-bottom: 48px;
+    }
+
+    .guide-title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .guide-subtitle {
+      font-size: 13px;
+      font-weight: 300;
+      margin-bottom: 56px;
+      opacity: 0.5;
+    }
+
+    .group {
+      margin-bottom: 56px;
+    }
+
+    .group-title {
+      font-family: var(--font-heading);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ─────────────────────────────────────────────
+       DARK THEME
+    ───────────────────────────────────────────── */
+    .dark {
+      background-color: var(--neutral-950);
+      color: var(--neutral-300);
+    }
+
+    /* ── DIVIDER ── */
+    .dark .group-title {
+      color: var(--neutral-500);
+      border-bottom: 1px solid var(--neutral-850);
+    }
+
+    .dark .section-label {
+      background: var(--neutral-850);
+      color: var(--orange-500);
+      border: 1px solid var(--neutral-800);
+    }
+
+    .dark .guide-title { color: var(--neutral-100); }
+
+    /* ── COLORS ── */
+    .dark .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+    }
+
+    .dark .swatch {
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--neutral-800);
+    }
+
+    .dark .swatch-color { height: 48px; }
+    .dark .swatch-name {
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      background: var(--neutral-900);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .dark .type-scale .t-display {
+      font-family: var(--font-heading);
+      font-size: 40px;
+      font-weight: 200;
+      letter-spacing: -0.03em;
+      color: var(--neutral-100);
+      line-height: 1.1;
+    }
+    .dark .type-scale .t-h1 {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      color: var(--neutral-100);
+    }
+    .dark .type-scale .t-h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      color: var(--neutral-200);
+    }
+    .dark .type-scale .t-h3 {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--neutral-300);
+    }
+    .dark .type-scale .t-body {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      line-height: 1.7;
+    }
+    .dark .type-scale .t-small {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      letter-spacing: 0.01em;
+    }
+    .dark .type-scale .t-caption {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-600);
+      letter-spacing: 0.04em;
+    }
+    .dark .type-scale .t-label {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--neutral-500);
+    }
+    .dark .type-scale > * { margin-bottom: 12px; }
+
+    /* ── BUTTONS ── */
+    .dark .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+      text-decoration: none;
+      line-height: 1;
+    }
+
+    .dark .btn-primary {
+      background: var(--orange-500);
+      color: var(--neutral-950);
+      border-color: var(--orange-500);
+    }
+    .dark .btn-primary:hover {
+      background: var(--orange-400);
+      border-color: var(--orange-400);
+    }
+
+    .dark .btn-secondary {
+      background: transparent;
+      color: var(--neutral-300);
+      border-color: var(--neutral-700);
+    }
+    .dark .btn-secondary:hover {
+      background: var(--neutral-850);
+      border-color: var(--neutral-600);
+      color: var(--neutral-100);
+    }
+
+    .dark .btn-ghost {
+      background: transparent;
+      color: var(--neutral-400);
+      border-color: transparent;
+    }
+    .dark .btn-ghost:hover {
+      background: var(--neutral-850);
+      color: var(--neutral-200);
+    }
+
+    .dark .btn-danger {
+      background: transparent;
+      color: var(--color-error);
+      border-color: rgba(248, 113, 113, 0.3);
+    }
+    .dark .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.08);
+      border-color: rgba(248, 113, 113, 0.5);
+    }
+
+    .dark .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .dark .btn-lg { padding: 11px 24px; font-size: 14px; font-weight: 300; }
+
+    .dark .btn:disabled, .dark .btn[disabled] {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* ── INPUTS ── */
+    .dark .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 220px;
+    }
+
+    .dark .field label {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--neutral-500);
+    }
+
+    .dark .input {
+      background: var(--neutral-900);
+      border: 1px solid var(--neutral-800);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-200);
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      width: 100%;
+    }
+    .dark .input::placeholder { color: var(--neutral-700); }
+    .dark .input:hover { border-color: var(--neutral-600); }
+    .dark .input:focus {
+      border-color: var(--orange-600);
+      background: var(--neutral-850);
+    }
+    .dark .input.error { border-color: rgba(248, 113, 113, 0.5); }
+    .dark .field-hint {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-600);
+    }
+    .dark .field-error {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--color-error);
+    }
+
+    .dark select.input {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2357534e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    /* ── CARDS ── */
+    .dark .card {
+      background: var(--neutral-900);
+      border: 1px solid var(--neutral-800);
+      border-radius: 6px;
+      padding: 20px 24px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .dark .card:hover {
+      background: var(--neutral-850);
+      border-color: var(--neutral-700);
+    }
+    .dark .card-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--neutral-200);
+      margin-bottom: 6px;
+    }
+    .dark .card-body {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      line-height: 1.6;
+    }
+    .dark .card-accent {
+      border-left: 2px solid var(--orange-600);
+    }
+    .dark .card-footer {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--neutral-850);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ── TABLE ── */
+    .dark .table-wrap {
+      border: 1px solid var(--neutral-800);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .dark table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-weight: 300;
+    }
+    .dark thead tr {
+      background: var(--neutral-900);
+    }
+    .dark thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--neutral-500);
+      border-bottom: 1px solid var(--neutral-800);
+    }
+    .dark tbody tr {
+      border-bottom: 1px solid var(--neutral-850);
+      transition: background 0.12s ease;
+    }
+    .dark tbody tr:last-child { border-bottom: none; }
+    .dark tbody tr:hover { background: var(--neutral-900); }
+    .dark tbody td {
+      padding: 11px 16px;
+      color: var(--neutral-300);
+      font-weight: 300;
+    }
+    .dark .td-muted { color: var(--neutral-600) !important; font-size: 12px; }
+
+    /* ── BADGES ── */
+    .dark .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+    }
+    .dark .badge-default {
+      background: var(--neutral-850);
+      color: var(--neutral-400);
+      border-color: var(--neutral-800);
+    }
+    .dark .badge-orange {
+      background: rgba(249, 115, 22, 0.1);
+      color: var(--orange-400);
+      border-color: rgba(249, 115, 22, 0.2);
+    }
+    .dark .badge-success {
+      background: rgba(74, 222, 128, 0.08);
+      color: #4ade80;
+      border-color: rgba(74, 222, 128, 0.2);
+    }
+    .dark .badge-warning {
+      background: rgba(251, 191, 36, 0.08);
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.2);
+    }
+    .dark .badge-error {
+      background: rgba(248, 113, 113, 0.08);
+      color: #f87171;
+      border-color: rgba(248, 113, 113, 0.2);
+    }
+    .dark .badge-info {
+      background: rgba(96, 165, 250, 0.08);
+      color: #60a5fa;
+      border-color: rgba(96, 165, 250, 0.2);
+    }
+
+    /* ── ALERTS ── */
+    .dark .alert {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 300;
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    .dark .alert-icon {
+      font-size: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .dark .alert-content {}
+    .dark .alert-title {
+      font-weight: 400;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .dark .alert-msg {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+    .dark .alert-info {
+      background: rgba(96, 165, 250, 0.06);
+      border-color: rgba(96, 165, 250, 0.2);
+      color: #93c5fd;
+    }
+    .dark .alert-success {
+      background: rgba(74, 222, 128, 0.06);
+      border-color: rgba(74, 222, 128, 0.2);
+      color: #86efac;
+    }
+    .dark .alert-warning {
+      background: rgba(251, 191, 36, 0.06);
+      border-color: rgba(251, 191, 36, 0.2);
+      color: #fcd34d;
+    }
+    .dark .alert-error {
+      background: rgba(248, 113, 113, 0.06);
+      border-color: rgba(248, 113, 113, 0.2);
+      color: #fca5a5;
+    }
+
+    /* ── NAV ── */
+    .dark .nav-demo {
+      background: var(--neutral-950);
+      border: 1px solid var(--neutral-850);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .dark .nav-bar {
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 2px;
+      border-bottom: 1px solid var(--neutral-850);
+      height: 48px;
+    }
+    .dark .nav-brand {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--neutral-200);
+      letter-spacing: -0.01em;
+      margin-right: 24px;
+    }
+    .dark .nav-item {
+      padding: 0 12px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+      text-decoration: none;
+    }
+    .dark .nav-item:hover { color: var(--neutral-200); }
+    .dark .nav-item.active {
+      color: var(--orange-400);
+      border-bottom-color: var(--orange-500);
+    }
+    .dark .nav-spacer { flex: 1; }
+    .dark .nav-content {
+      padding: 24px 20px;
+      color: var(--neutral-600);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    /* ── SIDEBAR NAV ── */
+    .dark .sidebar-nav {
+      display: flex;
+      gap: 0;
+      background: var(--neutral-900);
+      border: 1px solid var(--neutral-800);
+      border-radius: 6px;
+      overflow: hidden;
+      min-height: 180px;
+    }
+    .dark .sidebar {
+      width: 180px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--neutral-800);
+      padding: 8px 0;
+    }
+    .dark .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+    .dark .sidebar-item:hover {
+      background: var(--neutral-850);
+      color: var(--neutral-200);
+    }
+    .dark .sidebar-item.active {
+      color: var(--orange-400);
+      background: rgba(249, 115, 22, 0.06);
+    }
+    .dark .sidebar-content {
+      flex: 1;
+      padding: 20px;
+      color: var(--neutral-600);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    /* ── DIVIDER ── */
+    .dark hr.divider {
+      border: none;
+      border-top: 1px solid var(--neutral-850);
+      margin: 40px 0;
+    }
+
+    /* ── TOOLTIPS ── */
+    .dark .tooltip-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .dark .tooltip-wrap .tooltip-text {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--neutral-800);
+      color: var(--neutral-200);
+      border: 1px solid var(--neutral-700);
+      font-size: 11px;
+      font-weight: 300;
+      padding: 5px 9px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .dark .tooltip-wrap:hover .tooltip-text { display: block; }
+
+    /* ── PROGRESS ── */
+    .dark .progress-track {
+      background: var(--neutral-850);
+      border-radius: 2px;
+      height: 3px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .dark .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--orange-500);
+      transition: width 0.3s ease;
+    }
+    .dark .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-600);
+      margin-bottom: 6px;
+    }
+
+    /* ── SKELETON ── */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .dark .skeleton {
+      background: linear-gradient(90deg, var(--neutral-850) 25%, var(--neutral-800) 50%, var(--neutral-850) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 3px;
+    }
+
+    /* ── TOGGLE ── */
+    .dark .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .dark .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--neutral-800);
+      border: 1px solid var(--neutral-700);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .dark .toggle.on {
+      background: var(--orange-600);
+      border-color: var(--orange-600);
+    }
+    .dark .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--neutral-400);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .dark .toggle.on::after {
+      transform: translateX(16px);
+      background: var(--neutral-950);
+    }
+    .dark .toggle-label { font-size: 13px; font-weight: 300; color: var(--neutral-400); }
+
+    /* ─────────────────────────────────────────────
+       LIGHT THEME
+    ───────────────────────────────────────────── */
+    .light {
+      background-color: var(--neutral-50);
+      color: var(--neutral-700);
+      border-top: 1px solid var(--neutral-200);
+    }
+
+    .light .group-title {
+      color: var(--neutral-400);
+      border-bottom: 1px solid var(--neutral-200);
+    }
+
+    .light .section-label {
+      background: var(--neutral-100);
+      color: var(--orange-600);
+      border: 1px solid var(--neutral-200);
+    }
+
+    .light .guide-title { color: var(--neutral-800); }
+
+    /* ── COLORS ── */
+    .light .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+    }
+    .light .swatch {
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--neutral-200);
+    }
+    .light .swatch-color { height: 48px; }
+    .light .swatch-name {
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      background: var(--neutral-0);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .light .type-scale .t-display {
+      font-family: var(--font-heading);
+      font-size: 40px;
+      font-weight: 200;
+      letter-spacing: -0.03em;
+      color: var(--neutral-900);
+      line-height: 1.1;
+    }
+    .light .type-scale .t-h1 {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 200;
+      letter-spacing: -0.02em;
+      color: var(--neutral-800);
+    }
+    .light .type-scale .t-h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      color: var(--neutral-700);
+    }
+    .light .type-scale .t-h3 {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--neutral-600);
+    }
+    .light .type-scale .t-body {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--neutral-600);
+      line-height: 1.7;
+    }
+    .light .type-scale .t-small {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      letter-spacing: 0.01em;
+    }
+    .light .type-scale .t-caption {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      letter-spacing: 0.04em;
+    }
+    .light .type-scale .t-label {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--neutral-400);
+    }
+    .light .type-scale > * { margin-bottom: 12px; }
+
+    /* ── BUTTONS ── */
+    .light .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+      text-decoration: none;
+      line-height: 1;
+    }
+    .light .btn-primary {
+      background: var(--orange-500);
+      color: var(--neutral-0);
+      border-color: var(--orange-500);
+    }
+    .light .btn-primary:hover {
+      background: var(--orange-600);
+      border-color: var(--orange-600);
+    }
+    .light .btn-secondary {
+      background: var(--neutral-0);
+      color: var(--neutral-600);
+      border-color: var(--neutral-300);
+    }
+    .light .btn-secondary:hover {
+      background: var(--neutral-100);
+      border-color: var(--neutral-400);
+      color: var(--neutral-800);
+    }
+    .light .btn-ghost {
+      background: transparent;
+      color: var(--neutral-500);
+      border-color: transparent;
+    }
+    .light .btn-ghost:hover {
+      background: var(--neutral-100);
+      color: var(--neutral-700);
+    }
+    .light .btn-danger {
+      background: transparent;
+      color: #dc2626;
+      border-color: rgba(220, 38, 38, 0.25);
+    }
+    .light .btn-danger:hover {
+      background: rgba(220, 38, 38, 0.05);
+      border-color: rgba(220, 38, 38, 0.4);
+    }
+    .light .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .light .btn-lg { padding: 11px 24px; font-size: 14px; font-weight: 300; }
+    .light .btn:disabled, .light .btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── INPUTS ── */
+    .light .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 220px;
+    }
+    .light .field label {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--neutral-400);
+    }
+    .light .input {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-200);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-700);
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      width: 100%;
+    }
+    .light .input::placeholder { color: var(--neutral-300); }
+    .light .input:hover { border-color: var(--neutral-300); }
+    .light .input:focus {
+      border-color: var(--orange-400);
+      background: var(--neutral-0);
+    }
+    .light .input.error { border-color: rgba(220, 38, 38, 0.4); }
+    .light .field-hint { font-size: 11px; font-weight: 300; color: var(--neutral-400); }
+    .light .field-error { font-size: 11px; font-weight: 300; color: #dc2626; }
+    .light select.input {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    /* ── CARDS ── */
+    .light .card {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-150);
+      border-radius: 6px;
+      padding: 20px 24px;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .light .card:hover {
+      border-color: var(--neutral-300);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .light .card-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--neutral-700);
+      margin-bottom: 6px;
+    }
+    .light .card-body {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      line-height: 1.6;
+    }
+    .light .card-accent { border-left: 2px solid var(--orange-400); }
+    .light .card-footer {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--neutral-100);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ── TABLE ── */
+    .light .table-wrap {
+      border: 1px solid var(--neutral-200);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .light table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-weight: 300;
+    }
+    .light thead tr { background: var(--neutral-50); }
+    .light thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--neutral-400);
+      border-bottom: 1px solid var(--neutral-200);
+    }
+    .light tbody tr {
+      border-bottom: 1px solid var(--neutral-100);
+      transition: background 0.12s ease;
+    }
+    .light tbody tr:last-child { border-bottom: none; }
+    .light tbody tr:hover { background: var(--neutral-50); }
+    .light tbody td { padding: 11px 16px; color: var(--neutral-600); }
+    .light .td-muted { color: var(--neutral-300) !important; font-size: 12px; }
+
+    /* ── BADGES ── */
+    .light .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+    }
+    .light .badge-default {
+      background: var(--neutral-100);
+      color: var(--neutral-500);
+      border-color: var(--neutral-200);
+    }
+    .light .badge-orange {
+      background: var(--orange-50);
+      color: var(--orange-600);
+      border-color: var(--orange-100);
+    }
+    .light .badge-success {
+      background: #f0fdf4;
+      color: #16a34a;
+      border-color: #bbf7d0;
+    }
+    .light .badge-warning {
+      background: #fffbeb;
+      color: #d97706;
+      border-color: #fde68a;
+    }
+    .light .badge-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+    .light .badge-info {
+      background: #eff6ff;
+      color: #2563eb;
+      border-color: #bfdbfe;
+    }
+
+    /* ── ALERTS ── */
+    .light .alert {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 300;
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    .light .alert-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+    .light .alert-title { font-weight: 400; font-size: 13px; margin-bottom: 2px; }
+    .light .alert-msg { font-size: 12px; opacity: 0.75; }
+    .light .alert-info {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+    .light .alert-success {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #15803d;
+    }
+    .light .alert-warning {
+      background: #fffbeb;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+    .light .alert-error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+    }
+
+    /* ── NAV ── */
+    .light .nav-demo {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-200);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .light .nav-bar {
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 2px;
+      border-bottom: 1px solid var(--neutral-150);
+      height: 48px;
+    }
+    .light .nav-brand {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--neutral-700);
+      letter-spacing: -0.01em;
+      margin-right: 24px;
+    }
+    .light .nav-item {
+      padding: 0 12px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+      text-decoration: none;
+    }
+    .light .nav-item:hover { color: var(--neutral-700); }
+    .light .nav-item.active {
+      color: var(--orange-600);
+      border-bottom-color: var(--orange-500);
+    }
+    .light .nav-spacer { flex: 1; }
+    .light .nav-content {
+      padding: 24px 20px;
+      color: var(--neutral-400);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    /* ── SIDEBAR ── */
+    .light .sidebar-nav {
+      display: flex;
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-200);
+      border-radius: 6px;
+      overflow: hidden;
+      min-height: 180px;
+    }
+    .light .sidebar {
+      width: 180px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--neutral-150);
+      padding: 8px 0;
+      background: var(--neutral-50);
+    }
+    .light .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+    .light .sidebar-item:hover {
+      background: var(--neutral-100);
+      color: var(--neutral-700);
+    }
+    .light .sidebar-item.active {
+      color: var(--orange-600);
+      background: var(--orange-50);
+    }
+    .light .sidebar-content {
+      flex: 1;
+      padding: 20px;
+      color: var(--neutral-400);
+      font-size: 13px;
+      font-weight: 300;
+    }
+
+    /* ── DIVIDER ── */
+    .light hr.divider {
+      border: none;
+      border-top: 1px solid var(--neutral-150);
+      margin: 40px 0;
+    }
+
+    /* ── PROGRESS ── */
+    .light .progress-track {
+      background: var(--neutral-150);
+      border-radius: 2px;
+      height: 3px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .light .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--orange-500);
+      transition: width 0.3s ease;
+    }
+    .light .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--neutral-400);
+      margin-bottom: 6px;
+    }
+
+    /* ── SKELETON ── */
+    .light .skeleton {
+      background: linear-gradient(90deg, var(--neutral-150) 25%, var(--neutral-200) 50%, var(--neutral-150) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 3px;
+    }
+
+    /* ── TOGGLE ── */
+    .light .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .light .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--neutral-200);
+      border: 1px solid var(--neutral-300);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .light .toggle.on {
+      background: var(--orange-500);
+      border-color: var(--orange-500);
+    }
+    .light .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--neutral-0);
+      transition: transform 0.2s;
+    }
+    .light .toggle.on::after { transform: translateX(16px); }
+    .light .toggle-label { font-size: 13px; font-weight: 300; color: var(--neutral-500); }
+
+    /* ── TOOLTIP ── */
+    .light .tooltip-wrap { position: relative; display: inline-block; }
+    .light .tooltip-wrap .tooltip-text {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--neutral-700);
+      color: var(--neutral-100);
+      border: 1px solid var(--neutral-600);
+      font-size: 11px;
+      font-weight: 300;
+      padding: 5px 9px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .light .tooltip-wrap:hover .tooltip-text { display: block; }
+
+    /* ─────────────────────────────────────────────
+       THEME SWITCHER
+    ───────────────────────────────────────────── */
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--neutral-950);
+      border-bottom: 1px solid var(--neutral-850);
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      height: 44px;
+      gap: 24px;
+    }
+    .sticky-nav a {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--neutral-500);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.15s;
+    }
+    .sticky-nav a:hover { color: var(--neutral-200); }
+    .sticky-nav .nav-dot {
+      font-size: 10px;
+      color: var(--neutral-700);
+    }
+    .sticky-brand {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--orange-500);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-right: 12px;
+    }
+  </style>
+</head>
+<body class="light">
+
+<!-- ── Sticky Nav ── -->
+<nav class="sticky-nav">
+  <span class="sticky-brand">Style Guide</span>
+  <span class="nav-dot">·</span>
+  <a href="#dark-colors">Colors</a>
+  <a href="#dark-type">Type</a>
+  <a href="#dark-buttons">Buttons</a>
+  <a href="#dark-inputs">Inputs</a>
+  <a href="#dark-cards">Cards</a>
+  <a href="#dark-table">Table</a>
+  <a href="#dark-nav">Nav</a>
+  <a href="#dark-badges">Badges</a>
+  <a href="#dark-alerts">Alerts</a>
+  <a href="#dark-misc">Misc</a>
+  <span class="nav-dot">·</span>
+  <a href="#light">↓ Light Theme</a>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     DARK THEME
+══════════════════════════════════════════ -->
+<section class="theme-section dark" id="dark">
+  <span class="section-label">Dark Theme</span>
+  <h1 class="guide-title">AI Social Media Ads Design System</h1>
+  <p class="guide-subtitle">Black &amp; orange — refined, muted, professional</p>
+
+  <!-- COLORS -->
+  <div class="group" id="dark-colors">
+    <div class="group-title">Color Palette</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-950)"></div><div class="swatch-name">Surface 950</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-900)"></div><div class="swatch-name">Surface 900</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-850)"></div><div class="swatch-name">Surface 850</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-800)"></div><div class="swatch-name">Border 800</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-700)"></div><div class="swatch-name">Muted 700</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-600)"></div><div class="swatch-name">Muted 600</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-500)"></div><div class="swatch-name">Subtle 500</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-400)"></div><div class="swatch-name">Body 400</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-300)"></div><div class="swatch-name">Emph 300</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-100)"></div><div class="swatch-name">Head 100</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-700)"></div><div class="swatch-name">Orange 700</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-600)"></div><div class="swatch-name">Orange 600</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-500)"></div><div class="swatch-name">Orange 500</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-400)"></div><div class="swatch-name">Orange 400</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-success)"></div><div class="swatch-name">Success</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-warning)"></div><div class="swatch-name">Warning</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-error)"></div><div class="swatch-name">Error</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-info)"></div><div class="swatch-name">Info</div></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- TYPOGRAPHY -->
+  <div class="group" id="dark-type">
+    <div class="group-title">Typography</div>
+    <div class="type-scale">
+      <div class="t-display">Display — Inter Tight 200</div>
+      <div class="t-h1">Heading 1 — 28px / 200</div>
+      <div class="t-h2">Heading 2 — 20px / 300</div>
+      <div class="t-h3">Heading 3 — 16px / 300</div>
+      <div class="t-body">Body text — 14px / 300. Designed for long-form reading comfort with generous line height and muted colour to reduce visual fatigue.</div>
+      <div class="t-small">Small — 12px / 300. Secondary details and metadata.</div>
+      <div class="t-caption">Caption — 11px / 300. Annotations and fine print.</div>
+      <div class="t-label">Label — 10px / 400 uppercase tracked</div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- BUTTONS -->
+  <div class="group" id="dark-buttons">
+    <div class="group-title">Buttons</div>
+    <div class="col">
+      <div class="row">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Danger</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-sm btn-primary">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-lg btn-primary">Large</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-secondary btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Export
+        </button>
+        <button class="btn btn-ghost btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Search
+        </button>
+        <button class="btn btn-primary btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New Record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- INPUTS -->
+  <div class="group" id="dark-inputs">
+    <div class="group-title">Form Controls</div>
+    <div class="row" style="align-items:flex-start; flex-wrap:wrap; gap:20px;">
+      <div class="field">
+        <label>Text Input</label>
+        <input class="input" type="text" placeholder="Enter value…" />
+        <span class="field-hint">Supporting hint text goes here.</span>
+      </div>
+      <div class="field">
+        <label>Error State</label>
+        <input class="input error" type="text" value="Invalid value" />
+        <span class="field-error">This field is required.</span>
+      </div>
+      <div class="field">
+        <label>Select</label>
+        <select class="input">
+          <option>Option A</option>
+          <option>Option B</option>
+          <option>Option C</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Search</label>
+        <input class="input" type="search" placeholder="Search…" />
+      </div>
+    </div>
+    <br/>
+    <!-- Toggles -->
+    <div class="col" style="gap:14px;">
+      <div class="toggle-wrap">
+        <div class="toggle on"></div>
+        <span class="toggle-label">Enabled</span>
+      </div>
+      <div class="toggle-wrap">
+        <div class="toggle"></div>
+        <span class="toggle-label">Disabled</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- CARDS -->
+  <div class="group" id="dark-cards">
+    <div class="group-title">Cards</div>
+    <div class="row" style="align-items:stretch;">
+      <div class="card" style="flex:1; min-width:200px;">
+        <div class="card-title">Default Card</div>
+        <div class="card-body">Supporting text describing the content of this card. Subtle hover lifts the surface slightly.</div>
+        <div class="card-footer">
+          <button class="btn btn-ghost btn-sm">Dismiss</button>
+          <button class="btn btn-primary btn-sm">Action</button>
+        </div>
+      </div>
+      <div class="card card-accent" style="flex:1; min-width:200px;">
+        <div class="card-title">Accented Card</div>
+        <div class="card-body">Orange left border denotes priority or emphasis. Same hover behaviour as default.</div>
+        <div class="card-footer">
+          <button class="btn btn-ghost btn-sm">Dismiss</button>
+          <button class="btn btn-primary btn-sm">Action</button>
+        </div>
+      </div>
+      <div class="card" style="flex:1; min-width:200px;">
+        <div class="card-title">
+          Metric Card
+          <span class="badge badge-success" style="float:right; margin-top:2px;">Live</span>
+        </div>
+        <div style="font-family: var(--font-heading); font-size: 32px; font-weight:200; color: var(--neutral-100); margin: 12px 0 4px;">£24,802</div>
+        <div class="card-body">Total VAT liability this quarter</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- TABLE -->
+  <div class="group" id="dark-table">
+    <div class="group-title">Table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>VAT</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Office supplies — Q1</td>
+            <td class="td-muted">12 Jan 2026</td>
+            <td>£340.00</td>
+            <td>£68.00</td>
+            <td><span class="badge badge-success">Submitted</span></td>
+          </tr>
+          <tr>
+            <td>Software licences</td>
+            <td class="td-muted">28 Jan 2026</td>
+            <td>£1,200.00</td>
+            <td>£240.00</td>
+            <td><span class="badge badge-warning">Pending</span></td>
+          </tr>
+          <tr>
+            <td>Travel expenses — client</td>
+            <td class="td-muted">03 Feb 2026</td>
+            <td>£87.50</td>
+            <td>£17.50</td>
+            <td><span class="badge badge-default">Draft</span></td>
+          </tr>
+          <tr>
+            <td>Contractor invoice #42</td>
+            <td class="td-muted">14 Feb 2026</td>
+            <td>£4,000.00</td>
+            <td>£800.00</td>
+            <td><span class="badge badge-error">Overdue</span></td>
+          </tr>
+          <tr>
+            <td>Cloud infrastructure</td>
+            <td class="td-muted">01 Mar 2026</td>
+            <td>£560.00</td>
+            <td>£112.00</td>
+            <td><span class="badge badge-info">Processing</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- NAV -->
+  <div class="group" id="dark-nav">
+    <div class="group-title">Navigation — Top Bar</div>
+    <div class="nav-demo">
+      <div class="nav-bar">
+        <span class="nav-brand">FB Ads</span>
+        <a class="nav-item active" href="#">Dashboard</a>
+        <a class="nav-item" href="#">Submissions</a>
+        <a class="nav-item" href="#">Transactions</a>
+        <a class="nav-item" href="#">Reports</a>
+        <span class="nav-spacer"></span>
+        <button class="btn btn-sm btn-primary" style="margin-right:4px;">Submit Return</button>
+      </div>
+      <div class="nav-content">↑ Tab bar with active indicator and hover states</div>
+    </div>
+
+    <br/>
+    <div class="group-title">Navigation — Sidebar</div>
+    <div class="sidebar-nav">
+      <div class="sidebar">
+        <div class="sidebar-item active">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Submissions
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Reports
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07 10 10 0 0 0 19.07 4.93z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="sidebar-content">← Sidebar with active and hover states</div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- BADGES -->
+  <div class="group" id="dark-badges">
+    <div class="group-title">Badges &amp; Status</div>
+    <div class="row">
+      <span class="badge badge-default">Default</span>
+      <span class="badge badge-orange">Orange</span>
+      <span class="badge badge-success">Success</span>
+      <span class="badge badge-warning">Warning</span>
+      <span class="badge badge-error">Error</span>
+      <span class="badge badge-info">Info</span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ALERTS -->
+  <div class="group" id="dark-alerts">
+    <div class="group-title">Alerts</div>
+    <div class="alert alert-info">
+      <div class="alert-icon">ℹ</div>
+      <div class="alert-content">
+        <div class="alert-title">Information</div>
+        <div class="alert-msg">Your VAT return is due in 14 days. Review your transactions before submitting.</div>
+      </div>
+    </div>
+    <div class="alert alert-success">
+      <div class="alert-icon">✓</div>
+      <div class="alert-content">
+        <div class="alert-title">Submission Complete</div>
+        <div class="alert-msg">Your Q4 VAT return has been accepted by HMRC.</div>
+      </div>
+    </div>
+    <div class="alert alert-warning">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-content">
+        <div class="alert-title">Reconciliation Warning</div>
+        <div class="alert-msg">3 transactions are uncategorised and may affect your return accuracy.</div>
+      </div>
+    </div>
+    <div class="alert alert-error">
+      <div class="alert-icon">✕</div>
+      <div class="alert-content">
+        <div class="alert-title">Submission Failed</div>
+        <div class="alert-msg">HMRC rejected the return. Check your authentication credentials and retry.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- MISC -->
+  <div class="group" id="dark-misc">
+    <div class="group-title">Misc — Progress, Skeleton, Tooltip</div>
+
+    <!-- Progress -->
+    <div style="max-width:320px; margin-bottom:24px;">
+      <div class="progress-label"><span>VAT Liability</span><span>68%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:68%"></div></div>
+      <br/>
+      <div class="progress-label"><span>Transactions reconciled</span><span>91%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:91%"></div></div>
+    </div>
+
+    <!-- Skeleton -->
+    <div style="max-width:320px; margin-bottom:24px; display:flex; flex-direction:column; gap:8px;">
+      <div class="skeleton" style="height:14px; width:60%;"></div>
+      <div class="skeleton" style="height:12px; width:90%;"></div>
+      <div class="skeleton" style="height:12px; width:75%;"></div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip-wrap">
+      <button class="btn btn-secondary btn-sm">Hover for tooltip</button>
+      <span class="tooltip-text">Tooltip content here</span>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     LIGHT THEME
+══════════════════════════════════════════ -->
+<section class="theme-section light" id="light">
+  <span class="section-label">Light Theme</span>
+  <h1 class="guide-title">AI Social Media Ads Design System</h1>
+  <p class="guide-subtitle">Warm white &amp; orange — clean, airy, professional</p>
+
+  <!-- COLORS -->
+  <div class="group">
+    <div class="group-title">Color Palette</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-0); border:1px solid var(--neutral-150);"></div><div class="swatch-name">Surface 0</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-50)"></div><div class="swatch-name">Surface 50</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-100)"></div><div class="swatch-name">Surface 100</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-200)"></div><div class="swatch-name">Border 200</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-300)"></div><div class="swatch-name">Subtle 300</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-400)"></div><div class="swatch-name">Body 400</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-500)"></div><div class="swatch-name">Muted 500</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-700)"></div><div class="swatch-name">Emph 700</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--neutral-900)"></div><div class="swatch-name">Head 900</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-400)"></div><div class="swatch-name">Orange 400</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-500)"></div><div class="swatch-name">Orange 500</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--orange-600)"></div><div class="swatch-name">Orange 600</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-success)"></div><div class="swatch-name">Success</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-warning)"></div><div class="swatch-name">Warning</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-error)"></div><div class="swatch-name">Error</div></div>
+      <div class="swatch"><div class="swatch-color" style="background:var(--color-info)"></div><div class="swatch-name">Info</div></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- TYPOGRAPHY -->
+  <div class="group">
+    <div class="group-title">Typography</div>
+    <div class="type-scale">
+      <div class="t-display">Display — Inter Tight 200</div>
+      <div class="t-h1">Heading 1 — 28px / 200</div>
+      <div class="t-h2">Heading 2 — 20px / 300</div>
+      <div class="t-h3">Heading 3 — 16px / 300</div>
+      <div class="t-body">Body text — 14px / 300. Clean, airy reading with generous line height and a warm neutral tone.</div>
+      <div class="t-small">Small — 12px / 300. Secondary details and metadata.</div>
+      <div class="t-caption">Caption — 11px / 300. Annotations and fine print.</div>
+      <div class="t-label">Label — 10px / 400 uppercase tracked</div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- BUTTONS -->
+  <div class="group">
+    <div class="group-title">Buttons</div>
+    <div class="col">
+      <div class="row">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Danger</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-sm btn-primary">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-lg btn-primary">Large</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-secondary btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Export
+        </button>
+        <button class="btn btn-ghost btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Search
+        </button>
+        <button class="btn btn-primary btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New Record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- INPUTS -->
+  <div class="group">
+    <div class="group-title">Form Controls</div>
+    <div class="row" style="align-items:flex-start; flex-wrap:wrap; gap:20px;">
+      <div class="field">
+        <label>Text Input</label>
+        <input class="input" type="text" placeholder="Enter value…" />
+        <span class="field-hint">Supporting hint text goes here.</span>
+      </div>
+      <div class="field">
+        <label>Error State</label>
+        <input class="input error" type="text" value="Invalid value" />
+        <span class="field-error">This field is required.</span>
+      </div>
+      <div class="field">
+        <label>Select</label>
+        <select class="input">
+          <option>Option A</option>
+          <option>Option B</option>
+          <option>Option C</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Search</label>
+        <input class="input" type="search" placeholder="Search…" />
+      </div>
+    </div>
+    <br/>
+    <div class="col" style="gap:14px;">
+      <div class="toggle-wrap">
+        <div class="toggle on"></div>
+        <span class="toggle-label">Enabled</span>
+      </div>
+      <div class="toggle-wrap">
+        <div class="toggle"></div>
+        <span class="toggle-label">Disabled</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- CARDS -->
+  <div class="group">
+    <div class="group-title">Cards</div>
+    <div class="row" style="align-items:stretch;">
+      <div class="card" style="flex:1; min-width:200px;">
+        <div class="card-title">Default Card</div>
+        <div class="card-body">Supporting text describing the content of this card. Hover lifts with a subtle shadow.</div>
+        <div class="card-footer">
+          <button class="btn btn-ghost btn-sm">Dismiss</button>
+          <button class="btn btn-primary btn-sm">Action</button>
+        </div>
+      </div>
+      <div class="card card-accent" style="flex:1; min-width:200px;">
+        <div class="card-title">Accented Card</div>
+        <div class="card-body">Orange left border denotes priority or emphasis. Same hover behaviour as default.</div>
+        <div class="card-footer">
+          <button class="btn btn-ghost btn-sm">Dismiss</button>
+          <button class="btn btn-primary btn-sm">Action</button>
+        </div>
+      </div>
+      <div class="card" style="flex:1; min-width:200px;">
+        <div class="card-title">
+          Metric Card
+          <span class="badge badge-success" style="float:right; margin-top:2px;">Live</span>
+        </div>
+        <div style="font-family: var(--font-heading); font-size: 32px; font-weight:200; color: var(--neutral-800); margin: 12px 0 4px;">£24,802</div>
+        <div class="card-body">Total VAT liability this quarter</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- TABLE -->
+  <div class="group">
+    <div class="group-title">Table</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>VAT</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Office supplies — Q1</td>
+            <td class="td-muted">12 Jan 2026</td>
+            <td>£340.00</td>
+            <td>£68.00</td>
+            <td><span class="badge badge-success">Submitted</span></td>
+          </tr>
+          <tr>
+            <td>Software licences</td>
+            <td class="td-muted">28 Jan 2026</td>
+            <td>£1,200.00</td>
+            <td>£240.00</td>
+            <td><span class="badge badge-warning">Pending</span></td>
+          </tr>
+          <tr>
+            <td>Travel expenses — client</td>
+            <td class="td-muted">03 Feb 2026</td>
+            <td>£87.50</td>
+            <td>£17.50</td>
+            <td><span class="badge badge-default">Draft</span></td>
+          </tr>
+          <tr>
+            <td>Contractor invoice #42</td>
+            <td class="td-muted">14 Feb 2026</td>
+            <td>£4,000.00</td>
+            <td>£800.00</td>
+            <td><span class="badge badge-error">Overdue</span></td>
+          </tr>
+          <tr>
+            <td>Cloud infrastructure</td>
+            <td class="td-muted">01 Mar 2026</td>
+            <td>£560.00</td>
+            <td>£112.00</td>
+            <td><span class="badge badge-info">Processing</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- NAV -->
+  <div class="group">
+    <div class="group-title">Navigation — Top Bar</div>
+    <div class="nav-demo">
+      <div class="nav-bar">
+        <span class="nav-brand">FB Ads</span>
+        <a class="nav-item active" href="#">Dashboard</a>
+        <a class="nav-item" href="#">Submissions</a>
+        <a class="nav-item" href="#">Transactions</a>
+        <a class="nav-item" href="#">Reports</a>
+        <span class="nav-spacer"></span>
+        <button class="btn btn-sm btn-primary" style="margin-right:4px;">Submit Return</button>
+      </div>
+      <div class="nav-content">↑ Tab bar with active indicator and hover states</div>
+    </div>
+
+    <br/>
+    <div class="group-title">Navigation — Sidebar</div>
+    <div class="sidebar-nav">
+      <div class="sidebar">
+        <div class="sidebar-item active">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Submissions
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Transactions
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Reports
+        </div>
+        <div class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07 10 10 0 0 0 19.07 4.93z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="sidebar-content">← Sidebar with active and hover states</div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- BADGES -->
+  <div class="group">
+    <div class="group-title">Badges &amp; Status</div>
+    <div class="row">
+      <span class="badge badge-default">Default</span>
+      <span class="badge badge-orange">Orange</span>
+      <span class="badge badge-success">Success</span>
+      <span class="badge badge-warning">Warning</span>
+      <span class="badge badge-error">Error</span>
+      <span class="badge badge-info">Info</span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ALERTS -->
+  <div class="group">
+    <div class="group-title">Alerts</div>
+    <div class="alert alert-info">
+      <div class="alert-icon">ℹ</div>
+      <div class="alert-content">
+        <div class="alert-title">Information</div>
+        <div class="alert-msg">Your VAT return is due in 14 days. Review your transactions before submitting.</div>
+      </div>
+    </div>
+    <div class="alert alert-success">
+      <div class="alert-icon">✓</div>
+      <div class="alert-content">
+        <div class="alert-title">Submission Complete</div>
+        <div class="alert-msg">Your Q4 VAT return has been accepted by HMRC.</div>
+      </div>
+    </div>
+    <div class="alert alert-warning">
+      <div class="alert-icon">⚠</div>
+      <div class="alert-content">
+        <div class="alert-title">Reconciliation Warning</div>
+        <div class="alert-msg">3 transactions are uncategorised and may affect your return accuracy.</div>
+      </div>
+    </div>
+    <div class="alert alert-error">
+      <div class="alert-icon">✕</div>
+      <div class="alert-content">
+        <div class="alert-title">Submission Failed</div>
+        <div class="alert-msg">HMRC rejected the return. Check your authentication credentials and retry.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- MISC -->
+  <div class="group">
+    <div class="group-title">Misc — Progress, Skeleton, Tooltip</div>
+
+    <div style="max-width:320px; margin-bottom:24px;">
+      <div class="progress-label"><span>VAT Liability</span><span>68%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:68%"></div></div>
+      <br/>
+      <div class="progress-label"><span>Transactions reconciled</span><span>91%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:91%"></div></div>
+    </div>
+
+    <div style="max-width:320px; margin-bottom:24px; display:flex; flex-direction:column; gap:8px;">
+      <div class="skeleton" style="height:14px; width:60%;"></div>
+      <div class="skeleton" style="height:12px; width:90%;"></div>
+      <div class="skeleton" style="height:12px; width:75%;"></div>
+    </div>
+
+    <div class="tooltip-wrap">
+      <button class="btn btn-secondary btn-sm">Hover for tooltip</button>
+      <span class="tooltip-text">Tooltip content here</span>
+    </div>
+  </div>
+
+</section>
+
+</body>
+</html>
