@@ -4,7 +4,7 @@
  * summary panel, and a child router outlet for the active step.
  */
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { NewCampaignStore } from '../store/new-campaign.store';
 import { WorkspaceStore } from '../../workspace';
 
@@ -27,7 +27,7 @@ const OBJECTIVE_LABELS: Record<string, string> = {
 /** Shell component that wraps all three New Campaign wizard steps. */
 @Component({
   selector: 'app-new-campaign',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink],
   templateUrl: './new-campaign.component.html',
   styleUrl: './new-campaign.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

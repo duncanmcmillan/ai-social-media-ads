@@ -114,7 +114,7 @@
       id="utm-params"
       class="form-input form-input--mono"
       type="text"
-      placeholder="utm_source=facebook&utm_medium=paid&utm_campaign=&#123;&#123;campaign.name&#125;&#125;"
+      [attr.placeholder]="'utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}'"
       [value]="store.campaign().utmParameters"
       (change)="setUtm($any($event.target).value)"
     />
