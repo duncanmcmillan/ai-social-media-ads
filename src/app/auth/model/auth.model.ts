@@ -63,6 +63,30 @@ export interface FacebookAdAccount {
   businessName?: string;
 }
 
+/**
+ * A Facebook Page administered by the current user.
+ * API: GET /me/accounts?fields=id,name,category
+ */
+export interface FacebookPage {
+  /** Numeric page ID as a string. */
+  id: string;
+  /** Page display name. */
+  name: string;
+  /** Page category (e.g. "Advertising Agency"). */
+  category?: string;
+}
+
+/**
+ * A Meta Pixel (dataset) linked to the selected ad account.
+ * API: GET /{ad-account-id}/adspixels?fields=id,name
+ */
+export interface FacebookPixel {
+  /** Numeric pixel/dataset ID as a string. */
+  id: string;
+  /** Pixel display name. */
+  name: string;
+}
+
 // ── TikTok — stub for future implementation ────────────────────────────────
 
 /** TikTok OAuth token payload (stub — not yet implemented). */

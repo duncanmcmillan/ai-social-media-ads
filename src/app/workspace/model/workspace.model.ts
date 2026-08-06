@@ -52,9 +52,17 @@ export interface WorkspaceEnhancements {
   adSetNameTemplate: string;
   /** UTM parameter string appended to destination URLs. */
   utmParameters: string;
-  /** EU DSA beneficiary name (legal entity running the ads). */
+  /**
+   * EU DSA beneficiary name — the legal entity the ad represents.
+   * Maps to the `beneficiary` field on the Facebook AdCreative object.
+   * Required for ads targeting EU audiences.
+   */
   beneficiaryName: string;
-  /** EU DSA payer name (who pays for the ads). */
+  /**
+   * EU DSA payer name — the entity that funds the ads.
+   * Maps to the `payer` field on the Facebook AdCreative object.
+   * Required for ads targeting EU audiences.
+   */
   payerName: string;
 }
 
