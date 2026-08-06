@@ -312,7 +312,8 @@
   gap: 12px;
   padding: 16px;
 
-  &--connected .platform-name { color: var(--neutral-700); }
+  &--connected    .platform-name { color: var(--neutral-700); }
+  &--coming-soon  { opacity: 0.45; pointer-events: none; border-top: 1px solid var(--neutral-150); }
 }
 
 .platform-icon {
@@ -326,7 +327,8 @@
   font-size: 16px;
   flex-shrink: 0;
 
-  &--meta { background: #1877f2; color: #fff; }
+  &--meta    { background: #1877f2; color: #fff; }
+  &--tiktok  { background: #010101; color: #fff; }
 }
 
 .platform-info {

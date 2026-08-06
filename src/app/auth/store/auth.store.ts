@@ -1,9 +1,15 @@
 /**
  * @fileoverview NgRx Signal Store for Facebook authentication state.
- * Manages the access token, auth status, and ad account selection.
+ * Manages the access token, auth status, ad account selection, and user profile.
  */
-import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
-import type { FacebookTokens, FacebookConfig } from '../model/auth.model';
+import { computed } from '@angular/core';
+import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
+import type {
+  FacebookTokens,
+  FacebookConfig,
+  FacebookUser,
+  FacebookAdAccount,
+} from '../model/auth.model';
 
 /** Shape of the authentication store state. */
 interface AuthState {
@@ -11,7 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   /** The current Facebook access token, or null if not authenticated. */
   accessToken: string | null;
-  /** The selected Ad Account ID, or null if not yet configured. */
+  /** The selected Ad Account ID shorthand, or null if not yet configured. */
   adAccountId: string | null;
   /** The Facebook App ID, or null if not yet configured. */
   appId: string | null;
@@ -19,6 +25,14 @@ interface AuthState {
   isLoading: boolean;
   /** Error message from the most recent failed operation, or null. */
   error: string | null;
+  /** Authenticated Facebook user profile, or null if not loaded. */
+  user: FacebookUser | null;
+  /** All ad accounts accessible to the authenticated user. */
+  adAccounts: FacebookAdAccount[];
+  /** The currently selected ad account, or null if not yet chosen. */
+  selectedAccount: FacebookAdAccount | null;
+  /** Whether the user has connected a TikTok account (future use). */
+  tiktokConnected: boolean;
 }
 
 const initialState: AuthState = {
@@ -28,6 +42,10 @@ const initialState: AuthState = {
   appId: null,
   isLoading: false,
   error: null,
+  user: null,
+  adAccounts: [],
+  selectedAccount: null,
+  tiktokConnected: false,
 };
 
 type FacebookBridge = {
@@ -46,6 +64,12 @@ const bridge = (window as unknown as { facebook?: FacebookBridge }).facebook ?? 
 export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
+  withComputed((store) => ({
+    /** True when app credentials and an ad account are both configured. */
+    isConfigured: computed(() => !!store.appId() && !!store.selectedAccount()),
+    /** Display name of the currently selected ad account, or null. */
+    accountDisplayName: computed(() => store.selectedAccount()?.name ?? null),
+  })),
   withMethods((store) => ({
     /**
      * Loads stored tokens and config from Electron's encrypted storage.
@@ -72,7 +96,7 @@ export const AuthStore = signalStore(
     },
 
     /**
-     * Signs the user out by clearing stored tokens.
+     * Signs the user out by clearing stored tokens and resetting profile state.
      */
     async signOut(): Promise<void> {
       if (bridge) {
@@ -85,6 +109,9 @@ export const AuthStore = signalStore(
       patchState(store, {
         isAuthenticated: false,
         accessToken: null,
+        user: null,
+        adAccounts: [],
+        selectedAccount: null,
         error: null,
       });
     },
@@ -110,6 +137,30 @@ export const AuthStore = signalStore(
      */
     setError(error: string): void {
       patchState(store, { error, isLoading: false });
+    },
+
+    /**
+     * Stores the authenticated Facebook user's profile.
+     * Called after a successful /me API response.
+     */
+    setUser(user: FacebookUser): void {
+      patchState(store, { user });
+    },
+
+    /**
+     * Replaces the full list of available ad accounts.
+     * Called after a successful /me/adaccounts API response.
+     */
+    setAdAccounts(accounts: FacebookAdAccount[]): void {
+      patchState(store, { adAccounts: accounts });
+    },
+
+    /**
+     * Selects an ad account and syncs the adAccountId shorthand.
+     * @param account - The account to activate.
+     */
+    selectAccount(account: FacebookAdAccount): void {
+      patchState(store, { selectedAccount: account, adAccountId: account.id });
     },
   }))
 );
