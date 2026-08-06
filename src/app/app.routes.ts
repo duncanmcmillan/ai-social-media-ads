@@ -6,33 +6,28 @@ import { Routes } from '@angular/router';
 
 /** Top-level routes — each feature module is lazy-loaded on demand. */
 export const routes: Routes = [
-  { path: '', redirectTo: 'campaigns', pathMatch: 'full' },
+  { path: '', redirectTo: 'workspace', pathMatch: 'full' },
   {
-    path: 'campaigns',
-    loadChildren: () => import('./campaigns/campaigns.routes').then(m => m.CAMPAIGNS_ROUTES),
+    path: 'workspace',
+    loadChildren: () => import('./workspace/workspace.routes').then(m => m.WORKSPACE_ROUTES),
   },
   {
-    path: 'ad-sets',
-    loadChildren: () => import('./ad-sets/ad-sets.routes').then(m => m.AD_SETS_ROUTES),
+    path: 'new-campaign',
+    loadChildren: () => import('./new-campaign/new-campaign.routes').then(m => m.NEW_CAMPAIGN_ROUTES),
   },
   {
-    path: 'ads',
-    loadChildren: () => import('./ads/ads.routes').then(m => m.ADS_ROUTES),
-  },
-  {
-    path: 'ad-creatives',
-    loadChildren: () => import('./ad-creatives/ad-creatives.routes').then(m => m.AD_CREATIVES_ROUTES),
+    path: 'campaign-manager',
+    loadChildren: () =>
+      import('./campaign-manager/campaign-manager.routes').then(m => m.CAMPAIGN_MANAGER_ROUTES),
   },
   {
     path: 'optimisation',
-    loadChildren: () => import('./optimisation/optimisation.routes').then(m => m.OPTIMISATION_ROUTES),
+    loadChildren: () =>
+      import('./optimisation/optimisation.routes').then(m => m.OPTIMISATION_ROUTES),
   },
   {
-    path: 'preview',
-    loadChildren: () => import('./preview/preview.routes').then(m => m.PREVIEW_ROUTES),
-  },
-  {
-    path: 'auth',
-    loadChildren: () => import('./auth/auth.routes').then(m => m.AUTH_ROUTES),
+    path: 'monitoring',
+    loadChildren: () =>
+      import('./monitoring/monitoring.routes').then(m => m.MONITORING_ROUTES),
   },
 ];

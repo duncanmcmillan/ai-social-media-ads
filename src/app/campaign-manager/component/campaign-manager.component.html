@@ -1,0 +1,30 @@
+<div class="cm-header">
+  <h1 class="cm-title">Campaign &amp; Ad Manager</h1>
+  <nav class="cm-sub-nav" aria-label="Manager sections">
+    <a
+      class="cm-tab"
+      routerLink="campaigns"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      [attr.aria-current]="null"
+    >Campaigns</a>
+    <a
+      class="cm-tab"
+      routerLink="ad-sets"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      [attr.aria-current]="null"
+    >Ad Sets</a>
+    <a
+      class="cm-tab"
+      routerLink="ads"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      [attr.aria-current]="null"
+    >Ads</a>
+  </nav>
+</div>
+
+<div class="cm-body">
+  <router-outlet />
+</div>

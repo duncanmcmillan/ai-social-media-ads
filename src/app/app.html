@@ -2,12 +2,41 @@
 
 <nav class="top-nav" aria-label="Main navigation">
   <span class="nav-brand">FB <span>Ads</span></span>
-  <a class="nav-item" routerLink="/campaigns" routerLinkActive="active" #rlaCmp="routerLinkActive" [attr.aria-current]="rlaCmp.isActive ? 'page' : null">Campaigns</a>
-  <a class="nav-item" routerLink="/ad-sets" routerLinkActive="active" #rlaAds="routerLinkActive" [attr.aria-current]="rlaAds.isActive ? 'page' : null">Ad Sets</a>
-  <a class="nav-item" routerLink="/ads" routerLinkActive="active" #rlaAd="routerLinkActive" [attr.aria-current]="rlaAd.isActive ? 'page' : null">Ads</a>
-  <a class="nav-item" routerLink="/ad-creatives" routerLinkActive="active" #rlaCr="routerLinkActive" [attr.aria-current]="rlaCr.isActive ? 'page' : null">Creatives</a>
-  <a class="nav-item" routerLink="/optimisation" routerLinkActive="active" #rlaOpt="routerLinkActive" [attr.aria-current]="rlaOpt.isActive ? 'page' : null">Optimisation</a>
-  <a class="nav-item" routerLink="/preview" routerLinkActive="active" #rlaPrv="routerLinkActive" [attr.aria-current]="rlaPrv.isActive ? 'page' : null">Preview</a>
+  <a
+    class="nav-item"
+    routerLink="/workspace"
+    routerLinkActive="active"
+    #rlaWs="routerLinkActive"
+    [attr.aria-current]="rlaWs.isActive ? 'page' : null"
+  >Workspace</a>
+  <a
+    class="nav-item"
+    routerLink="/new-campaign"
+    routerLinkActive="active"
+    #rlaNew="routerLinkActive"
+    [attr.aria-current]="rlaNew.isActive ? 'page' : null"
+  >New Campaign</a>
+  <a
+    class="nav-item"
+    routerLink="/campaign-manager"
+    routerLinkActive="active"
+    #rlaMgr="routerLinkActive"
+    [attr.aria-current]="rlaMgr.isActive ? 'page' : null"
+  >Campaign &amp; Ad Manager</a>
+  <a
+    class="nav-item"
+    routerLink="/optimisation"
+    routerLinkActive="active"
+    #rlaOpt="routerLinkActive"
+    [attr.aria-current]="rlaOpt.isActive ? 'page' : null"
+  >Optimisation</a>
+  <a
+    class="nav-item"
+    routerLink="/monitoring"
+    routerLinkActive="active"
+    #rlaMon="routerLinkActive"
+    [attr.aria-current]="rlaMon.isActive ? 'page' : null"
+  >Monitoring &amp; Tools</a>
   <span class="nav-spacer"></span>
   <button
     class="theme-toggle"
@@ -16,7 +45,6 @@
     [attr.aria-pressed]="isDark()"
     type="button"
   >{{ isDark() ? '&#9728;' : '&#9790;' }}</button>
-  <a class="nav-item" routerLink="/auth" routerLinkActive="active" #rlaAuth="routerLinkActive" [attr.aria-current]="rlaAuth.isActive ? 'page' : null">Auth</a>
   <span class="nav-meta" aria-hidden="true">{{ info }}</span>
 </nav>
 
@@ -31,7 +59,7 @@
       <p class="consent-body">
         This app stores your Facebook access token and app credentials locally on your device,
         encrypted using OS-level secure storage. No data is sent to any third party other than
-        the Facebook Marketing API. You can delete all stored data at any time via the Auth tab.
+        the Facebook Marketing API. You can delete all stored data at any time via the Workspace tab.
       </p>
       <div class="consent-actions">
         <button class="btn btn-primary" (click)="acceptConsent()">Accept &amp; Continue</button>

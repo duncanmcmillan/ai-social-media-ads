@@ -1,0 +1,136 @@
+@if (store.adSets().length === 0) {
+  <div class="empty-state">
+    <p class="empty-title">No ad sets yet</p>
+    <p class="empty-hint">Use "Build draft" on the Campaign step to generate ad sets with AI, or add one manually.</p>
+    <button class="btn btn-primary" (click)="addAdSet()" type="button">+ Add ad set</button>
+  </div>
+} @else {
+  <div class="step-card">
+    <div class="step-card-header">
+      <h2 class="step-card-title">Ad sets</h2>
+      <span class="step-card-meta">{{ store.adSets().length }} ad set{{ store.adSets().length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="adset-tabs" role="tablist">
+      @for (adSet of store.adSets(); track adSet.id; let i = $index) {
+        <button
+          class="adset-tab"
+          [class.adset-tab--active]="i === store.activeAdSetIndex()"
+          role="tab"
+          [attr.aria-selected]="i === store.activeAdSetIndex()"
+          (click)="selectTab(i)"
+          type="button"
+        >{{ adSet.name }}</button>
+      }
+      <button class="adset-tab adset-tab--add" (click)="addAdSet()" type="button" aria-label="Add ad set">+ Add</button>
+    </div>
+
+    @if (store.activeAdSet(); as adSet) {
+      <div class="adset-body" role="tabpanel">
+
+        <!-- Name -->
+        <div class="form-field">
+          <label class="form-label" [for]="'adset-name-' + store.activeAdSetIndex()">Ad set name</label>
+          <div class="name-row">
+            <input
+              [id]="'adset-name-' + store.activeAdSetIndex()"
+              class="form-input"
+              type="text"
+              [value]="adSet.name"
+              (input)="update('name', $any($event.target).value)"
+            />
+            @if (store.adSets().length > 1) {
+              <button class="icon-btn icon-btn--danger" (click)="removeAdSet(store.activeAdSetIndex())" type="button" aria-label="Remove ad set">&#10005;</button>
+            }
+          </div>
+        </div>
+
+        <!-- Audience -->
+        <div class="form-field">
+          <span class="form-section-label">Audience</span>
+          <label class="form-label" for="adset-countries">Target Countries</label>
+          <input
+            id="adset-countries"
+            class="form-input"
+            type="text"
+            placeholder="GB, US, IE"
+            [value]="adSet.targeting.countries.join(', ')"
+            (change)="setCountries($any($event.target).value)"
+          />
+          <div class="age-row">
+            <div>
+              <label class="form-label" for="adset-min-age">Min Age</label>
+              <input id="adset-min-age" class="form-input form-input--sm" type="number" min="13" max="65"
+                [value]="adSet.targeting.minAge"
+                (change)="update('targeting', { ...adSet.targeting, minAge: +$any($event.target).value })" />
+            </div>
+            <div>
+              <label class="form-label" for="adset-max-age">Max Age</label>
+              <input id="adset-max-age" class="form-input form-input--sm" type="number" min="13" max="65"
+                [value]="adSet.targeting.maxAge"
+                (change)="update('targeting', { ...adSet.targeting, maxAge: +$any($event.target).value })" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Placements & Optimisation -->
+        <div class="form-field">
+          <span class="form-section-label">Placements &amp; Optimisation</span>
+          <div class="placement-toggles">
+            <button class="placement-btn" [class.placement-btn--active]="adSet.placementMode === 'advantage'"
+              (click)="update('placementMode', 'advantage')" type="button">Advantage+ (recommended)</button>
+            <button class="placement-btn" [class.placement-btn--active]="adSet.placementMode === 'manual'"
+              (click)="update('placementMode', 'manual')" type="button">Manual</button>
+          </div>
+          <div class="select-row">
+            <div>
+              <label class="form-label" for="opt-goal">Optimisation goal</label>
+              <select id="opt-goal" class="form-select" [value]="adSet.optimizationGoal"
+                (change)="update('optimizationGoal', $any($event.target).value)">
+                @for (goal of optimizationGoals; track goal) {
+                  <option [value]="goal">{{ goal }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="billing-event">Billing event</label>
+              <select id="billing-event" class="form-select" [value]="adSet.billingEvent"
+                (change)="update('billingEvent', $any($event.target).value)">
+                @for (event of billingEvents; track event) {
+                  <option [value]="event">{{ event }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget & Schedule -->
+        <div class="form-field form-field--last">
+          <span class="form-section-label">Budget &amp; Schedule</span>
+          <div class="schedule-toggles">
+            <button class="placement-btn" [class.placement-btn--active]="adSet.scheduleMode === 'continuous'"
+              (click)="update('scheduleMode', 'continuous')" type="button">Run continuously</button>
+            <button class="placement-btn" [class.placement-btn--active]="adSet.scheduleMode === 'scheduled'"
+              (click)="update('scheduleMode', 'scheduled')" type="button">Set start &amp; end</button>
+          </div>
+          @if (adSet.scheduleMode === 'scheduled') {
+            <div class="select-row" style="margin-top:10px">
+              <div>
+                <label class="form-label" for="start-date">Start date</label>
+                <input id="start-date" class="form-input" type="date" [value]="adSet.startDate ?? ''"
+                  (change)="update('startDate', $any($event.target).value || null)" />
+              </div>
+              <div>
+                <label class="form-label" for="end-date">End date</label>
+                <input id="end-date" class="form-input" type="date" [value]="adSet.endDate ?? ''"
+                  (change)="update('endDate', $any($event.target).value || null)" />
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+  </div>
+}

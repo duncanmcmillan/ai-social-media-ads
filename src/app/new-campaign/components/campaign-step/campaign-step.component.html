@@ -1,0 +1,141 @@
+<!-- AI Draft Builder -->
+<div class="ai-prompt-bar">
+  <span class="ai-label">Build with AI</span>
+  <input
+    class="ai-input"
+    type="text"
+    placeholder="Describe your business or campaign goal..."
+    [value]="aiPrompt"
+    (input)="aiPrompt = $any($event.target).value"
+    (keydown.enter)="onBuildDraft()"
+    aria-label="AI campaign description"
+  />
+  <button
+    class="btn btn-ai"
+    (click)="onBuildDraft()"
+    [disabled]="!aiPrompt.trim() || store.isGeneratingAdSets()"
+    type="button"
+  >
+    @if (store.isGeneratingAdSets()) {
+      <span class="spinner"></span> Generating...
+    } @else {
+      Build draft
+    }
+  </button>
+</div>
+
+<!-- Campaign Section -->
+<div class="step-card">
+  <div class="step-card-header">
+    <h2 class="step-card-title">Campaign</h2>
+    <span class="step-card-meta">
+      {{ store.campaign().budgetType === 'campaign' ? 'Campaign budget' : 'Ad set budget' }}
+    </span>
+  </div>
+
+  <!-- Name -->
+  <div class="form-field">
+    <label class="form-label" for="campaign-name">Campaign name</label>
+    <input
+      id="campaign-name"
+      class="form-input"
+      type="text"
+      placeholder="e.g. Summer Sale 2025"
+      [value]="store.campaign().name"
+      (input)="setName($any($event.target).value)"
+    />
+  </div>
+
+  <!-- Objective -->
+  <div class="form-field">
+    <label class="form-label">Objective</label>
+    <div class="objective-grid">
+      @for (obj of objectives; track obj.value) {
+        <button
+          class="objective-btn"
+          [class.objective-btn--active]="store.campaign().objective === obj.value"
+          (click)="setObjective(obj.value)"
+          type="button"
+        >{{ obj.label }}</button>
+      }
+    </div>
+    @if (activeObjective()) {
+      <p class="form-hint">{{ activeObjective()!.hint }}</p>
+    }
+  </div>
+
+  <!-- Budget -->
+  <div class="form-field">
+    <label class="form-label">Budget</label>
+    <div class="budget-type-row">
+      <button
+        class="budget-type-btn"
+        [class.budget-type-btn--active]="store.campaign().budgetType === 'campaign'"
+        (click)="setBudgetType('campaign')"
+        type="button"
+      >
+        <span class="budget-type-name">Campaign budget</span>
+        <span class="budget-type-hint">Meta shifts spend to the best ad set automatically</span>
+      </button>
+      <button
+        class="budget-type-btn"
+        [class.budget-type-btn--active]="store.campaign().budgetType === 'adset'"
+        (click)="setBudgetType('adset')"
+        type="button"
+      >
+        <span class="budget-type-name">Ad set budget</span>
+        <span class="budget-type-hint">You fix the spend on each ad set yourself</span>
+      </button>
+    </div>
+    <div class="budget-amount-row">
+      <div class="period-toggles">
+        <button class="period-btn" [class.period-btn--active]="store.campaign().budgetPeriod === 'daily'" (click)="setBudgetPeriod('daily')" type="button">Daily</button>
+        <button class="period-btn" [class.period-btn--active]="store.campaign().budgetPeriod === 'lifetime'" (click)="setBudgetPeriod('lifetime')" type="button">Lifetime</button>
+      </div>
+      <div class="amount-input-wrap">
+        <span class="currency-symbol">£</span>
+        <input
+          class="form-input amount-input"
+          type="number"
+          min="1"
+          [value]="store.campaign().budgetAmount"
+          (change)="setBudgetAmount(+$any($event.target).value)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- URL Tracking -->
+  <div class="form-field">
+    <label class="form-label" for="utm-params">
+      URL Tracking <span class="optional-tag">optional</span>
+    </label>
+    <input
+      id="utm-params"
+      class="form-input form-input--mono"
+      type="text"
+      placeholder="utm_source=facebook&utm_medium=paid&utm_campaign=&#123;&#123;campaign.name&#125;&#125;"
+      [value]="store.campaign().utmParameters"
+      (change)="setUtm($any($event.target).value)"
+    />
+  </div>
+
+  <!-- Activate Immediately -->
+  <div class="form-field form-field--last">
+    <div class="toggle-row">
+      <div>
+        <span class="form-label" style="margin-bottom:0">Activate immediately</span>
+        <p class="form-hint">Off = everything launches paused; review in Ads Manager before any spend</p>
+      </div>
+      <label class="toggle-switch">
+        <input
+          type="checkbox"
+          [checked]="store.campaign().activateImmediately"
+          (change)="setActivateImmediately($any($event.target).checked)"
+        />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+  </div>
+
+</div>

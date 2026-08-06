@@ -1,0 +1,125 @@
+:host { display: flex; flex-direction: column; height: 100%; padding-top: 16px; }
+
+/* ── Toolbar ─────────────────────────────────────────────────────────── */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.list-auth-hint {
+  font-size: 12px;
+  color: var(--neutral-400);
+}
+
+/* ── Error ───────────────────────────────────────────────────────────── */
+.list-error {
+  padding: 10px 14px;
+  background: #fee2e2;
+  border: 1px solid #f87171;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #991b1b;
+  margin-bottom: 16px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+.list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 6px;
+  text-align: center;
+  padding: 48px 0;
+}
+
+.list-empty-icon { font-size: 32px; margin-bottom: 8px; }
+
+.list-empty-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 200;
+  color: var(--neutral-700);
+}
+
+.list-empty-sub {
+  font-size: 13px;
+  color: var(--neutral-400);
+}
+
+/* ── Table ───────────────────────────────────────────────────────────── */
+.list-table-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--neutral-50, #fafafa);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--neutral-500);
+    border-bottom: 1px solid var(--neutral-200);
+  }
+
+  td {
+    padding: 10px 14px;
+    color: var(--neutral-700);
+    border-bottom: 1px solid var(--neutral-100);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--neutral-50, #fafafa); }
+}
+
+.col-name { font-weight: 400; }
+.col-obj, .col-date { color: var(--neutral-500); }
+
+/* ── Status badge ────────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.status-active   { background: #dcfce7; color: #166534; }
+.status-paused   { background: var(--neutral-100); color: var(--neutral-500); }
+.status-deleted  { background: #fee2e2; color: #991b1b; }
+.status-archived { background: var(--neutral-100); color: var(--neutral-400); }
+.status-in_process  { background: #fef9c3; color: #713f12; }
+.status-with_issues { background: #fee2e2; color: #991b1b; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

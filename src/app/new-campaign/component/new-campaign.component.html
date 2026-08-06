@@ -1,0 +1,180 @@
+<div class="nc-layout">
+
+  <!-- ── Main column ──────────────────────────────────────────────────── -->
+  <div class="nc-main">
+
+    <div class="nc-header">
+      <div class="nc-breadcrumb">
+        <a class="nc-bread-link" routerLink="/new-campaign/campaign">Create campaign</a>
+        <span class="nc-bread-sep">&#8250;</span>
+        <span class="nc-bread-current">{{ steps[currentStepIndex].label }}</span>
+      </div>
+
+      <div class="nc-step-nav" role="navigation" aria-label="Wizard steps">
+        @for (step of steps; track step.path; let i = $index) {
+          <a
+            class="nc-step"
+            [routerLink]="step.path"
+            [class.nc-step--active]="i === currentStepIndex"
+            [class.nc-step--done]="i < currentStepIndex"
+            [attr.aria-current]="i === currentStepIndex ? 'step' : null"
+          >
+            <span class="nc-step-num">{{ i + 1 }}</span>
+            <span class="nc-step-label">{{ step.label }}</span>
+            @if (i < steps.length - 1) {
+              <span class="nc-step-arrow">&#8250;</span>
+            }
+          </a>
+        }
+      </div>
+
+      @if (store.campaign().name) {
+        <span class="nc-campaign-name">{{ store.campaign().name }}</span>
+      }
+    </div>
+
+    <!-- Workspace setup warning -->
+    @if (!workspaceStore.isConfigured()) {
+      <div class="nc-setup-warning" role="alert">
+        <span class="nc-setup-icon">&#9888;</span>
+        <span>
+          Facebook Page, Meta Pixel, and Website URL must be configured before publishing.
+          <a routerLink="/workspace" class="nc-setup-link">Go to Workspace</a>
+        </span>
+      </div>
+    }
+
+    <!-- Error banner -->
+    @if (store.error()) {
+      <div class="nc-error-banner" role="alert">{{ store.error() }}</div>
+    }
+
+    <!-- Step content -->
+    <div class="nc-body">
+      <router-outlet />
+    </div>
+
+    <!-- Footer navigation -->
+    <div class="nc-footer">
+      @if (currentStepIndex > 0) {
+        <button class="btn btn-outline" (click)="prevStep()" type="button">Back</button>
+      }
+      <span class="nc-footer-spacer"></span>
+      @if (currentStepIndex < steps.length - 1) {
+        <button class="btn btn-primary" (click)="nextStep()" type="button">
+          Next: {{ steps[currentStepIndex + 1].label }}
+        </button>
+      } @else {
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="store.isPublishing() || !workspaceStore.isConfigured()"
+        >
+          @if (store.isPublishing()) {
+            <span class="spinner"></span> Creating...
+          } @else {
+            Launch Ads
+          }
+        </button>
+      }
+    </div>
+
+  </div><!-- /nc-main -->
+
+  <!-- ── Right panel ───────────────────────────────────────────────────── -->
+  <aside class="nc-panel" aria-label="Campaign summary">
+
+    <!-- Setup score -->
+    <div class="ncp-section">
+      <div class="ncp-section-label">Setup score</div>
+      <div class="ncp-score-row">
+        @for (i of [0,1,2,3]; track i) {
+          <div class="ncp-dot" [class.ncp-dot--filled]="i < store.setupScore()"></div>
+        }
+        <span class="ncp-score-text">{{ store.setupScore() }} / 4</span>
+      </div>
+    </div>
+
+    <!-- Campaign progress -->
+    <div class="ncp-section">
+      <div class="ncp-section-label">Campaign progress</div>
+      <ul class="ncp-progress-list">
+        <li class="ncp-progress-item" [class.ncp-progress-item--done]="!!store.campaign().name && !!store.campaign().objective">
+          <span class="ncp-check">{{ (store.campaign().name && store.campaign().objective) ? '&#10003;' : '&#8226;' }}</span>
+          Campaign details
+        </li>
+        <li class="ncp-progress-item" [class.ncp-progress-item--done]="store.hasAdSets()">
+          <span class="ncp-check">{{ store.hasAdSets() ? '&#10003;' : '&#8226;' }}</span>
+          Ad sets configured
+        </li>
+        <li class="ncp-progress-item" [class.ncp-progress-item--done]="store.hasCreatives()">
+          <span class="ncp-check">{{ store.hasCreatives() ? '&#10003;' : '&#8226;' }}</span>
+          Creatives uploaded
+        </li>
+      </ul>
+    </div>
+
+    <!-- Campaign at a glance -->
+    <div class="ncp-section">
+      <div class="ncp-section-label">At a glance</div>
+      <dl class="ncp-glance">
+        <div class="ncp-glance-row">
+          <dt>Name</dt>
+          <dd>{{ store.campaign().name || '—' }}</dd>
+        </div>
+        <div class="ncp-glance-row">
+          <dt>Objective</dt>
+          <dd>{{ store.campaign().objective ? (objectiveLabels[store.campaign().objective!] || store.campaign().objective) : '—' }}</dd>
+        </div>
+        <div class="ncp-glance-row">
+          <dt>Budget</dt>
+          <dd>
+            @if (store.campaign().budgetAmount) {
+              ${{ store.campaign().budgetAmount }}
+              /{{ store.campaign().budgetPeriod === 'daily' ? 'day' : 'lifetime' }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div class="ncp-glance-row">
+          <dt>Ad Sets</dt>
+          <dd>{{ store.adSets().length || '—' }}</dd>
+        </div>
+        <div class="ncp-glance-row">
+          <dt>Creatives</dt>
+          <dd>{{ store.creatives().length || '—' }}</dd>
+        </div>
+        @if (store.totalAdsToCreate() > 0) {
+          <div class="ncp-glance-row">
+            <dt>Total ads</dt>
+            <dd>{{ store.totalAdsToCreate() }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+
+    <!-- How it works -->
+    <div class="ncp-section ncp-section--howto">
+      <div class="ncp-section-label">How it works</div>
+      <ol class="ncp-howto-list">
+        <li>
+          <strong>Campaign</strong> — Set your objective and overall budget.
+        </li>
+        <li>
+          <strong>Ad Sets</strong> — Define audience targeting, placement, and schedule.
+        </li>
+        <li>
+          <strong>Creatives</strong> — Upload images or videos and write ad copy.
+          AI can generate copy for you.
+        </li>
+      </ol>
+      <p class="ncp-howto-note">
+        Each creative is paired with each ad set to create individual ads.
+        {{ store.totalAdsToCreate() > 0 ? store.totalAdsToCreate() + ' ad' + (store.totalAdsToCreate() === 1 ? '' : 's') + ' will be created.' : '' }}
+      </p>
+    </div>
+
+  </aside><!-- /nc-panel -->
+
+</div><!-- /nc-layout -->

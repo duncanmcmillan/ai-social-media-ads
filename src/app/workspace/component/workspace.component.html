@@ -1,0 +1,421 @@
+<header class="ws-header">
+  <div class="ws-header-text">
+    <h1 class="ws-title">Workspace</h1>
+    <p class="ws-subtitle">Default settings for Facebook &amp; Instagram ads</p>
+  </div>
+  <span class="ws-badge">Workspace Defaults</span>
+</header>
+
+<div class="ws-body">
+
+  <!-- ── Account Details ──────────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Account Details</h2>
+    <div class="ws-card">
+      @if (authStore.isAuthenticated()) {
+        <div class="platform-card platform-card--connected">
+          <div class="platform-icon platform-icon--meta">f</div>
+          <div class="platform-info">
+            <span class="platform-name">Meta <span class="status-dot status-dot--on"></span> Connected</span>
+            <span class="platform-sub">Facebook &amp; Instagram ads</span>
+            @if (authStore.adAccountId()) {
+              <span class="platform-account">{{ authStore.adAccountId() }}</span>
+            }
+          </div>
+          <button class="btn btn-outline btn-sm" (click)="signOut()">Disconnect</button>
+        </div>
+      } @else {
+        <div class="platform-card">
+          <div class="platform-icon platform-icon--meta">f</div>
+          <div class="platform-info">
+            <span class="platform-name">Meta <span class="status-dot status-dot--off"></span> Not connected</span>
+            <span class="platform-sub">Facebook &amp; Instagram ads</span>
+          </div>
+          <a class="btn btn-primary btn-sm" routerLink="/auth">Connect</a>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Meta Defaults ─────────────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Meta Defaults</h2>
+    <p class="ws-section-sub">Settings apply to all new campaigns unless overridden at campaign level.</p>
+
+    <div class="ws-card">
+
+      <div class="ws-field">
+        <label class="ws-label" for="fb-page-id">Facebook Page</label>
+        <p class="ws-field-hint">Required for ad identity</p>
+        <input
+          id="fb-page-id"
+          class="ws-input"
+          type="text"
+          placeholder="Facebook Page ID (e.g. 123456789)"
+          [value]="workspaceStore.metaDefaults().facebookPageId"
+          (input)="setPageId($any($event.target).value)"
+        />
+      </div>
+
+      <div class="ws-field">
+        <label class="ws-label">Instagram Account</label>
+        <div class="ws-toggle-row">
+          <div class="ws-toggle-text">
+            <span class="ws-toggle-label">Use Facebook Page for Instagram</span>
+            <span class="ws-toggle-hint">Run Instagram ads without a linked Instagram account</span>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="workspaceStore.metaDefaults().usePageForInstagram"
+              (change)="setUsePageForInstagram($any($event.target).checked)"
+            />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="ws-field">
+        <label class="ws-label" for="pixel-id">Meta Pixel</label>
+        <p class="ws-field-hint">Required for conversion tracking</p>
+        <input
+          id="pixel-id"
+          class="ws-input"
+          type="text"
+          placeholder="Pixel / Dataset ID"
+          [value]="workspaceStore.metaDefaults().pixelId"
+          (input)="setPixelId($any($event.target).value)"
+        />
+      </div>
+
+      <div class="ws-field">
+        <label class="ws-label" for="website-url">Website URL</label>
+        <p class="ws-field-hint">Landing page for your ads</p>
+        <input
+          id="website-url"
+          class="ws-input"
+          type="url"
+          placeholder="https://example.com"
+          [value]="workspaceStore.metaDefaults().websiteUrl"
+          (input)="setWebsiteUrl($any($event.target).value)"
+        />
+      </div>
+
+      <div class="ws-field ws-field--last">
+        <div class="ws-toggle-row">
+          <div class="ws-toggle-text">
+            <span class="ws-toggle-label">Exclude Custom Audiences</span>
+            <span class="ws-toggle-hint">Exclude specific audiences from targeting</span>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="workspaceStore.metaDefaults().excludeCustomAudiences"
+              (change)="setExcludeCustomAudiences($any($event.target).checked)"
+            />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Placements & Audience ─────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Placements &amp; Audience</h2>
+    <div class="ws-card">
+
+      <div class="ws-field">
+        <div class="ws-toggle-row">
+          <div class="ws-toggle-text">
+            <span class="ws-toggle-label">Advantage+ Placements</span>
+            <span class="ws-toggle-hint">Let Meta automatically optimise where your ads appear</span>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="workspaceStore.placements().advantagePlacements"
+              (change)="setAdvantagePlacements($any($event.target).checked)"
+            />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="ws-field ws-field--last">
+        <div class="ws-toggle-row">
+          <div class="ws-toggle-text">
+            <span class="ws-toggle-label">Advantage+ Audience</span>
+            <span class="ws-toggle-hint">Let Meta find the best audience for your ads automatically</span>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="workspaceStore.placements().advantageAudience"
+              (change)="setAdvantageAudience($any($event.target).checked)"
+            />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Default Targeting ─────────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Default Targeting</h2>
+    <div class="ws-card">
+
+      <div class="ws-field">
+        <label class="ws-label" for="target-countries">Target Countries</label>
+        <p class="ws-field-hint">Comma-separated ISO 3166-1 alpha-2 codes (e.g. GB, US, IE)</p>
+        <input
+          id="target-countries"
+          class="ws-input"
+          type="text"
+          placeholder="GB, US"
+          [value]="workspaceStore.targeting().countries.join(', ')"
+          (change)="setCountries($any($event.target).value)"
+        />
+      </div>
+
+      <div class="ws-field-row">
+        <div class="ws-field ws-field--last">
+          <label class="ws-label" for="min-age">Min Age</label>
+          <input
+            id="min-age"
+            class="ws-input ws-input--sm"
+            type="number"
+            min="13"
+            max="65"
+            [value]="workspaceStore.targeting().minAge"
+            (change)="setMinAge(+$any($event.target).value)"
+          />
+        </div>
+        <div class="ws-field ws-field--last">
+          <label class="ws-label" for="max-age">Max Age</label>
+          <input
+            id="max-age"
+            class="ws-input ws-input--sm"
+            type="number"
+            min="13"
+            max="65"
+            [value]="workspaceStore.targeting().maxAge"
+            (change)="setMaxAge(+$any($event.target).value)"
+          />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Enhancements ───────────────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Enhancements</h2>
+    <div class="ws-card">
+
+      <div class="ws-field">
+        <div class="ws-toggle-row">
+          <div class="ws-toggle-text">
+            <span class="ws-toggle-label">Creative Enhancements</span>
+            <span class="ws-toggle-hint">Control which Advantage+ optimisations Meta can apply</span>
+          </div>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              [checked]="workspaceStore.enhancements().creativeEnhancements"
+              (change)="setCreativeEnhancements($any($event.target).checked)"
+            />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="ws-field">
+        <label class="ws-label">Attribution Window</label>
+        <div class="ws-field-row">
+          <div>
+            <label class="ws-sublabel" for="click-through">Click-Through</label>
+            <select id="click-through" class="ws-select" [value]="workspaceStore.enhancements().clickThroughDays" (change)="setAttributionWindow('clickThroughDays', +$any($event.target).value)">
+              <option value="1">1 Day</option>
+              <option value="7">7 Days</option>
+              <option value="28">28 Days</option>
+            </select>
+          </div>
+          <div>
+            <label class="ws-sublabel" for="engaged-view">Engaged View</label>
+            <select id="engaged-view" class="ws-select" [value]="workspaceStore.enhancements().engagedViewDays" (change)="setAttributionWindow('engagedViewDays', +$any($event.target).value)">
+              <option value="1">1 Day</option>
+              <option value="7">7 Days</option>
+            </select>
+          </div>
+          <div>
+            <label class="ws-sublabel" for="view-through">View-Through</label>
+            <select id="view-through" class="ws-select" [value]="workspaceStore.enhancements().viewThroughDays" (change)="setAttributionWindow('viewThroughDays', +$any($event.target).value)">
+              <option value="1">1 Day</option>
+              <option value="7">7 Days</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-field">
+        <label class="ws-label">Naming &amp; UTM</label>
+        <label class="ws-sublabel" for="creative-name-tmpl">Creative Name Template</label>
+        <input
+          id="creative-name-tmpl"
+          class="ws-input ws-input--mono"
+          type="text"
+          [value]="workspaceStore.enhancements().creativeNameTemplate"
+          (change)="setTemplate('creativeNameTemplate', $any($event.target).value)"
+        />
+        <label class="ws-sublabel ws-sublabel--mt" for="adset-name-tmpl">Ad Set Name Template</label>
+        <input
+          id="adset-name-tmpl"
+          class="ws-input ws-input--mono"
+          type="text"
+          [value]="workspaceStore.enhancements().adSetNameTemplate"
+          (change)="setTemplate('adSetNameTemplate', $any($event.target).value)"
+        />
+        <label class="ws-sublabel ws-sublabel--mt" for="utm-params">UTM Parameters</label>
+        <input
+          id="utm-params"
+          class="ws-input ws-input--mono"
+          type="text"
+          [value]="workspaceStore.enhancements().utmParameters"
+          (change)="setTemplate('utmParameters', $any($event.target).value)"
+        />
+      </div>
+
+      <div class="ws-field ws-field--last">
+        <label class="ws-label">EU Advertising Identity (DSA)</label>
+        <div class="ws-field-row">
+          <div class="ws-field-col">
+            <label class="ws-sublabel" for="beneficiary">Beneficiary Name</label>
+            <input
+              id="beneficiary"
+              class="ws-input"
+              type="text"
+              placeholder="Legal entity name"
+              [value]="workspaceStore.enhancements().beneficiaryName"
+              (change)="setDsa('beneficiaryName', $any($event.target).value)"
+            />
+          </div>
+          <div class="ws-field-col">
+            <label class="ws-sublabel" for="payer">Payer Name</label>
+            <input
+              id="payer"
+              class="ws-input"
+              type="text"
+              placeholder="Who pays for the ads"
+              [value]="workspaceStore.enhancements().payerName"
+              (change)="setDsa('payerName', $any($event.target).value)"
+            />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Learning Rules ────────────────────────────────────────────────── -->
+  <section class="ws-section">
+    <h2 class="ws-section-title">Learning Rules</h2>
+    <p class="ws-section-sub">Thresholds the creative diagnosis uses to label your ads.</p>
+    <div class="ws-card">
+
+      <div class="ws-rule-group">
+        <span class="ws-rule-group-label">Data Floors</span>
+        <div class="ws-field-row">
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="min-impr">Min Impressions</label>
+            <p class="ws-rule-hint">Below this, an ad is "not enough data"</p>
+            <input id="min-impr" class="ws-input ws-input--sm" type="number"
+              [value]="workspaceStore.learningRules().minImpressions"
+              (change)="setLearningRule('minImpressions', +$any($event.target).value)" />
+          </div>
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="min-spend">Min Spend</label>
+            <p class="ws-rule-hint">Spend floor before any verdict</p>
+            <input id="min-spend" class="ws-input ws-input--sm" type="number"
+              [value]="workspaceStore.learningRules().minSpend"
+              (change)="setLearningRule('minSpend', +$any($event.target).value)" />
+          </div>
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="min-conv">Min Conversions</label>
+            <p class="ws-rule-hint">Required before conversion-rate verdicts</p>
+            <input id="min-conv" class="ws-input ws-input--sm" type="number"
+              [value]="workspaceStore.learningRules().minConversions"
+              (change)="setLearningRule('minConversions', +$any($event.target).value)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-rule-group">
+        <span class="ws-rule-group-label">Winner Gate</span>
+        <div class="ws-field-row">
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="win-spend">Winner Min Spend</label>
+            <p class="ws-rule-hint">Spend an ad must prove before it can be called a winner</p>
+            <input id="win-spend" class="ws-input ws-input--sm" type="number"
+              [value]="workspaceStore.learningRules().winnerMinSpend"
+              (change)="setLearningRule('winnerMinSpend', +$any($event.target).value)" />
+          </div>
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="win-roas">Winner Min ROAS</label>
+            <p class="ws-rule-hint">ROAS floor for the winner label</p>
+            <input id="win-roas" class="ws-input ws-input--sm" type="number" step="0.1"
+              [value]="workspaceStore.learningRules().winnerMinRoas"
+              (change)="setLearningRule('winnerMinRoas', +$any($event.target).value)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-rule-group">
+        <span class="ws-rule-group-label">Kill Rule</span>
+        <div class="ws-rule-field">
+          <label class="ws-sublabel" for="kill-cpa">Kill CPA Multiple</label>
+          <p class="ws-rule-hint">Flag as loser when CPA exceeds this multiple of your target CPA</p>
+          <input id="kill-cpa" class="ws-input ws-input--sm" type="number" step="0.1"
+            [value]="workspaceStore.learningRules().killCpaMultiple"
+            (change)="setLearningRule('killCpaMultiple', +$any($event.target).value)" />
+        </div>
+      </div>
+
+      <div class="ws-rule-group">
+        <span class="ws-rule-group-label">Fatigue</span>
+        <div class="ws-field-row">
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="prosp-freq">Prospecting Frequency Max</label>
+            <p class="ws-rule-hint">Frequency ceiling for prospecting before fatigue counts</p>
+            <input id="prosp-freq" class="ws-input ws-input--sm" type="number" step="0.1"
+              [value]="workspaceStore.learningRules().prospectingFrequencyMax"
+              (change)="setLearningRule('prospectingFrequencyMax', +$any($event.target).value)" />
+          </div>
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="retarg-freq">Retargeting Frequency Max</label>
+            <p class="ws-rule-hint">Higher ceiling allowed for retargeting audiences</p>
+            <input id="retarg-freq" class="ws-input ws-input--sm" type="number" step="0.1"
+              [value]="workspaceStore.learningRules().retargetingFrequencyMax"
+              (change)="setLearningRule('retargetingFrequencyMax', +$any($event.target).value)" />
+          </div>
+          <div class="ws-rule-field">
+            <label class="ws-sublabel" for="ctr-drop">CTR Drop from Peak (%)</label>
+            <p class="ws-rule-hint">CTR drop from its peak that marks an ad fatigued</p>
+            <input id="ctr-drop" class="ws-input ws-input--sm" type="number"
+              [value]="workspaceStore.learningRules().ctrDropFromPeak"
+              (change)="setLearningRule('ctrDropFromPeak', +$any($event.target).value)" />
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-card-footer">
+        <button class="btn btn-outline btn-sm" (click)="resetLearningRules()">Reset to defaults</button>
+      </div>
+
+    </div>
+  </section>
+
+</div>

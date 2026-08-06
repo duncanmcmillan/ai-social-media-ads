@@ -1,0 +1,61 @@
+<div class="list-toolbar">
+  <button
+    class="btn btn-primary"
+    type="button"
+    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    (click)="sync()"
+  >
+    @if (isLoading()) {
+      <span class="spinner"></span> Syncing...
+    } @else {
+      &#8635; Sync from Meta
+    }
+  </button>
+
+  @if (!authStore.isAuthenticated()) {
+    <span class="list-auth-hint">Connect Meta account in Workspace to sync data.</span>
+  }
+</div>
+
+@if (error()) {
+  <div class="list-error" role="alert">{{ error() }}</div>
+}
+
+@if (adSets().length === 0 && !isLoading()) {
+  <div class="list-empty">
+    <div class="list-empty-icon">&#128203;</div>
+    <div class="list-empty-title">No ad sets loaded</div>
+    <div class="list-empty-sub">Click "Sync from Meta" to pull your ad sets.</div>
+  </div>
+} @else if (adSets().length > 0) {
+  <div class="list-table-wrap">
+    <table class="list-table" aria-label="Ad Sets">
+      <thead>
+        <tr>
+          <th scope="col">Ad Set</th>
+          <th scope="col">Status</th>
+          <th scope="col">Optimisation</th>
+          <th scope="col">Billing</th>
+          <th scope="col">Budget</th>
+          <th scope="col">Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of adSets(); track a.id) {
+          <tr>
+            <td class="col-name">{{ a.name }}</td>
+            <td><span class="status-badge" [class]="'status-' + a.status.toLowerCase()">{{ a.status }}</span></td>
+            <td class="col-meta">{{ a.optimizationGoal }}</td>
+            <td class="col-meta">{{ a.billingEvent }}</td>
+            <td class="col-budget">
+              @if (a.dailyBudget != null) { ${{ a.dailyBudget / 100 }}/day }
+              @else if (a.lifetimeBudget != null) { ${{ a.lifetimeBudget / 100 }} lifetime }
+              @else { — }
+            </td>
+            <td class="col-date">{{ a.createdTime | date:'dd MMM yyyy' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

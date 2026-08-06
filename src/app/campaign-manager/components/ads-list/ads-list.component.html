@@ -1,0 +1,55 @@
+<div class="list-toolbar">
+  <button
+    class="btn btn-primary"
+    type="button"
+    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    (click)="sync()"
+  >
+    @if (isLoading()) {
+      <span class="spinner"></span> Syncing...
+    } @else {
+      &#8635; Sync from Meta
+    }
+  </button>
+
+  @if (!authStore.isAuthenticated()) {
+    <span class="list-auth-hint">Connect Meta account in Workspace to sync data.</span>
+  }
+</div>
+
+@if (error()) {
+  <div class="list-error" role="alert">{{ error() }}</div>
+}
+
+@if (ads().length === 0 && !isLoading()) {
+  <div class="list-empty">
+    <div class="list-empty-icon">&#128196;</div>
+    <div class="list-empty-title">No ads loaded</div>
+    <div class="list-empty-sub">Click "Sync from Meta" to pull your ads.</div>
+  </div>
+} @else if (ads().length > 0) {
+  <div class="list-table-wrap">
+    <table class="list-table" aria-label="Ads">
+      <thead>
+        <tr>
+          <th scope="col">Ad</th>
+          <th scope="col">Status</th>
+          <th scope="col">Creative</th>
+          <th scope="col">Ad Set</th>
+          <th scope="col">Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ad of ads(); track ad.id) {
+          <tr>
+            <td class="col-name">{{ ad.name }}</td>
+            <td><span class="status-badge" [class]="'status-' + ad.status.toLowerCase()">{{ ad.status }}</span></td>
+            <td class="col-meta">{{ ad.creativeId }}</td>
+            <td class="col-meta">{{ ad.adSetId }}</td>
+            <td class="col-date">{{ ad.createdTime | date:'dd MMM yyyy' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

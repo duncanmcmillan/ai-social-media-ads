@@ -1,0 +1,289 @@
+/* ── AI Prompt Bar ───────────────────────────────────────────────────── */
+.ai-prompt-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.ai-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--orange-600);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.ai-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--neutral-700);
+  outline: none;
+
+  &::placeholder { color: var(--neutral-300); }
+}
+
+.btn-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--orange-500);
+  color: var(--neutral-0);
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) { background: var(--orange-600); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Step Card ───────────────────────────────────────────────────────── */
+.step-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--neutral-150);
+}
+
+.step-card-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--neutral-800);
+}
+
+.step-card-meta {
+  font-size: 12px;
+  color: var(--neutral-400);
+}
+
+/* ── Form fields ─────────────────────────────────────────────────────── */
+.form-field {
+  padding: 16px;
+  border-bottom: 1px solid var(--neutral-150);
+
+  &--last { border-bottom: none; }
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--neutral-600);
+  margin-bottom: 8px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--neutral-400);
+  margin-top: 6px;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--neutral-700);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  transition: border-color 0.15s ease;
+
+  &:focus { outline: none; border-color: var(--orange-400); background: var(--neutral-0); }
+  &::placeholder { color: var(--neutral-300); }
+  &--mono { font-family: monospace; font-size: 12px; }
+}
+
+.optional-tag {
+  font-size: 10px;
+  color: var(--neutral-400);
+  font-weight: 300;
+  margin-left: 4px;
+}
+
+/* ── Objective grid ──────────────────────────────────────────────────── */
+.objective-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.objective-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-50);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-600);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { border-color: var(--orange-300); color: var(--orange-600); }
+
+  &--active {
+    background: var(--orange-500);
+    border-color: var(--orange-500);
+    color: var(--neutral-0);
+  }
+}
+
+/* ── Budget ──────────────────────────────────────────────────────────── */
+.budget-type-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.budget-type-btn {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  background: var(--neutral-50);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s ease;
+
+  &--active {
+    border-color: var(--orange-400);
+    background: var(--neutral-0);
+  }
+}
+
+.budget-type-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--neutral-700);
+}
+
+.budget-type-hint {
+  font-size: 11px;
+  color: var(--neutral-400);
+  line-height: 1.4;
+}
+
+.budget-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.period-toggles {
+  display: flex;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.period-btn {
+  padding: 7px 14px;
+  border: none;
+  background: var(--neutral-50);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-500);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &--active { background: var(--neutral-200); color: var(--neutral-700); font-weight: 400; }
+}
+
+.amount-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.currency-symbol {
+  font-size: 13px;
+  color: var(--neutral-500);
+}
+
+.amount-input {
+  width: 100px;
+}
+
+/* ── Toggle row ──────────────────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input { opacity: 0; width: 0; height: 0; position: absolute; }
+}
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--neutral-300);
+  border-radius: 11px;
+  transition: background 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: var(--neutral-0);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: var(--orange-500);
+  &::after { transform: translateX(18px); }
+}

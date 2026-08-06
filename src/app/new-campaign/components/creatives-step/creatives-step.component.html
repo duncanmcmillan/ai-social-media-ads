@@ -1,0 +1,220 @@
+<div class="creatives-layout">
+
+  <!-- Left: Upload panel + file list -->
+  <div class="upload-panel">
+
+    <div class="url-mode-row">
+      <label class="form-label">Website URL</label>
+      <select class="form-select" [value]="store.websiteUrlMode()" (change)="setUrlMode($any($event.target).value)">
+        <option value="default">Use default website URL</option>
+        <option value="adset">Use ad set URL</option>
+        <option value="creative">Set per creative</option>
+      </select>
+    </div>
+
+    <!-- Drop zone -->
+    <label class="drop-zone" for="file-upload">
+      <input
+        id="file-upload"
+        type="file"
+        accept="image/jpeg,image/png,image/gif,video/mp4,video/mov"
+        multiple
+        class="file-input"
+        (change)="onFilesSelected($event)"
+      />
+      <span class="drop-icon">&#9707;</span>
+      <span class="drop-title">Click to upload ad creatives</span>
+      <span class="drop-hint">or drag &amp; drop your selected files here</span>
+      <span class="drop-formats">JPG, PNG &middot; MP4, MOV &middot; Up to 4GB</span>
+    </label>
+
+    <!-- File list -->
+    @if (store.creatives().length > 0) {
+      <ul class="file-list" role="list">
+        @for (creative of store.creatives(); track creative.id; let i = $index) {
+          <li
+            class="file-item"
+            [class.file-item--active]="i === store.activeCreativeIndex()"
+            (click)="selectCreative(i)"
+            role="button"
+            [attr.aria-pressed]="i === store.activeCreativeIndex()"
+          >
+            <span class="file-thumb">
+              @if (creative.fileType === 'image') {
+                <img [src]="creative.objectUrl" [alt]="creative.fileName" class="file-thumb-img" />
+              } @else {
+                <span class="file-thumb-icon">&#9654;</span>
+              }
+            </span>
+            <span class="file-name">{{ creative.fileName }}</span>
+            <button
+              class="file-remove"
+              (click)="$event.stopPropagation(); removeCreative(i)"
+              type="button"
+              aria-label="Remove creative"
+            >&#10005;</button>
+          </li>
+        }
+      </ul>
+    }
+
+  </div>
+
+  <!-- Right: Copy editor -->
+  <div class="copy-editor">
+    @if (!store.activeCreative()) {
+      <div class="copy-empty">
+        <p>Upload a creative to start writing copy</p>
+      </div>
+    } @else {
+      @let creative = store.activeCreative()!;
+
+      <!-- Preview thumbnail -->
+      <div class="copy-preview">
+        @if (creative.fileType === 'image') {
+          <img [src]="creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
+        }
+        <span class="copy-preview-name">{{ creative.fileName }}</span>
+      </div>
+
+      <!-- Tone chips -->
+      <div class="chip-group">
+        <span class="chip-label">Tone</span>
+        <div class="chips">
+          @for (tone of tones; track tone) {
+            <button
+              class="chip"
+              [class.chip--active]="creative.tones.includes(tone)"
+              (click)="toggleTone(tone)"
+              type="button"
+            >{{ tone }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Hook chips -->
+      <div class="chip-group">
+        <span class="chip-label">Hook</span>
+        <div class="chips">
+          @for (hook of hooks; track hook) {
+            <button
+              class="chip"
+              [class.chip--active]="creative.hook === hook"
+              (click)="update('hook', creative.hook === hook ? '' : hook)"
+              type="button"
+            >{{ hook }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Length chips -->
+      <div class="chip-group">
+        <span class="chip-label">Length</span>
+        <div class="chips">
+          @for (len of lengths; track len) {
+            <button
+              class="chip"
+              [class.chip--active]="creative.length === len"
+              (click)="update('length', len)"
+              type="button"
+            >{{ len }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Copy fields -->
+      <div class="copy-field">
+        <label class="copy-field-label" [for]="'primary-' + creative.id">Primary Text</label>
+        <textarea
+          [id]="'primary-' + creative.id"
+          class="copy-textarea"
+          rows="4"
+          placeholder="Write your main ad copy here..."
+          [value]="creative.primaryText"
+          (input)="update('primaryText', $any($event.target).value)"
+        ></textarea>
+      </div>
+
+      <div class="copy-field">
+        <label class="copy-field-label" [for]="'headline-' + creative.id">Headline</label>
+        <input
+          [id]="'headline-' + creative.id"
+          class="copy-input"
+          type="text"
+          placeholder="Short attention-grabbing headline"
+          [value]="creative.headline"
+          (input)="update('headline', $any($event.target).value)"
+        />
+      </div>
+
+      <div class="copy-field">
+        <label class="copy-field-label" [for]="'desc-' + creative.id">Description</label>
+        <input
+          [id]="'desc-' + creative.id"
+          class="copy-input"
+          type="text"
+          placeholder="Supporting description text"
+          [value]="creative.description"
+          (input)="update('description', $any($event.target).value)"
+        />
+      </div>
+
+      <!-- CTA + Launch Status -->
+      <div class="copy-meta-row">
+        <div>
+          <label class="copy-field-label" for="cta-select">Call to Action</label>
+          <select id="cta-select" class="form-select" [value]="creative.cta" (change)="update('cta', $any($event.target).value)">
+            @for (cta of ctaOptions; track cta) {
+              <option [value]="cta">{{ cta }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="copy-field-label">Launch Status</label>
+          <div class="status-toggles">
+            <button class="status-btn status-btn--active-opt" [class.status-btn--selected]="creative.launchStatus === 'active'"
+              (click)="update('launchStatus', 'active')" type="button">Active</button>
+            <button class="status-btn" [class.status-btn--selected]="creative.launchStatus === 'paused'"
+              (click)="update('launchStatus', 'paused')" type="button">Paused</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ad Creation Mode -->
+      <div class="ad-mode-row">
+        <button
+          class="ad-mode-btn"
+          [class.ad-mode-btn--active]="creative.adCreationMode === 'separate'"
+          (click)="update('adCreationMode', 'separate')"
+          type="button"
+        >
+          <span class="ad-mode-name">Separate Ads</span>
+          <span class="ad-mode-hint">Creates one ad per text variation. Full control over each ad's performance.</span>
+        </button>
+        <button
+          class="ad-mode-btn"
+          [class.ad-mode-btn--active]="creative.adCreationMode === 'flexible'"
+          (click)="update('adCreationMode', 'flexible')"
+          type="button"
+        >
+          <span class="ad-mode-name">Flexible Ad</span>
+          <span class="ad-mode-hint">Meta automatically tests all text combinations and shows the best performing one.</span>
+        </button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="copy-toolbar">
+        <button class="toolbar-btn toolbar-btn--primary" (click)="generateAiCopy()" [disabled]="store.isGeneratingCopy()" type="button">
+          @if (store.isGeneratingCopy()) {
+            <span class="spinner"></span> Generating...
+          } @else {
+            Generate AI Copy
+          }
+        </button>
+        <button class="toolbar-btn" type="button">Preview</button>
+        <button class="toolbar-btn" type="button">Duplicate</button>
+      </div>
+    }
+  </div>
+
+</div>
