@@ -164,32 +164,6 @@
   justify-content: flex-end;
 }
 
-/* ── Buttons (global convenience classes) ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 300;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: var(--orange-500);
-  color: var(--neutral-0);
-  border-color: var(--orange-500);
-
-  &:hover {
-    background: var(--orange-600);
-    border-color: var(--orange-600);
-  }
-}
 
 /* ── Placeholder state (used by stub feature components) ── */
 .placeholder {

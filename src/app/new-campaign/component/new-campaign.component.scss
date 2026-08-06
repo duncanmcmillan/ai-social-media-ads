@@ -319,9 +319,3 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.btn-outline {
-  background: transparent;
-  color: var(--neutral-600);
-  border: 1px solid var(--neutral-300);
-  &:hover { background: var(--neutral-100); }
-}

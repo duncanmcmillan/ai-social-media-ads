@@ -72,6 +72,59 @@ html {
 }
 
 /* ─────────────────────────────────────────────
+   BUTTONS (global — available in all components)
+───────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:disabled,
+  &[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.btn-primary {
+  background: var(--orange-500);
+  color: var(--neutral-0);
+  border-color: var(--orange-500);
+
+  &:hover {
+    background: var(--orange-600);
+    border-color: var(--orange-600);
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--neutral-600);
+  border: 1px solid var(--neutral-300);
+
+  &:hover {
+    background: var(--neutral-100);
+    border-color: var(--neutral-400);
+  }
+}
+
+/* ─────────────────────────────────────────────
    RESET & BASE
 ───────────────────────────────────────────── */
 *, *::before, *::after {
