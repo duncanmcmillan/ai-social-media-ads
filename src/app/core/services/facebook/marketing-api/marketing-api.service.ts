@@ -289,17 +289,25 @@ export class MarketingApiService {
     if (!adAccountId) throw new Error('No ad account selected.');
 
     const buffer = await file.arrayBuffer();
-    const bytes = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    const uint8 = new Uint8Array(buffer);
+    // Chunked base64 encoding — avoids call-stack overflow on large files.
+    const chunkSize = 8192;
+    let binary = '';
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+      binary += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
+    }
+    const bytes = btoa(binary);
 
+    const params = this.authParams();
     const body = new FormData();
     body.append('bytes', bytes);
     body.append('filename', file.name);
-    body.append('access_token', this.authStore.accessToken() ?? '');
 
     const response = await firstValueFrom(
       this.http.post<{ images: Record<string, { hash: string }> }>(
         `${GRAPH_API_BASE}/${adAccountId}/adimages`,
-        body
+        body,
+        { params }
       )
     );
 

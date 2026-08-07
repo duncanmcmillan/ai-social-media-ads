@@ -419,13 +419,11 @@ export const NewCampaignStore = signalStore(
           adSetIds.push(adSetId);
         }
 
-        // Step 3 — Create creatives and ads (image upload not yet implemented)
+        // Step 3 — Create creatives and ads
         for (const creative of creatives) {
-          // 3a — Upload image/video to get image hash or video ID
-          const { hash: imageHash } = await marketingApi.uploadImage(
-            // uploadImage currently throws — implement multipart upload to resolve
-            new File([], creative.fileName)
-          );
+          // 3a — Upload image to get image hash
+          if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
+          const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
 
           // 3b — Create ad creative
           const creativePayload: AdCreativePayload = {

@@ -83,6 +83,7 @@ export class CreativesStepComponent {
         fileName: file.name,
         fileType: file.type.startsWith('video') ? 'video' : 'image',
         objectUrl,
+        file,
         tones: [],
         hook: '',
         length: 'Medium',
