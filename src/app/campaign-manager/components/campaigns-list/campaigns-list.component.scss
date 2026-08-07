@@ -91,6 +91,30 @@
 
 .col-name { font-weight: 400; }
 .col-obj, .col-date { color: var(--neutral-500); }
+.col-budget { white-space: nowrap; color: var(--neutral-500); }
+.col-actions { width: 90px; }
+
+/* ── Action button ───────────────────────────────────────────────────── */
+.action-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-600);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--neutral-50);
+    border-color: var(--neutral-400);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
 
 /* ── Status badge ────────────────────────────────────────────────────── */
 .status-badge {

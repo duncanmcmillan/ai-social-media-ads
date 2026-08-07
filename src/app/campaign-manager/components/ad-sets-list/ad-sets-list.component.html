@@ -38,6 +38,7 @@
           <th scope="col">Billing</th>
           <th scope="col">Budget</th>
           <th scope="col">Created</th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -45,14 +46,24 @@
           <tr>
             <td class="col-name">{{ a.name }}</td>
             <td><span class="status-badge" [class]="'status-' + a.status.toLowerCase()">{{ a.status }}</span></td>
-            <td class="col-meta">{{ a.optimizationGoal }}</td>
-            <td class="col-meta">{{ a.billingEvent }}</td>
+            <td class="col-meta">{{ optimizationLabel(a.optimizationGoal) }}</td>
+            <td class="col-meta">{{ billingLabel(a.billingEvent) }}</td>
             <td class="col-budget">
-              @if (a.dailyBudget != null) { ${{ a.dailyBudget / 100 }}/day }
-              @else if (a.lifetimeBudget != null) { ${{ a.lifetimeBudget / 100 }} lifetime }
+              @if (a.dailyBudget != null) { {{ formatBudget(a.dailyBudget) }}/day }
+              @else if (a.lifetimeBudget != null) { {{ formatBudget(a.lifetimeBudget) }} lifetime }
               @else { — }
             </td>
             <td class="col-date">{{ a.createdTime | date:'dd MMM yyyy' }}</td>
+            <td class="col-actions">
+              @if (a.status === 'ACTIVE' || a.status === 'PAUSED') {
+                <button
+                  class="action-btn"
+                  type="button"
+                  [disabled]="togglingId() === a.id"
+                  (click)="toggleStatus(a)"
+                >{{ a.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
+              }
+            </td>
           </tr>
         }
       </tbody>

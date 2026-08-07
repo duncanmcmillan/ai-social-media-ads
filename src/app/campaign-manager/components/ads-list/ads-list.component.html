@@ -34,9 +34,9 @@
         <tr>
           <th scope="col">Ad</th>
           <th scope="col">Status</th>
-          <th scope="col">Creative</th>
           <th scope="col">Ad Set</th>
           <th scope="col">Created</th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -44,9 +44,18 @@
           <tr>
             <td class="col-name">{{ ad.name }}</td>
             <td><span class="status-badge" [class]="'status-' + ad.status.toLowerCase()">{{ ad.status }}</span></td>
-            <td class="col-meta">{{ ad.creativeId }}</td>
-            <td class="col-meta">{{ ad.adSetId }}</td>
+            <td class="col-meta">{{ adSetNames().get(ad.adSetId) ?? ad.adSetId }}</td>
             <td class="col-date">{{ ad.createdTime | date:'dd MMM yyyy' }}</td>
+            <td class="col-actions">
+              @if (ad.status === 'ACTIVE' || ad.status === 'PAUSED') {
+                <button
+                  class="action-btn"
+                  type="button"
+                  [disabled]="togglingId() === ad.id"
+                  (click)="toggleStatus(ad)"
+                >{{ ad.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
+              }
+            </td>
           </tr>
         }
       </tbody>

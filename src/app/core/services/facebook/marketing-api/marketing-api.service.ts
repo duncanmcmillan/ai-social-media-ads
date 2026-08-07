@@ -108,6 +108,20 @@ export class MarketingApiService {
   }
 
   /**
+   * Updates an existing ad set.
+   * @param adSetId - ID of the ad set to update.
+   * @param payload - Fields to update.
+   * @returns Promise resolving to a success indicator.
+   * @throws When not authenticated or the API call fails.
+   */
+  async updateAdSet(adSetId: string, payload: Partial<AdSetPayload>): Promise<{ success: boolean }> {
+    const params = this.authParams();
+    return firstValueFrom(
+      this.http.post<{ success: boolean }>(`${GRAPH_API_BASE}/${adSetId}`, payload, { params })
+    );
+  }
+
+  /**
    * Creates a new ad set.
    * @param payload - Ad set creation parameters.
    * @returns Promise resolving to the created ad set's ID.
@@ -145,14 +159,32 @@ export class MarketingApiService {
    * Returns the image hash used when creating ad creatives.
    * API: POST /{ad-account-id}/adimages
    *
-   * @param _file - Image file to upload (not yet implemented).
-   * @throws Always — image upload is not yet implemented.
+   * @param file - Image file to upload.
+   * @returns Promise resolving to the image hash.
+   * @throws When not authenticated, no account selected, or the API call fails.
    */
-  async uploadImage(_file: File): Promise<{ hash: string }> {
-    // TODO: Implement multipart upload to /{ad-account-id}/adimages
-    // The API accepts `bytes` (base64) or a URL via `url` param.
-    // Returns: { images: { [filename]: { hash: string, url: string } } }
-    throw new Error('Image upload not yet implemented.');
+  async uploadImage(file: File): Promise<{ hash: string }> {
+    const adAccountId = this.authStore.adAccountId();
+    if (!adAccountId) throw new Error('No ad account selected.');
+
+    const buffer = await file.arrayBuffer();
+    const bytes = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+    const body = new FormData();
+    body.append('bytes', bytes);
+    body.append('filename', file.name);
+    body.append('access_token', this.authStore.accessToken() ?? '');
+
+    const response = await firstValueFrom(
+      this.http.post<{ images: Record<string, { hash: string }> }>(
+        `${GRAPH_API_BASE}/${adAccountId}/adimages`,
+        body
+      )
+    );
+
+    const entry = response.images[file.name];
+    if (!entry?.hash) throw new Error('Image upload succeeded but no hash was returned.');
+    return { hash: entry.hash };
   }
 
   // ── Ads ───────────────────────────────────────────────────────────────────
@@ -172,6 +204,20 @@ export class MarketingApiService {
       this.http.get<GraphApiList<Ad>>(`${GRAPH_API_BASE}/${adSetId}/ads`, { params })
     );
     return result.data;
+  }
+
+  /**
+   * Updates an existing ad.
+   * @param adId - ID of the ad to update.
+   * @param payload - Fields to update.
+   * @returns Promise resolving to a success indicator.
+   * @throws When not authenticated or the API call fails.
+   */
+  async updateAd(adId: string, payload: Partial<AdPayload>): Promise<{ success: boolean }> {
+    const params = this.authParams();
+    return firstValueFrom(
+      this.http.post<{ success: boolean }>(`${GRAPH_API_BASE}/${adId}`, payload, { params })
+    );
   }
 
   /**
