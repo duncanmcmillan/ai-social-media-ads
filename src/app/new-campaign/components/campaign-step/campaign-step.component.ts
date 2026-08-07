@@ -2,8 +2,9 @@
  * @fileoverview Step 1 — Campaign Details.
  * Handles campaign name, objective, budget, UTM, and AI draft generation.
  */
-import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
+import { AuthStore } from '../../../auth';
 import type { CampaignObjective } from '../../../core/models/index';
 
 const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = [
@@ -15,11 +16,6 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
   { value: 'OUTCOME_APP_PROMOTION', label: 'App Promotion', hint: 'Get more installs or interactions' },
 ];
 
-/** Emitted when the user clicks "Build draft" for AI ad-set generation. */
-export interface BuildDraftEvent {
-  prompt: string;
-}
-
 /** Step 1 of the New Campaign wizard. */
 @Component({
   selector: 'app-campaign-step',
@@ -29,12 +25,26 @@ export interface BuildDraftEvent {
 })
 export class CampaignStepComponent {
   protected readonly store = inject(NewCampaignStore);
+  private readonly authStore = inject(AuthStore);
 
   /** Exposed objective options. */
   protected readonly objectives = OBJECTIVES;
 
-  /** Emitted when the user clicks Build Draft. */
-  readonly buildDraft = output<BuildDraftEvent>();
+  /**
+   * Currency symbol derived from the selected ad account.
+   * Falls back to '£' (GBP) when no account is selected.
+   * Uses Intl.NumberFormat to support all ISO 4217 currency codes.
+   */
+  protected readonly currencySymbol = computed(() => {
+    const currency = this.authStore.selectedAccount()?.currency ?? 'GBP';
+    try {
+      return new Intl.NumberFormat('en', { style: 'currency', currency, minimumFractionDigits: 0 })
+        .formatToParts(0)
+        .find(p => p.type === 'currency')?.value ?? currency;
+    } catch {
+      return currency;
+    }
+  });
 
   /** AI prompt text (local only — not stored in the wizard state). */
   protected aiPrompt = '';
@@ -79,12 +89,9 @@ export class CampaignStepComponent {
     this.store.updateCampaign({ activateImmediately: value });
   }
 
-  /**
-   * Emits a buildDraft event with the current AI prompt.
-   * The parent shell component handles the actual Claude API call.
-   */
+  /** Calls the store to generate a campaign draft via Claude AI. */
   protected onBuildDraft(): void {
     if (!this.aiPrompt.trim()) return;
-    this.buildDraft.emit({ prompt: this.aiPrompt.trim() });
+    void this.store.generateDraft(this.aiPrompt.trim());
   }
 }

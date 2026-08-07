@@ -93,7 +93,7 @@
         <button class="period-btn" [class.period-btn--active]="store.campaign().budgetPeriod === 'lifetime'" (click)="setBudgetPeriod('lifetime')" type="button">Lifetime</button>
       </div>
       <div class="amount-input-wrap">
-        <span class="currency-symbol">£</span>
+        <span class="currency-symbol">{{ currencySymbol() }}</span>
         <input
           class="form-input amount-input"
           type="number"

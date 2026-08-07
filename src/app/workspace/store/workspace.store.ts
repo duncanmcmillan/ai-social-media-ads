@@ -44,15 +44,15 @@ export const WorkspaceStore = signalStore(
   { providedIn: 'root' },
   withState<WorkspaceState>(loadPersistedState()),
   withComputed((store) => ({
-    /** Whether the three required workspace fields (Page, Pixel, URL) are all configured. */
+    /** Whether the two required workspace fields (Page and Website URL) are configured. */
     isConfigured: computed(() => {
       const d = store.metaDefaults();
-      return !!d.facebookPageId && !!d.pixelId && !!d.websiteUrl;
+      return !!d.facebookPageId && !!d.websiteUrl;
     }),
-    /** Count of required fields that are configured (0–3). */
+    /** Count of required fields that are configured (0–2). */
     configuredCount: computed(() => {
       const d = store.metaDefaults();
-      return [d.facebookPageId, d.pixelId, d.websiteUrl].filter(Boolean).length;
+      return [d.facebookPageId, d.websiteUrl].filter(Boolean).length;
     }),
   })),
   withMethods((store) => {

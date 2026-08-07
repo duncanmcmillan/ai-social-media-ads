@@ -34,16 +34,43 @@ export interface AdCreative {
 export interface AdCreativePayload {
   /** Creative display name. */
   name: string;
-  /** Ad headline. */
-  title?: string;
-  /** Primary body text. */
-  body?: string;
-  /** Link destination URL. */
-  linkUrl?: string;
-  /** Image hash (upload via ad images endpoint first). */
-  imageHash?: string;
-  /** Page ID to run the ad from. */
+  /**
+   * Facebook Page ID to run the ad from.
+   * Inherited from Workspace → Meta Defaults → Facebook Page.
+   */
   pageId: string;
-  /** Call to action type. */
+  /** Ad headline. Maps to object_story_spec.link_data.name. */
+  title?: string;
+  /** Primary body text. Maps to object_story_spec.link_data.message. */
+  body?: string;
+  /** Supporting description. Maps to object_story_spec.link_data.description. */
+  description?: string;
+  /**
+   * Link destination URL.
+   * Inherited from Workspace → Meta Defaults → Website URL (unless overridden).
+   */
+  linkUrl?: string;
+  /** Image hash returned from POST /{ad-account-id}/adimages. */
+  imageHash?: string;
+  /** Video ID returned from POST /{ad-account-id}/advideos. */
+  videoId?: string;
+  /**
+   * Instagram actor ID for Instagram placements.
+   * Set when Workspace → usePageForInstagram is false and a linked IG account exists.
+   */
+  instagramActorId?: string;
+  /** Call to action type (e.g. LEARN_MORE, SHOP_NOW, SIGN_UP). */
   callToActionType?: string;
+  /**
+   * EU DSA: legal entity the ad represents.
+   * Inherited from Workspace → Enhancements → Beneficiary Name.
+   * Required for ads targeting EU audiences.
+   */
+  beneficiary?: string;
+  /**
+   * EU DSA: entity that funds the ads.
+   * Inherited from Workspace → Enhancements → Payer Name.
+   * Required for ads targeting EU audiences.
+   */
+  payer?: string;
 }

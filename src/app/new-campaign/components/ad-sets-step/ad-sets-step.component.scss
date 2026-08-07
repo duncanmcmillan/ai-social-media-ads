@@ -54,29 +54,60 @@
   overflow-x: auto;
 }
 
+.adset-tab-item {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &--active {
+    border-bottom-color: var(--orange-500);
+    background: var(--neutral-0);
+  }
+}
+
 .adset-tab {
-  padding: 10px 16px;
+  padding: 10px 8px 10px 16px;
   font-family: var(--font-body);
   font-size: 12px;
   color: var(--neutral-500);
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease;
 
   &:hover { color: var(--neutral-700); }
-
-  &--active {
-    color: var(--orange-600);
-    border-bottom-color: var(--orange-500);
-    background: var(--neutral-0);
-  }
+  &--active { color: var(--orange-600); }
 
   &--add {
+    padding: 10px 16px;
+    border-bottom: 2px solid transparent;
     color: var(--orange-500);
     &:hover { color: var(--orange-600); }
+  }
+}
+
+.adset-tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--neutral-300);
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    color: var(--color-error, #ef4444);
+    background: rgba(239,68,68,0.1);
   }
 }
 
@@ -133,12 +164,6 @@
   &:focus { outline: none; border-color: var(--orange-400); }
 }
 
-.name-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .age-row {
   display: flex;
   gap: 12px;
@@ -177,18 +202,3 @@
   }
 }
 
-.icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  font-size: 12px;
-  flex-shrink: 0;
-
-  &--danger { color: var(--color-error); &:hover { background: rgba(248,113,113,0.1); border-color: var(--color-error); } }
-}

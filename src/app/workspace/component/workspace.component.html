@@ -597,6 +597,57 @@
       </div>
     </section>
 
+    <!-- AI Settings -->
+    <section class="ws-section" id="ws-ai">
+      <div class="ws-section-header" (click)="toggle('ws-ai')">
+        <h2 class="ws-section-title">AI Settings</h2>
+        <button
+          class="ws-chevron-btn"
+          type="button"
+          [class.ws-chevron-btn--open]="!isCollapsed('ws-ai')"
+          [attr.aria-expanded]="!isCollapsed('ws-ai')"
+          aria-label="Toggle AI Settings"
+        >&#8250;</button>
+      </div>
+      <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-ai')">
+        <div class="ws-section-body-inner">
+          <p class="ws-section-sub">
+            Add your Anthropic API key to enable AI draft generation on the New Campaign tab.
+          </p>
+          <div class="ws-card">
+            <div class="ws-field ws-field--last">
+              <label class="ws-label" for="ws-ai-key">Claude API Key</label>
+              @if (aiKeyIsSaved() && !aiKeyInput()) {
+                <div class="ws-saved-row">
+                  <span class="ws-saved-indicator">sk-ant-••••••••</span>
+                  <button class="ws-link-btn" type="button" (click)="aiKeyInput.set(' ')">Change</button>
+                </div>
+              } @else {
+                <input
+                  id="ws-ai-key"
+                  class="ws-input"
+                  type="password"
+                  placeholder="sk-ant-api03-..."
+                  [value]="aiKeyInput().trim()"
+                  (input)="aiKeyInput.set($any($event.target).value)"
+                  autocomplete="new-password"
+                />
+              }
+              <p class="ws-field-hint">Stored in encrypted system storage. Never leaves this device.</p>
+            </div>
+            <div class="ws-card-footer">
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                [disabled]="!aiKeyInput().trim()"
+                (click)="saveAiKey()"
+              >Save Key</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div><!-- /ws-main -->
 
   <!-- ── Sticky section nav ────────────────────────────────────────────── -->

@@ -2,8 +2,10 @@
  * @fileoverview Step 3 — Creatives.
  * File upload panel, copy editor with tone/hook/length chips, and AI copy generation.
  */
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
+import { WorkspaceStore } from '../../../workspace';
+import { AuthStore } from '../../../auth';
 import type { DraftCreative, WebsiteUrlMode } from '../../model/draft.model';
 
 const TONES = ['Conversational', 'Professional', 'Urgent', 'Bold', 'Emotional'];
@@ -26,11 +28,31 @@ function uuid(): string { return crypto.randomUUID(); }
 })
 export class CreativesStepComponent {
   protected readonly store = inject(NewCampaignStore);
+  protected readonly workspaceStore = inject(WorkspaceStore);
+  protected readonly authStore = inject(AuthStore);
 
   protected readonly tones = TONES;
   protected readonly hooks = HOOKS;
   protected readonly lengths = LENGTHS;
   protected readonly ctaOptions = CTA_OPTIONS;
+
+  protected readonly showPreview = signal(false);
+
+  /** Display name for the Facebook page selected in workspace settings. */
+  protected readonly previewPageName = computed(() => {
+    const pageId = this.workspaceStore.metaDefaults().facebookPageId;
+    return this.authStore.pages().find(p => p.id === pageId)?.name ?? 'Your Page';
+  });
+
+  /** Uppercased domain extracted from the workspace website URL. */
+  protected readonly previewDomain = computed(() => {
+    const url = this.workspaceStore.metaDefaults().websiteUrl;
+    try {
+      return new URL(url).hostname.replace(/^www\./, '').toUpperCase();
+    } catch {
+      return url ? url.toUpperCase() : 'YOURWEBSITE.COM';
+    }
+  });
 
   /** @param mode - URL source mode. */
   protected setUrlMode(mode: WebsiteUrlMode): void {
@@ -94,12 +116,16 @@ export class CreativesStepComponent {
     this.update('tones', tones);
   }
 
-  /**
-   * Triggers AI copy generation (placeholder — wired up when Anthropic SDK is integrated).
-   */
+  /** Calls Claude to generate ad copy for the active creative. */
   protected generateAiCopy(): void {
-    this.store.setGeneratingCopy(true);
-    // TODO: call Claude API via IPC and populate primaryText/headline/description
-    setTimeout(() => this.store.setGeneratingCopy(false), 1500);
+    void this.store.generateCopy();
+  }
+
+  /** Duplicates the active creative with a fresh id and copies all copy fields. */
+  protected duplicateCreative(): void {
+    const source = this.store.activeCreative();
+    if (!source) return;
+    const name = source.fileName.replace(/(\.[^.]+)?$/, ' (copy)$1');
+    this.store.addCreative({ ...source, id: uuid(), fileName: name });
   }
 }

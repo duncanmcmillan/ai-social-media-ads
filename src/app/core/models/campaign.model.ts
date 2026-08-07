@@ -46,6 +46,19 @@ export interface Campaign {
   updatedTime: string;
 }
 
+/**
+ * Special ad category declarations required by the Facebook Marketing API.
+ * Must be passed on every campaign POST, even as an empty array for standard ads.
+ * @see https://developers.facebook.com/docs/marketing-api/special-ad-category
+ */
+export type SpecialAdCategory =
+  | 'EMPLOYMENT'
+  | 'HOUSING'
+  | 'CREDIT'
+  | 'ISSUES_ELECTIONS_POLITICS'
+  | 'ONLINE_GAMBLING_AND_GAMING'
+  | 'FINANCIAL_PRODUCTS_SERVICES';
+
 /** Payload for creating or updating a campaign. */
 export interface CampaignPayload {
   /** Campaign display name. */
@@ -56,8 +69,13 @@ export interface CampaignPayload {
   status: 'ACTIVE' | 'PAUSED';
   /** Buying type. */
   buyingType?: BuyingType;
-  /** Daily budget in minor currency units. */
+  /** Daily budget in minor currency units (e.g. pence, cents). */
   dailyBudget?: number;
   /** Lifetime budget in minor currency units. */
   lifetimeBudget?: number;
+  /**
+   * Special ad category declarations — required by the API.
+   * Pass [] for standard (non-restricted) campaigns.
+   */
+  specialAdCategories: SpecialAdCategory[];
 }
