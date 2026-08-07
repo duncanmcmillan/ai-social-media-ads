@@ -8,7 +8,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../../../auth';
-import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload } from '../../../models/index';
+import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload } from '../../../models/index';
 
 /** Base URL for the Facebook Graph API. */
 const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
@@ -120,6 +120,39 @@ export class MarketingApiService {
     return firstValueFrom(
       this.http.post<{ id: string }>(`${GRAPH_API_BASE}/${adAccountId}/adsets`, payload, { params })
     );
+  }
+
+  // ── Ad Creatives ─────────────────────────────────────────────────────────
+
+  /**
+   * Creates a new ad creative.
+   * Call after uploading images/videos to obtain their hash/ID.
+   * @param payload - Creative creation parameters.
+   * @returns Promise resolving to the created creative's ID.
+   * @throws When not authenticated or the API call fails.
+   */
+  async createAdCreative(payload: AdCreativePayload): Promise<{ id: string }> {
+    const adAccountId = this.authStore.adAccountId();
+    if (!adAccountId) throw new Error('No ad account selected.');
+    const params = this.authParams();
+    return firstValueFrom(
+      this.http.post<{ id: string }>(`${GRAPH_API_BASE}/${adAccountId}/adcreatives`, payload, { params })
+    );
+  }
+
+  /**
+   * Uploads an image to the ad account's image library.
+   * Returns the image hash used when creating ad creatives.
+   * API: POST /{ad-account-id}/adimages
+   *
+   * @param _file - Image file to upload (not yet implemented).
+   * @throws Always — image upload is not yet implemented.
+   */
+  async uploadImage(_file: File): Promise<{ hash: string }> {
+    // TODO: Implement multipart upload to /{ad-account-id}/adimages
+    // The API accepts `bytes` (base64) or a URL via `url` param.
+    // Returns: { images: { [filename]: { hash: string, url: string } } }
+    throw new Error('Image upload not yet implemented.');
   }
 
   // ── Ads ───────────────────────────────────────────────────────────────────

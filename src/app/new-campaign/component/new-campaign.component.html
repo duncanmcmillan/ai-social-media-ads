@@ -69,6 +69,7 @@
           class="btn btn-primary"
           type="button"
           [disabled]="store.isPublishing() || !workspaceStore.isConfigured()"
+          (click)="launch()"
         >
           @if (store.isPublishing()) {
             <span class="spinner"></span> Creating...

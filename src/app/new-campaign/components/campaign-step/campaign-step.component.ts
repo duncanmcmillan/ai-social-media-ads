@@ -4,6 +4,7 @@
  */
 import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
+import { AuthStore } from '../../../auth';
 import type { CampaignObjective } from '../../../core/models/index';
 
 const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = [
@@ -29,9 +30,26 @@ export interface BuildDraftEvent {
 })
 export class CampaignStepComponent {
   protected readonly store = inject(NewCampaignStore);
+  private readonly authStore = inject(AuthStore);
 
   /** Exposed objective options. */
   protected readonly objectives = OBJECTIVES;
+
+  /**
+   * Currency symbol derived from the selected ad account.
+   * Falls back to '£' (GBP) when no account is selected.
+   * Uses Intl.NumberFormat to support all ISO 4217 currency codes.
+   */
+  protected readonly currencySymbol = computed(() => {
+    const currency = this.authStore.selectedAccount()?.currency ?? 'GBP';
+    try {
+      return new Intl.NumberFormat('en', { style: 'currency', currency, minimumFractionDigits: 0 })
+        .formatToParts(0)
+        .find(p => p.type === 'currency')?.value ?? currency;
+    } catch {
+      return currency;
+    }
+  });
 
   /** Emitted when the user clicks Build Draft. */
   readonly buildDraft = output<BuildDraftEvent>();

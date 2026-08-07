@@ -69,4 +69,9 @@ export class NewCampaignComponent {
     this.store.reset();
     await this.router.navigateByUrl('/new-campaign/campaign');
   }
+
+  /** Publishes the current wizard draft to the Facebook Marketing API. */
+  protected async launch(): Promise<void> {
+    await this.store.publishCampaign();
+  }
 }

@@ -69,6 +69,46 @@ export interface AdSet {
   updatedTime: string;
 }
 
+/** Geographic and demographic targeting for an ad set. */
+export interface AdSetTargeting {
+  /** Country-level geo location targeting. */
+  geoLocations: { countries: string[] };
+  /** Minimum audience age. */
+  ageMin?: number;
+  /** Maximum audience age. */
+  ageMax?: number;
+}
+
+/**
+ * The Facebook object (pixel, app, page) being promoted.
+ * Required for conversion and lead objectives.
+ * API field: promoted_object
+ */
+export interface PromotedObject {
+  /**
+   * Meta Pixel ID.
+   * Required for OUTCOME_SALES and OUTCOME_LEADS objectives.
+   */
+  pixelId?: string;
+  /**
+   * Pixel custom event type (e.g. PURCHASE, LEAD, COMPLETE_REGISTRATION).
+   * Required when pixelId is set.
+   */
+  customEventType?: string;
+}
+
+/**
+ * A single entry in the ad set's attribution window spec.
+ * API field: attribution_spec
+ * Inherits from Workspace → Enhancements → Attribution Window settings.
+ */
+export interface AttributionSpec {
+  /** Attribution event type. */
+  eventType: 'CLICK_THROUGH' | 'ENGAGED_VIEW' | 'VIEW_THROUGH';
+  /** Attribution window in days (1, 7, or 28). */
+  windowDays: number;
+}
+
 /** Payload for creating or updating an ad set. */
 export interface AdSetPayload {
   /** Parent campaign ID. */
@@ -81,10 +121,29 @@ export interface AdSetPayload {
   billingEvent: BillingEvent;
   /** Optimisation goal. */
   optimizationGoal: OptimizationGoal;
-  /** Daily budget in minor currency units. */
+  /**
+   * Audience and geographic targeting.
+   * Inherits defaults from Workspace → Default Targeting.
+   */
+  targeting: AdSetTargeting;
+  /**
+   * The Facebook object being promoted (pixel, app, page).
+   * Derived from campaign objective + workspace pixel ID.
+   */
+  promotedObject?: PromotedObject;
+  /**
+   * Attribution window configuration.
+   * Inherits from Workspace → Enhancements → Attribution Window.
+   */
+  attributionSpec?: AttributionSpec[];
+  /** Daily budget in minor currency units (e.g. pence, cents). */
   dailyBudget?: number;
   /** Lifetime budget in minor currency units. */
   lifetimeBudget?: number;
   /** Bid amount in minor currency units. */
   bidAmount?: number;
+  /** ISO 8601 start time. Omit for immediate start. */
+  startTime?: string;
+  /** ISO 8601 end time. Omit for no end date. */
+  endTime?: string;
 }
