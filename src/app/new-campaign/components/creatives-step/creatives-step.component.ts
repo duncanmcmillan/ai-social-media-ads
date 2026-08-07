@@ -11,10 +11,25 @@ import type { DraftCreative, WebsiteUrlMode } from '../../model/draft.model';
 const TONES = ['Conversational', 'Professional', 'Urgent', 'Bold', 'Emotional'];
 const HOOKS = ['Humorous', 'Questions', 'Bold Claims', 'Statistics', 'Stories', 'Pain Points'];
 const LENGTHS = ['Short', 'Medium', 'Long'] as const;
+/** Facebook API enum values for call-to-action type. */
 const CTA_OPTIONS = [
-  'Learn More', 'Shop Now', 'Sign Up', 'Get Offer', 'Book Now',
-  'Contact Us', 'Subscribe', 'Watch More', 'Apply Now', 'Download',
-];
+  'LEARN_MORE', 'SHOP_NOW', 'SIGN_UP', 'GET_OFFER', 'BOOK_NOW',
+  'CONTACT_US', 'SUBSCRIBE', 'WATCH_MORE', 'APPLY_NOW', 'DOWNLOAD',
+] as const;
+
+/** Human-readable labels for each CTA enum value. */
+const CTA_LABELS: Record<string, string> = {
+  LEARN_MORE: 'Learn More',
+  SHOP_NOW:   'Shop Now',
+  SIGN_UP:    'Sign Up',
+  GET_OFFER:  'Get Offer',
+  BOOK_NOW:   'Book Now',
+  CONTACT_US: 'Contact Us',
+  SUBSCRIBE:  'Subscribe',
+  WATCH_MORE: 'Watch More',
+  APPLY_NOW:  'Apply Now',
+  DOWNLOAD:   'Download',
+};
 
 /** Generates a client-side UUID. */
 function uuid(): string { return crypto.randomUUID(); }
@@ -35,6 +50,11 @@ export class CreativesStepComponent {
   protected readonly hooks = HOOKS;
   protected readonly lengths = LENGTHS;
   protected readonly ctaOptions = CTA_OPTIONS;
+
+  /** Returns the display label for a CTA enum value. */
+  protected ctaLabel(value: string): string {
+    return CTA_LABELS[value] ?? value;
+  }
 
   protected readonly showPreview = signal(false);
 
@@ -90,7 +110,7 @@ export class CreativesStepComponent {
         primaryText: '',
         headline: '',
         description: '',
-        cta: 'Learn More',
+        cta: 'LEARN_MORE',
         launchStatus: 'paused',
         adCreationMode: 'separate',
         isCarousel: false,
