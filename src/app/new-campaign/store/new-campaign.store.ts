@@ -39,9 +39,9 @@ function buildAttributionSpec(
   viewThroughDays: number
 ): AttributionSpec[] {
   return [
-    { eventType: 'CLICK_THROUGH', windowDays: clickThroughDays },
-    { eventType: 'ENGAGED_VIEW',  windowDays: engagedViewDays  },
-    { eventType: 'VIEW_THROUGH',  windowDays: viewThroughDays  },
+    { eventType: 'CLICK_THROUGH',    windowDays: clickThroughDays },
+    { eventType: 'ENGAGED_VIDEO_VIEW', windowDays: engagedViewDays  },
+    { eventType: 'VIEW_THROUGH',      windowDays: viewThroughDays  },
   ];
 }
 

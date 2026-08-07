@@ -104,7 +104,7 @@ export interface PromotedObject {
  */
 export interface AttributionSpec {
   /** Attribution event type. */
-  eventType: 'CLICK_THROUGH' | 'ENGAGED_VIEW' | 'VIEW_THROUGH';
+  eventType: 'CLICK_THROUGH' | 'ENGAGED_VIDEO_VIEW' | 'VIEW_THROUGH';
   /** Attribution window in days (1, 7, or 28). */
   windowDays: number;
 }
