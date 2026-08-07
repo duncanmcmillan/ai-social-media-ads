@@ -176,9 +176,12 @@ export class MarketingApiService {
       geo_locations: { countries: payload.targeting.geoLocations.countries },
     };
     const isAdvantageAudience = payload.targeting.targetingAutomation?.advantageAudience === 1;
-    if (payload.targeting.ageMin != null) targeting['age_min'] = payload.targeting.ageMin;
-    // age_max is not permitted as a hard constraint when Advantage+ Audience is enabled
-    if (payload.targeting.ageMax != null && !isAdvantageAudience) targeting['age_max'] = payload.targeting.ageMax;
+    // Age constraints are not permitted as hard limits when Advantage+ Audience is enabled.
+    // age_min must be ≤ 25 and age_max cannot be set at all. Omit both to let Meta manage the range.
+    if (!isAdvantageAudience) {
+      if (payload.targeting.ageMin != null) targeting['age_min'] = payload.targeting.ageMin;
+      if (payload.targeting.ageMax != null) targeting['age_max'] = payload.targeting.ageMax;
+    }
     if (payload.targeting.targetingAutomation != null) {
       targeting['targeting_automation'] = {
         advantage_audience: payload.targeting.targetingAutomation.advantageAudience,
