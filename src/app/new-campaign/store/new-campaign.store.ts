@@ -391,11 +391,6 @@ export const NewCampaignStore = signalStore(
         // Step 2 — Create ad sets
         const adSetIds: string[] = [];
         const promotedObject = derivePromotedObject(objective, meta.pixelId);
-        const attributionSpec = buildAttributionSpec(
-          enhancements.clickThroughDays,
-          enhancements.engagedViewDays,
-          enhancements.viewThroughDays
-        );
         for (const adSet of adSets) {
           const adSetPayload: AdSetPayload = {
             campaignId,
@@ -408,7 +403,6 @@ export const NewCampaignStore = signalStore(
               ageMin: adSet.targeting.minAge,
               ageMax: adSet.targeting.maxAge,
             },
-            attributionSpec,
             ...(promotedObject ? { promotedObject } : {}),
             ...(adSet.scheduleMode === 'scheduled' && adSet.startDate ? { startTime: adSet.startDate } : {}),
             ...(adSet.scheduleMode === 'scheduled' && adSet.endDate   ? { endTime:   adSet.endDate   } : {}),
