@@ -177,6 +177,7 @@ export class MarketingApiService {
       status:            payload.status,
       billing_event:     payload.billingEvent,
       optimization_goal: payload.optimizationGoal,
+      bid_strategy:      payload.bidStrategy ?? 'LOWEST_COST_WITHOUT_CAP',
       targeting,
     };
 

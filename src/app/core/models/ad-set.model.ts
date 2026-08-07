@@ -109,6 +109,13 @@ export interface AttributionSpec {
   windowDays: number;
 }
 
+/** Facebook bid strategy for an ad set. */
+export type BidStrategy =
+  | 'LOWEST_COST_WITHOUT_CAP'
+  | 'LOWEST_COST_WITH_BID_CAP'
+  | 'COST_CAP'
+  | 'TARGET_COST';
+
 /** Payload for creating or updating an ad set. */
 export interface AdSetPayload {
   /** Parent campaign ID. */
@@ -121,6 +128,11 @@ export interface AdSetPayload {
   billingEvent: BillingEvent;
   /** Optimisation goal. */
   optimizationGoal: OptimizationGoal;
+  /**
+   * Bid strategy. Defaults to LOWEST_COST_WITHOUT_CAP when not provided.
+   * LOWEST_COST_WITH_BID_CAP and TARGET_COST require bidAmount.
+   */
+  bidStrategy?: BidStrategy;
   /**
    * Audience and geographic targeting.
    * Inherits defaults from Workspace → Default Targeting.
