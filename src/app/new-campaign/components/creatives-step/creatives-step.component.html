@@ -211,10 +211,136 @@
             Generate AI Copy
           }
         </button>
-        <button class="toolbar-btn" type="button">Preview</button>
+        <button class="toolbar-btn" (click)="showPreview.set(true)" type="button">Preview</button>
         <button class="toolbar-btn" (click)="duplicateCreative()" type="button">Duplicate</button>
       </div>
     }
   </div>
 
 </div>
+
+<!-- ── Facebook Ad Preview Overlay ──────────────────────────────────────── -->
+@if (showPreview()) {
+  @let c = store.activeCreative()!;
+  <div class="fb-backdrop" (click)="showPreview.set(false)" role="dialog" aria-modal="true" aria-label="Ad preview">
+    <div class="fb-dialog" (click)="$event.stopPropagation()">
+
+      <!-- Header: title + platform tabs + close -->
+      <div class="fb-dialog-header">
+        <span class="fb-dialog-title">Ad Preview</span>
+        <div class="fb-platform-tabs">
+          <button class="fb-ptab fb-ptab--active" type="button">
+            <span class="fb-ptab-f">f</span> Feed
+          </button>
+          <button class="fb-ptab" type="button" disabled>Instagram Feed</button>
+          <button class="fb-ptab" type="button" disabled>Stories</button>
+        </div>
+        <button class="fb-dialog-close" (click)="showPreview.set(false)" type="button" aria-label="Close preview">&#10005;</button>
+      </div>
+
+      <!-- Body -->
+      <div class="fb-dialog-body">
+
+        <!-- Phone frame -->
+        <div class="phone-frame">
+          <div class="phone-inner">
+
+            <!-- Status bar -->
+            <div class="phone-status">
+              <span class="phone-time">9:41</span>
+              <div class="phone-status-icons">
+                <span class="signal-bars">
+                  <span></span><span></span><span></span><span></span>
+                </span>
+                <span class="battery-icon"></span>
+              </div>
+            </div>
+
+            <!-- Scrollable phone content -->
+            <div class="phone-content">
+              <div class="fb-card">
+
+                <!-- Page identity -->
+                <div class="fb-id-row">
+                  <div class="fb-avatar"><span>f</span></div>
+                  <div class="fb-id-meta">
+                    <div class="fb-page-name">{{ previewPageName() }}</div>
+                    <div class="fb-sponsored">Sponsored &nbsp;&middot;&nbsp; &#127760;</div>
+                  </div>
+                  <span class="fb-ellipsis">&#8943;</span>
+                </div>
+
+                <!-- Primary text -->
+                @if (c.primaryText) {
+                  <div class="fb-body-text">{{ c.primaryText.length > 125 ? c.primaryText.slice(0, 125) : c.primaryText
+                    }}<span class="fb-see-more">{{ c.primaryText.length > 125 ? '...more' : '' }}</span>
+                  </div>
+                } @else {
+                  <div class="fb-body-text fb-body-text--placeholder">Primary text will appear here&hellip;</div>
+                }
+
+                <!-- Media (4:5) -->
+                <div class="fb-media-wrap">
+                  @if (c.fileType === 'image') {
+                    <img class="fb-media" [src]="c.objectUrl" [alt]="c.fileName" />
+                  } @else {
+                    <video class="fb-media" [src]="c.objectUrl" muted playsinline></video>
+                  }
+                </div>
+
+                <!-- Link card -->
+                <div class="fb-link-card">
+                  <div class="fb-link-copy">
+                    <div class="fb-link-domain">{{ previewDomain() }}</div>
+                    <div class="fb-link-headline">{{ c.headline || 'Your headline here' }}</div>
+                    @if (c.description) {
+                      <div class="fb-link-desc">{{ c.description }}</div>
+                    }
+                  </div>
+                  <button class="fb-cta-btn" type="button">{{ c.cta }}</button>
+                </div>
+
+                <!-- Reaction stats -->
+                <div class="fb-reactions-row">
+                  <span class="fb-reaction-count">&#128077; &#10084;&#65039; 124</span>
+                  <span class="fb-engage-stats">23 comments &nbsp;&middot;&nbsp; 8 shares</span>
+                </div>
+
+                <!-- Engagement buttons -->
+                <div class="fb-engage-row">
+                  <button class="fb-engage-btn" type="button">&#128077; Like</button>
+                  <button class="fb-engage-btn" type="button">&#128172; Comment</button>
+                  <button class="fb-engage-btn" type="button">&#8599; Share</button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Home indicator -->
+            <div class="phone-home">
+              <div class="phone-home-bar"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Filename label -->
+        <div class="fb-preview-filename">Previewing: {{ c.fileName }}</div>
+
+        <!-- Spec bar -->
+        <div class="fb-spec-bar">
+          <div class="fb-spec-item" [class.fb-spec-item--over]="c.primaryText.length > 125">
+            Primary: {{ c.primaryText.length }}/125
+          </div>
+          <div class="fb-spec-item" [class.fb-spec-item--over]="c.headline.length > 27">
+            Headline: {{ c.headline.length }}/27
+          </div>
+          <div class="fb-spec-item" [class.fb-spec-item--over]="c.description.length > 27">
+            Description: {{ c.description.length }}/27
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
