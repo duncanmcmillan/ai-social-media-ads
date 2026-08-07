@@ -74,6 +74,25 @@ contextBridge.exposeInMainWorld('facebook', {
     ipcRenderer.invoke('facebook:clear-config'),
 });
 
+// ── AI bridge ────────────────────────────────────────────────────────────────
+contextBridge.exposeInMainWorld('ai', {
+  /** Save Anthropic API key to encrypted system storage. */
+  saveApiKey: (key) =>
+    ipcRenderer.invoke('ai:save-api-key', { key }),
+
+  /** Returns true if an API key is stored, false otherwise (key never leaves main). */
+  loadApiKey: () =>
+    ipcRenderer.invoke('ai:load-api-key'),
+
+  /** Generate campaign draft (name, objective, ad sets) from a business description. */
+  generateDraft: (prompt) =>
+    ipcRenderer.invoke('ai:generate-draft', { prompt }),
+
+  /** Generate ad copy (primaryText, headline, description) for a creative. */
+  generateCopy: (context) =>
+    ipcRenderer.invoke('ai:generate-copy', { context }),
+});
+
 // ── Settings bridge ─────────────────────────────────────────────────────────
 contextBridge.exposeInMainWorld('settings', {
   // Reserved for future app-level settings (notifications, preferences, etc.)

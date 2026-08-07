@@ -241,6 +241,20 @@
   margin-top: 6px;
 }
 
+.ws-saved-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ws-saved-indicator {
+  font-size: 13px;
+  font-family: var(--font-mono, monospace);
+  color: var(--neutral-400);
+  letter-spacing: 0.05em;
+}
+
 .ws-link-btn {
   display: inline-block;
   font-size: 12px;

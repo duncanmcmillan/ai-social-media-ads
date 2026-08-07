@@ -12,6 +12,7 @@ const OAUTH_PORT = 7331;
 // ── Paths ──────────────────────────────────────────────────────────────────
 const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
 const CONFIG_PATH  = () => path.join(app.getPath('userData'), 'fb-config.enc');
+const AI_KEY_PATH  = () => path.join(app.getPath('userData'), 'ai-key.enc');
 const CONSENT_PATH = () => path.join(app.getPath('userData'), 'gdpr-consent.json');
 
 // ── Single-instance lock (focus existing window if re-launched) ────────────
@@ -40,6 +41,12 @@ function pushA11yPreferences() {
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+/** Strips markdown code fences from a Claude response before JSON.parse(). */
+function stripCodeFences(text) {
+  return text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
+}
+
 function safeWrite(filePath, data) {
   if (!safeStorage.isEncryptionAvailable()) throw new Error('Encryption not available');
   const encrypted = safeStorage.encryptString(typeof data === 'string' ? data : JSON.stringify(data));
@@ -228,6 +235,81 @@ ${body}</body></html>`);
     safeDelete(CONFIG_PATH());
   });
 
+  // ── AI: save Anthropic API key to encrypted storage ──────────────────
+  ipcMain.handle('ai:save-api-key', (_event, { key }) => {
+    safeWrite(AI_KEY_PATH(), key);
+  });
+
+  // ── AI: check whether an API key is stored (returns boolean) ─────────
+  ipcMain.handle('ai:load-api-key', () => {
+    return !!safeRead(AI_KEY_PATH());
+  });
+
+  // ── AI: generate campaign draft from a business/goal description ──────
+  // Loads the stored API key internally — key never passes through renderer.
+  ipcMain.handle('ai:generate-draft', async (_event, { prompt }) => {
+    const raw = safeRead(AI_KEY_PATH());
+    if (!raw) throw new Error('No Claude API key configured. Add it in Workspace → AI Settings.');
+    const { default: Anthropic } = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: raw });
+    const system = `You are a Facebook Ads expert. Given a business description or campaign goal, respond with ONLY a valid JSON object — no markdown, no code fences, no explanation.
+
+The JSON must match this exact shape:
+{
+  "campaignName": "string",
+  "objective": "OUTCOME_SALES | OUTCOME_TRAFFIC | OUTCOME_LEADS | OUTCOME_ENGAGEMENT | OUTCOME_AWARENESS | OUTCOME_APP_PROMOTION",
+  "adSets": [
+    {
+      "name": "string",
+      "targeting": { "countries": ["GB"], "minAge": 18, "maxAge": 65 },
+      "optimizationGoal": "REACH | LINK_CLICKS | IMPRESSIONS | OFFSITE_CONVERSIONS | LEAD_GENERATION | PAGE_ENGAGEMENT | VALUE",
+      "billingEvent": "IMPRESSIONS | LINK_CLICKS | APP_INSTALLS"
+    }
+  ]
+}
+
+Guidelines:
+- Create 2–3 distinct ad sets targeting different audience segments
+- Choose the objective that best matches the business goal
+- Use sensible country codes (ISO 3166-1 alpha-2) and age ranges for the business type
+- Ad set names should be descriptive (e.g. "25–34 Fitness Enthusiasts UK")`;
+    const msg = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
+    return JSON.parse(stripCodeFences(text));
+  });
+
+  // ── AI: generate ad copy for a creative ──────────────────────────────
+  ipcMain.handle('ai:generate-copy', async (_event, { context }) => {
+    const raw = safeRead(AI_KEY_PATH());
+    if (!raw) throw new Error('No Claude API key configured. Add it in Workspace → AI Settings.');
+    const { default: Anthropic } = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: raw });
+    const { campaignName, objective, fileName, tones, hook, length } = context;
+    const charLimits = { Short: '125 chars', Medium: '200 chars', Long: '400 chars' };
+    const system = `You are an expert Facebook ad copywriter. Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation.
+
+The JSON must match this exact shape:
+{
+  "primaryText": "string (${charLimits[length] ?? '200 chars'} max)",
+  "headline": "string (40 chars max)",
+  "description": "string (30 chars max)"
+}`;
+    const userMsg = `Campaign: ${campaignName}\nObjective: ${objective}\nCreative: ${fileName}\nTone: ${(tones ?? []).join(', ') || 'Professional'}\nHook: ${hook || 'None'}\nLength: ${length}`;
+    const msg = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 512,
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+    const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
+    return JSON.parse(stripCodeFences(text));
+  });
+
   // ── GDPR: check whether the user has accepted the privacy notice ──────
   ipcMain.handle('gdpr:check-consent', () => {
     const consentPath = CONSENT_PATH();
@@ -253,6 +335,7 @@ ${body}</body></html>`);
   ipcMain.handle('gdpr:delete-all-data', () => {
     safeDelete(TOKEN_PATH());
     safeDelete(CONFIG_PATH());
+    safeDelete(AI_KEY_PATH());
     safeDelete(CONSENT_PATH());
   });
 

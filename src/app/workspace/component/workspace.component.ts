@@ -17,6 +17,7 @@ import {
 import { AuthStore } from '../../auth';
 import { AdAccountStatus } from '../../auth';
 import { WorkspaceStore } from '../store/workspace.store';
+import { AiService } from '../../core/services/ai/ai.service';
 
 /** Metadata for each collapsible workspace section. */
 interface Section {
@@ -31,6 +32,7 @@ const SECTIONS: Section[] = [
   { id: 'ws-targeting',  label: 'Default Targeting'     },
   { id: 'ws-enhance',    label: 'Enhancements'          },
   { id: 'ws-rules',      label: 'Learning Rules'        },
+  { id: 'ws-ai',         label: 'AI Settings'           },
 ];
 
 /**
@@ -47,6 +49,7 @@ const SECTIONS: Section[] = [
 export class WorkspaceComponent implements AfterViewInit {
   protected readonly authStore = inject(AuthStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
+  private readonly aiService = inject(AiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -82,6 +85,13 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Draft App Secret input — always starts blank (write-only field). */
   protected readonly appSecretDraft = signal('');
 
+  // ── AI Settings — API key draft state ────────────────────────────────────
+
+  /** True when an Anthropic API key is stored in encrypted storage. */
+  protected readonly aiKeyIsSaved = signal(false);
+  /** Draft key input — write-only, cleared after save. */
+  protected readonly aiKeyInput = signal('');
+
   /** Map of section id → collapsed state (true = collapsed). */
   protected readonly collapsed = signal<Record<string, boolean>>({});
 
@@ -91,6 +101,11 @@ export class WorkspaceComponent implements AfterViewInit {
   private observer?: IntersectionObserver;
 
   ngAfterViewInit(): void {
+    // Check whether an Anthropic key is already stored.
+    void this.aiService.loadApiKey().then(isSaved => {
+      this.ngZone.run(() => this.aiKeyIsSaved.set(isSaved));
+    });
+
     this.observer = new IntersectionObserver(
       entries => {
         // NgZone.run ensures the signal write triggers CD in ng serve (zone.js) mode.
@@ -274,5 +289,16 @@ export class WorkspaceComponent implements AfterViewInit {
 
   protected async signOut(): Promise<void> {
     await this.authStore.signOut();
+  }
+
+  // ── AI Settings ───────────────────────────────────────────────────────────
+
+  /** Saves the Anthropic API key to encrypted storage and clears the input. */
+  protected async saveAiKey(): Promise<void> {
+    const key = this.aiKeyInput().trim();
+    if (!key) return;
+    await this.aiService.saveApiKey(key);
+    this.aiKeyIsSaved.set(true);
+    this.aiKeyInput.set('');
   }
 }

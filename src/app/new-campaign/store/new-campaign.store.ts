@@ -9,6 +9,7 @@ import type { DraftCampaign, DraftAdSet, DraftCreative, WebsiteUrlMode } from '.
 import type { CampaignObjective, CampaignPayload, AdSetPayload, AdCreativePayload, AdPayload, PromotedObject, AttributionSpec } from '../../core/models/index';
 import { MarketingApiService } from '../../core/services/facebook/marketing-api/marketing-api.service';
 import { WorkspaceStore } from '../../workspace';
+import { AiService } from '../../core/services/ai/ai.service';
 
 // ── Module-level publish helpers ─────────────────────────────────────────────
 
@@ -125,6 +126,7 @@ export const NewCampaignStore = signalStore(
   withMethods((store) => {
     const marketingApi = inject(MarketingApiService);
     const workspaceStore = inject(WorkspaceStore);
+    const aiService = inject(AiService);
 
     return {
     // ── Campaign ──────────────────────────────────────────────────────────
@@ -257,6 +259,53 @@ export const NewCampaignStore = signalStore(
     /** Resets the wizard to its initial blank state. */
     reset(): void {
       patchState(store, { ...initialState, campaign: { ...DEFAULT_CAMPAIGN } });
+    },
+
+    // ── AI Draft Generation ───────────────────────────────────────────────
+
+    /**
+     * Calls Claude to generate a campaign name, objective, and ad sets from a
+     * natural-language business description. Populates campaign + ad set fields.
+     * @param prompt - User's description of their business or campaign goal.
+     */
+    async generateDraft(prompt: string): Promise<void> {
+      patchState(store, { isGeneratingAdSets: true, error: null });
+      try {
+        const draft = await aiService.generateDraft(prompt);
+        patchState(store, {
+          campaign: {
+            ...store.campaign(),
+            name: draft.campaignName,
+            objective: draft.objective as CampaignObjective,
+          },
+          adSets: draft.adSets.map((as, i) => ({
+            id: crypto.randomUUID(),
+            name: as.name,
+            status: 'PAUSED' as const,
+            placementMode: 'advantage' as const,
+            optimizationGoal: as.optimizationGoal as import('../model/draft.model').DraftAdSet['optimizationGoal'],
+            billingEvent: as.billingEvent as import('../model/draft.model').DraftAdSet['billingEvent'],
+            budgetPeriod: 'daily' as const,
+            budgetAmount: null,
+            scheduleMode: 'continuous' as const,
+            startDate: null,
+            endDate: null,
+            targeting: {
+              countries: as.targeting?.countries ?? [],
+              minAge: as.targeting?.minAge ?? 18,
+              maxAge: as.targeting?.maxAge ?? 65,
+              interests: [],
+            },
+          })),
+          activeAdSetIndex: 0,
+          isGeneratingAdSets: false,
+        });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'AI draft generation failed',
+          isGeneratingAdSets: false,
+        });
+      }
     },
 
     // ── Publish ───────────────────────────────────────────────────────────
