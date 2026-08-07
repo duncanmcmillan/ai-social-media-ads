@@ -77,6 +77,12 @@ export interface AdSetTargeting {
   ageMin?: number;
   /** Maximum audience age. */
   ageMax?: number;
+  /**
+   * Advantage+ Audience automation flag.
+   * Must be explicitly set to 0 or 1 — required by the Facebook API.
+   * Maps to targeting_automation.advantage_audience in the API payload.
+   */
+  targetingAutomation?: { advantageAudience: 0 | 1 };
 }
 
 /**

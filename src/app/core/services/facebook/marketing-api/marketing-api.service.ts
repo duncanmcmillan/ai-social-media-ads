@@ -177,6 +177,11 @@ export class MarketingApiService {
     };
     if (payload.targeting.ageMin != null) targeting['age_min'] = payload.targeting.ageMin;
     if (payload.targeting.ageMax != null) targeting['age_max'] = payload.targeting.ageMax;
+    if (payload.targeting.targetingAutomation != null) {
+      targeting['targeting_automation'] = {
+        advantage_audience: payload.targeting.targetingAutomation.advantageAudience,
+      };
+    }
 
     const body: Record<string, unknown> = {
       campaign_id:       payload.campaignId,

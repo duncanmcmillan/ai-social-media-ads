@@ -390,6 +390,7 @@ export const NewCampaignStore = signalStore(
 
         // Step 2 — Create ad sets
         const adSetIds: string[] = [];
+        const placements = workspaceStore.placements();
         const promotedObject = derivePromotedObject(objective, meta.pixelId);
         for (const adSet of adSets) {
           const adSetPayload: AdSetPayload = {
@@ -402,6 +403,7 @@ export const NewCampaignStore = signalStore(
               geoLocations: { countries: adSet.targeting.countries },
               ageMin: adSet.targeting.minAge,
               ageMax: adSet.targeting.maxAge,
+              targetingAutomation: { advantageAudience: placements.advantageAudience ? 1 : 0 },
             },
             ...(promotedObject ? { promotedObject } : {}),
             ...(adSet.scheduleMode === 'scheduled' && adSet.startDate ? { startTime: adSet.startDate } : {}),
