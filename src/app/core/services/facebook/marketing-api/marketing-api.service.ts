@@ -311,7 +311,8 @@ export class MarketingApiService {
       )
     );
 
-    const entry = response.images[file.name];
+    // Facebook keys the response by the FormData field name, not the filename.
+    const entry = Object.values(response.images)[0];
     if (!entry?.hash) throw new Error('Image upload succeeded but no hash was returned.');
     return { hash: entry.hash };
   }
