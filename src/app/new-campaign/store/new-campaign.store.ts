@@ -308,6 +308,40 @@ export const NewCampaignStore = signalStore(
       }
     },
 
+    // ── AI Copy Generation ────────────────────────────────────────────────
+
+    /**
+     * Calls Claude to generate primaryText, headline, and description for the
+     * active creative, using its tone/hook/length settings and campaign context.
+     */
+    async generateCopy(): Promise<void> {
+      const creative = store.creatives()[store.activeCreativeIndex()];
+      if (!creative) return;
+      patchState(store, { isGeneratingCopy: true, error: null });
+      try {
+        const campaign = store.campaign();
+        const copy = await aiService.generateCopy({
+          campaignName: campaign.name || 'Untitled Campaign',
+          objective: campaign.objective ?? '',
+          fileName: creative.fileName,
+          tones: creative.tones,
+          hook: creative.hook,
+          length: creative.length,
+        });
+        const updatedCreatives = store.creatives().map((c, i) =>
+          i === store.activeCreativeIndex()
+            ? { ...c, primaryText: copy.primaryText, headline: copy.headline, description: copy.description }
+            : c
+        );
+        patchState(store, { creatives: updatedCreatives, isGeneratingCopy: false });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'AI copy generation failed',
+          isGeneratingCopy: false,
+        });
+      }
+    },
+
     // ── Publish ───────────────────────────────────────────────────────────
 
     /**

@@ -94,12 +94,8 @@ export class CreativesStepComponent {
     this.update('tones', tones);
   }
 
-  /**
-   * Triggers AI copy generation (placeholder — wired up when Anthropic SDK is integrated).
-   */
+  /** Calls Claude to generate ad copy for the active creative. */
   protected generateAiCopy(): void {
-    this.store.setGeneratingCopy(true);
-    // TODO: call Claude API via IPC and populate primaryText/headline/description
-    setTimeout(() => this.store.setGeneratingCopy(false), 1500);
+    void this.store.generateCopy();
   }
 }
