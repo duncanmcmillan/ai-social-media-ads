@@ -98,4 +98,12 @@ export class CreativesStepComponent {
   protected generateAiCopy(): void {
     void this.store.generateCopy();
   }
+
+  /** Duplicates the active creative with a fresh id and copies all copy fields. */
+  protected duplicateCreative(): void {
+    const source = this.store.activeCreative();
+    if (!source) return;
+    const name = source.fileName.replace(/(\.[^.]+)?$/, ' (copy)$1');
+    this.store.addCreative({ ...source, id: uuid(), fileName: name });
+  }
 }
