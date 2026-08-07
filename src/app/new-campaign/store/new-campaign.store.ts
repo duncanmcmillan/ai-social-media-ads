@@ -392,13 +392,15 @@ export const NewCampaignStore = signalStore(
         const adSetIds: string[] = [];
         const placements = workspaceStore.placements();
         const promotedObject = derivePromotedObject(objective, meta.pixelId);
+        // CBO campaigns with LOWEST_COST require the same optimization_goal across all ad sets.
+        const cboOptimizationGoal = draft.budgetType === 'campaign' ? adSets[0]?.optimizationGoal : null;
         for (const adSet of adSets) {
           const adSetPayload: AdSetPayload = {
             campaignId,
             name: adSet.name,
             status,
             billingEvent: adSet.billingEvent,
-            optimizationGoal: adSet.optimizationGoal,
+            optimizationGoal: cboOptimizationGoal ?? adSet.optimizationGoal,
             targeting: {
               geoLocations: { countries: adSet.targeting.countries },
               ageMin: adSet.targeting.minAge,
