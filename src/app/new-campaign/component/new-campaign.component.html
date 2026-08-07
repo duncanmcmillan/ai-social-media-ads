@@ -38,7 +38,13 @@
       <div class="nc-setup-warning" role="alert">
         <span class="nc-setup-icon">&#9888;</span>
         <span>
-          Facebook Page, Meta Pixel, and Website URL must be configured before publishing.
+          @if (!workspaceStore.metaDefaults().facebookPageId && !workspaceStore.metaDefaults().websiteUrl) {
+            Facebook Page and Website URL must be configured before publishing.
+          } @else if (!workspaceStore.metaDefaults().facebookPageId) {
+            Facebook Page must be configured before publishing.
+          } @else {
+            Website URL must be configured before publishing.
+          }
           <a routerLink="/workspace" class="nc-setup-link">Go to Workspace</a>
         </span>
       </div>
@@ -101,15 +107,15 @@
       <div class="ncp-section-label">Campaign progress</div>
       <ul class="ncp-progress-list">
         <li class="ncp-progress-item" [class.ncp-progress-item--done]="!!store.campaign().name && !!store.campaign().objective">
-          <span class="ncp-check">{{ (store.campaign().name && store.campaign().objective) ? '&#10003;' : '&#8226;' }}</span>
+          <span class="ncp-check">{{ (store.campaign().name && store.campaign().objective) ? '✓' : '•' }}</span>
           Campaign details
         </li>
         <li class="ncp-progress-item" [class.ncp-progress-item--done]="store.hasAdSets()">
-          <span class="ncp-check">{{ store.hasAdSets() ? '&#10003;' : '&#8226;' }}</span>
+          <span class="ncp-check">{{ store.hasAdSets() ? '✓' : '•' }}</span>
           Ad sets configured
         </li>
         <li class="ncp-progress-item" [class.ncp-progress-item--done]="store.hasCreatives()">
-          <span class="ncp-check">{{ store.hasCreatives() ? '&#10003;' : '&#8226;' }}</span>
+          <span class="ncp-check">{{ store.hasCreatives() ? '✓' : '•' }}</span>
           Creatives uploaded
         </li>
       </ul>
@@ -119,38 +125,30 @@
     <div class="ncp-section">
       <div class="ncp-section-label">At a glance</div>
       <dl class="ncp-glance">
-        <div class="ncp-glance-row">
-          <dt>Name</dt>
-          <dd>{{ store.campaign().name || '—' }}</dd>
-        </div>
-        <div class="ncp-glance-row">
-          <dt>Objective</dt>
-          <dd>{{ store.campaign().objective ? (objectiveLabels[store.campaign().objective!] || store.campaign().objective) : '—' }}</dd>
-        </div>
-        <div class="ncp-glance-row">
-          <dt>Budget</dt>
-          <dd>
-            @if (store.campaign().budgetAmount) {
-              ${{ store.campaign().budgetAmount }}
-              /{{ store.campaign().budgetPeriod === 'daily' ? 'day' : 'lifetime' }}
-            } @else {
-              —
-            }
-          </dd>
-        </div>
-        <div class="ncp-glance-row">
-          <dt>Ad Sets</dt>
-          <dd>{{ store.adSets().length || '—' }}</dd>
-        </div>
-        <div class="ncp-glance-row">
-          <dt>Creatives</dt>
-          <dd>{{ store.creatives().length || '—' }}</dd>
-        </div>
+        <dt>Name</dt>
+        <dd>{{ store.campaign().name || '—' }}</dd>
+
+        <dt>Objective</dt>
+        <dd>{{ store.campaign().objective ? (objectiveLabels[store.campaign().objective!] || store.campaign().objective) : '—' }}</dd>
+
+        <dt>Budget</dt>
+        <dd>
+          @if (store.campaign().budgetAmount) {
+            ${{ store.campaign().budgetAmount }}/{{ store.campaign().budgetPeriod === 'daily' ? 'day' : 'lifetime' }}
+          } @else {
+            —
+          }
+        </dd>
+
+        <dt>Ad Sets</dt>
+        <dd>{{ store.adSets().length || '—' }}</dd>
+
+        <dt>Creatives</dt>
+        <dd>{{ store.creatives().length || '—' }}</dd>
+
         @if (store.totalAdsToCreate() > 0) {
-          <div class="ncp-glance-row">
-            <dt>Total ads</dt>
-            <dd>{{ store.totalAdsToCreate() }}</dd>
-          </div>
+          <dt>Total ads</dt>
+          <dd>{{ store.totalAdsToCreate() }}</dd>
         }
       </dl>
     </div>

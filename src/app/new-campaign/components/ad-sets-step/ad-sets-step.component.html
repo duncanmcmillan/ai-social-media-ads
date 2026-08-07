@@ -14,14 +14,24 @@
     <!-- Tab bar -->
     <div class="adset-tabs" role="tablist">
       @for (adSet of store.adSets(); track adSet.id; let i = $index) {
-        <button
-          class="adset-tab"
-          [class.adset-tab--active]="i === store.activeAdSetIndex()"
-          role="tab"
-          [attr.aria-selected]="i === store.activeAdSetIndex()"
-          (click)="selectTab(i)"
-          type="button"
-        >{{ adSet.name }}</button>
+        <div class="adset-tab-item" [class.adset-tab-item--active]="i === store.activeAdSetIndex()">
+          <button
+            class="adset-tab"
+            [class.adset-tab--active]="i === store.activeAdSetIndex()"
+            role="tab"
+            [attr.aria-selected]="i === store.activeAdSetIndex()"
+            (click)="selectTab(i)"
+            type="button"
+          >{{ adSet.name }}</button>
+          @if (store.adSets().length > 1) {
+            <button
+              class="adset-tab-close"
+              (click)="removeAdSet(i)"
+              type="button"
+              [attr.aria-label]="'Remove ' + adSet.name"
+            >&#10005;</button>
+          }
+        </div>
       }
       <button class="adset-tab adset-tab--add" (click)="addAdSet()" type="button" aria-label="Add ad set">+ Add</button>
     </div>
@@ -32,18 +42,13 @@
         <!-- Name -->
         <div class="form-field">
           <label class="form-label" [for]="'adset-name-' + store.activeAdSetIndex()">Ad set name</label>
-          <div class="name-row">
-            <input
-              [id]="'adset-name-' + store.activeAdSetIndex()"
-              class="form-input"
-              type="text"
-              [value]="adSet.name"
-              (input)="update('name', $any($event.target).value)"
-            />
-            @if (store.adSets().length > 1) {
-              <button class="icon-btn icon-btn--danger" (click)="removeAdSet(store.activeAdSetIndex())" type="button" aria-label="Remove ad set">&#10005;</button>
-            }
-          </div>
+          <input
+            [id]="'adset-name-' + store.activeAdSetIndex()"
+            class="form-input"
+            type="text"
+            [value]="adSet.name"
+            (input)="update('name', $any($event.target).value)"
+          />
         </div>
 
         <!-- Audience -->
