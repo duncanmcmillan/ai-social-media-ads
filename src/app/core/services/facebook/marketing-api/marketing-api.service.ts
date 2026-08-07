@@ -81,8 +81,15 @@ export class MarketingApiService {
       special_ad_categories: payload.specialAdCategories,
     };
     if (payload.buyingType) body['buying_type'] = payload.buyingType;
-    if (payload.dailyBudget != null) body['daily_budget'] = payload.dailyBudget;
-    if (payload.lifetimeBudget != null) body['lifetime_budget'] = payload.lifetimeBudget;
+    if (payload.dailyBudget != null) {
+      body['daily_budget'] = payload.dailyBudget;
+      // bid_strategy is required on CBO campaigns (those with a campaign-level budget)
+      body['bid_strategy'] = payload.bidStrategy ?? 'LOWEST_COST_WITHOUT_CAP';
+    }
+    if (payload.lifetimeBudget != null) {
+      body['lifetime_budget'] = payload.lifetimeBudget;
+      body['bid_strategy'] = payload.bidStrategy ?? 'LOWEST_COST_WITHOUT_CAP';
+    }
 
     return firstValueFrom(
       this.http.post<{ id: string }>(`${GRAPH_API_BASE}/${adAccountId}/campaigns`, body, { params })
