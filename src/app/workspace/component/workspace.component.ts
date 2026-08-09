@@ -84,6 +84,8 @@ export class WorkspaceComponent implements AfterViewInit {
   protected readonly appIdDraft = signal('');
   /** Draft App Secret input — always starts blank (write-only field). */
   protected readonly appSecretDraft = signal('');
+  /** Draft manual access token (Graph API Explorer bypass). */
+  protected readonly manualTokenDraft = signal('');
 
   // ── AI Settings — API key draft state ────────────────────────────────────
 
@@ -260,6 +262,14 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Triggers the Facebook OAuth flow via the Electron bridge. */
   protected async connectMeta(): Promise<void> {
     await this.authStore.connectFacebook();
+  }
+
+  /** Applies a manually-entered token from the Graph API Explorer. */
+  protected async applyManualToken(): Promise<void> {
+    const token = this.manualTokenDraft().trim();
+    if (!token) return;
+    await this.authStore.setManualToken(token);
+    this.manualTokenDraft.set('');
   }
 
   /**

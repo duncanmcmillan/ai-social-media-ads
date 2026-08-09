@@ -59,6 +59,13 @@ export type SpecialAdCategory =
   | 'ONLINE_GAMBLING_AND_GAMING'
   | 'FINANCIAL_PRODUCTS_SERVICES';
 
+/** Facebook bid strategy — controls how Meta bids in ad auctions. */
+export type CampaignBidStrategy =
+  | 'LOWEST_COST_WITHOUT_CAP'
+  | 'LOWEST_COST_WITH_BID_CAP'
+  | 'COST_CAP'
+  | 'MINIMUM_ROAS';
+
 /** Payload for creating or updating a campaign. */
 export interface CampaignPayload {
   /** Campaign display name. */
@@ -73,6 +80,12 @@ export interface CampaignPayload {
   dailyBudget?: number;
   /** Lifetime budget in minor currency units. */
   lifetimeBudget?: number;
+  /**
+   * Bid strategy for Campaign Budget Optimisation (CBO) campaigns.
+   * Only valid when dailyBudget or lifetimeBudget is set at campaign level.
+   * Defaults to LOWEST_COST_WITHOUT_CAP.
+   */
+  bidStrategy?: CampaignBidStrategy;
   /**
    * Special ad category declarations — required by the API.
    * Pass [] for standard (non-restricted) campaigns.

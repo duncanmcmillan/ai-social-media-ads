@@ -165,7 +165,7 @@
           <label class="copy-field-label" for="cta-select">Call to Action</label>
           <select id="cta-select" class="form-select" [value]="creative.cta" (change)="update('cta', $any($event.target).value)">
             @for (cta of ctaOptions; track cta) {
-              <option [value]="cta">{{ cta }}</option>
+              <option [value]="cta">{{ ctaLabel(cta) }}</option>
             }
           </select>
         </div>
@@ -297,7 +297,7 @@
                       <div class="fb-link-desc">{{ c.description }}</div>
                     }
                   </div>
-                  <button class="fb-cta-btn" type="button">{{ c.cta }}</button>
+                  <button class="fb-cta-btn" type="button">{{ ctaLabel(c.cta) }}</button>
                 </div>
 
                 <!-- Reaction stats -->

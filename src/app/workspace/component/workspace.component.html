@@ -103,7 +103,37 @@
             }
           </div>
 
-          <!-- ③ Ad Account selector — shown once authenticated -->
+          <!-- ③ Manual token (Graph API Explorer bypass) — always visible -->
+          <div class="ws-card ws-card--muted">
+            <p class="ws-sublabel" style="margin-bottom: 8px;">
+              Paste an access token from the
+              <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener" class="ws-link">Graph API Explorer</a>
+              to connect without OAuth or override an existing token.
+            </p>
+            <div class="ws-field ws-field--last">
+              <label class="ws-label" for="ws-manual-token">Access Token</label>
+              <input
+                id="ws-manual-token"
+                class="ws-input"
+                type="password"
+                placeholder="Paste token from Graph API Explorer…"
+                [value]="manualTokenDraft()"
+                (input)="manualTokenDraft.set($any($event.target).value)"
+                autocomplete="off"
+              />
+              <p class="ws-field-hint">Held in memory only — not persisted. Requires ads_management scope.</p>
+            </div>
+            <div class="ws-card-footer">
+              <button
+                class="btn btn-outline btn-sm"
+                type="button"
+                [disabled]="!manualTokenDraft() || authStore.isLoading()"
+                (click)="applyManualToken()"
+              >{{ authStore.isLoading() ? 'Validating…' : 'Apply Token' }}</button>
+            </div>
+          </div>
+
+          <!-- ④ Ad Account selector — shown once authenticated -->
           @if (authStore.isAuthenticated()) {
             <div class="ws-card">
               <div class="ws-field" [class.ws-field--last]="!authStore.selectedAccount()">

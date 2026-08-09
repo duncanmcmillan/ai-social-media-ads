@@ -90,6 +90,11 @@ export interface DraftCreative {
   fileType: 'image' | 'video';
   /** Object URL for local preview. */
   objectUrl: string;
+  /**
+   * The original File object, retained for upload to the Facebook adimages API.
+   * Not set on duplicated creatives (those carry no uploadable file).
+   */
+  file?: File;
   /** Selected tone chips (e.g. 'Conversational', 'Professional'). */
   tones: string[];
   /** Selected hook chip. */

@@ -39,9 +39,9 @@ function buildAttributionSpec(
   viewThroughDays: number
 ): AttributionSpec[] {
   return [
-    { eventType: 'CLICK_THROUGH', windowDays: clickThroughDays },
-    { eventType: 'ENGAGED_VIEW',  windowDays: engagedViewDays  },
-    { eventType: 'VIEW_THROUGH',  windowDays: viewThroughDays  },
+    { eventType: 'CLICK_THROUGH',    windowDays: clickThroughDays },
+    { eventType: 'ENGAGED_VIDEO_VIEW', windowDays: engagedViewDays  },
+    { eventType: 'VIEW_THROUGH',      windowDays: viewThroughDays  },
   ];
 }
 
@@ -390,25 +390,23 @@ export const NewCampaignStore = signalStore(
 
         // Step 2 — Create ad sets
         const adSetIds: string[] = [];
+        const placements = workspaceStore.placements();
         const promotedObject = derivePromotedObject(objective, meta.pixelId);
-        const attributionSpec = buildAttributionSpec(
-          enhancements.clickThroughDays,
-          enhancements.engagedViewDays,
-          enhancements.viewThroughDays
-        );
+        // CBO campaigns with LOWEST_COST require the same optimization_goal across all ad sets.
+        const cboOptimizationGoal = draft.budgetType === 'campaign' ? adSets[0]?.optimizationGoal : null;
         for (const adSet of adSets) {
           const adSetPayload: AdSetPayload = {
             campaignId,
             name: adSet.name,
             status,
             billingEvent: adSet.billingEvent,
-            optimizationGoal: adSet.optimizationGoal,
+            optimizationGoal: cboOptimizationGoal ?? adSet.optimizationGoal,
             targeting: {
               geoLocations: { countries: adSet.targeting.countries },
               ageMin: adSet.targeting.minAge,
               ageMax: adSet.targeting.maxAge,
+              targetingAutomation: { advantageAudience: placements.advantageAudience ? 1 : 0 },
             },
-            attributionSpec,
             ...(promotedObject ? { promotedObject } : {}),
             ...(adSet.scheduleMode === 'scheduled' && adSet.startDate ? { startTime: adSet.startDate } : {}),
             ...(adSet.scheduleMode === 'scheduled' && adSet.endDate   ? { endTime:   adSet.endDate   } : {}),
@@ -421,13 +419,11 @@ export const NewCampaignStore = signalStore(
           adSetIds.push(adSetId);
         }
 
-        // Step 3 — Create creatives and ads (image upload not yet implemented)
+        // Step 3 — Create creatives and ads
         for (const creative of creatives) {
-          // 3a — Upload image/video to get image hash or video ID
-          const { hash: imageHash } = await marketingApi.uploadImage(
-            // uploadImage currently throws — implement multipart upload to resolve
-            new File([], creative.fileName)
-          );
+          // 3a — Upload image to get image hash
+          if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
+          const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
 
           // 3b — Create ad creative
           const creativePayload: AdCreativePayload = {

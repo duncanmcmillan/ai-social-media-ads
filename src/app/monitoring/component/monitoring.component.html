@@ -1,0 +1,94 @@
+<!-- Toolbar -->
+<div class="toolbar">
+  <select
+    class="preset-select"
+    [value]="selectedPreset()"
+    (change)="selectedPreset.set($any($event.target).value)"
+    aria-label="Date range"
+  >
+    @for (p of datePresets; track p) {
+      <option [value]="p">{{ datePresetLabels[p] }}</option>
+    }
+  </select>
+
+  <button
+    class="btn btn-primary"
+    type="button"
+    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    (click)="sync()"
+  >
+    @if (isLoading()) {
+      <span class="spinner"></span> Loading...
+    } @else {
+      &#8635; Fetch Insights
+    }
+  </button>
+
+  @if (!authStore.isAuthenticated()) {
+    <span class="auth-hint">Connect Meta account in Workspace to load insights.</span>
+  }
+</div>
+
+<!-- Error -->
+@if (error()) {
+  <div class="error-banner" role="alert">{{ error() }}</div>
+}
+
+<!-- Empty state -->
+@if (!isLoading() && !summary()) {
+  <div class="empty-state">
+    <div class="empty-icon">&#128200;</div>
+    <div class="empty-title">No data loaded</div>
+    <div class="empty-sub">Select a date range and click "Fetch Insights" to load performance data.</div>
+  </div>
+}
+
+<!-- Summary metric cards -->
+@if (summary()) {
+  <div class="summary-cards">
+    @for (card of cards(); track card.label) {
+      <div class="metric-card">
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-sub">{{ card.sub }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Campaign breakdown -->
+  @if (campaignRows().length > 0) {
+    <div class="section-heading">Campaign Breakdown</div>
+    <div class="table-wrap">
+      <table class="data-table" aria-label="Campaign insights">
+        <thead>
+          <tr>
+            <th scope="col">Campaign</th>
+            <th scope="col" class="col-num">Spend</th>
+            <th scope="col" class="col-num">Impressions</th>
+            <th scope="col" class="col-num">Reach</th>
+            <th scope="col" class="col-num">Clicks</th>
+            <th scope="col" class="col-num">CTR</th>
+            <th scope="col" class="col-num">CPC</th>
+            <th scope="col" class="col-num">CPM</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of campaignRows(); track row.campaignId) {
+            <tr>
+              <td class="col-name">{{ row.campaignName }}</td>
+              <td class="col-num">{{ fmtCurrency(+row.spend) }}</td>
+              <td class="col-num">{{ fmtNumber(+row.impressions) }}</td>
+              <td class="col-num">{{ fmtNumber(+row.reach) }}</td>
+              <td class="col-num">{{ fmtNumber(+row.clicks) }}</td>
+              <td class="col-num">{{ fmtCtr(row.ctr) }}</td>
+              <td class="col-num">{{ fmtCurrency(+row.cpc) }}</td>
+              <td class="col-num">{{ fmtCurrency(+row.cpm) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else if (!isLoading()) {
+    <div class="no-campaigns">No campaign data for this period.</div>
+  }
+}

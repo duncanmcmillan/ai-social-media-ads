@@ -77,6 +77,12 @@ export interface AdSetTargeting {
   ageMin?: number;
   /** Maximum audience age. */
   ageMax?: number;
+  /**
+   * Advantage+ Audience automation flag.
+   * Must be explicitly set to 0 or 1 — required by the Facebook API.
+   * Maps to targeting_automation.advantage_audience in the API payload.
+   */
+  targetingAutomation?: { advantageAudience: 0 | 1 };
 }
 
 /**
@@ -104,10 +110,17 @@ export interface PromotedObject {
  */
 export interface AttributionSpec {
   /** Attribution event type. */
-  eventType: 'CLICK_THROUGH' | 'ENGAGED_VIEW' | 'VIEW_THROUGH';
+  eventType: 'CLICK_THROUGH' | 'ENGAGED_VIDEO_VIEW' | 'VIEW_THROUGH';
   /** Attribution window in days (1, 7, or 28). */
   windowDays: number;
 }
+
+/** Facebook bid strategy for an ad set. */
+export type BidStrategy =
+  | 'LOWEST_COST_WITHOUT_CAP'
+  | 'LOWEST_COST_WITH_BID_CAP'
+  | 'COST_CAP'
+  | 'TARGET_COST';
 
 /** Payload for creating or updating an ad set. */
 export interface AdSetPayload {
@@ -121,6 +134,11 @@ export interface AdSetPayload {
   billingEvent: BillingEvent;
   /** Optimisation goal. */
   optimizationGoal: OptimizationGoal;
+  /**
+   * Bid strategy. Defaults to LOWEST_COST_WITHOUT_CAP when not provided.
+   * LOWEST_COST_WITH_BID_CAP and TARGET_COST require bidAmount.
+   */
+  bidStrategy?: BidStrategy;
   /**
    * Audience and geographic targeting.
    * Inherits defaults from Workspace → Default Targeting.

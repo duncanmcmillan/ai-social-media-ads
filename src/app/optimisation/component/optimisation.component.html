@@ -1,0 +1,122 @@
+<!-- Toolbar -->
+<div class="toolbar">
+  <select
+    class="preset-select"
+    [value]="selectedPreset()"
+    (change)="selectedPreset.set($any($event.target).value)"
+    aria-label="Date range"
+  >
+    @for (p of datePresets; track p) {
+      <option [value]="p">{{ datePresetLabels[p] }}</option>
+    }
+  </select>
+
+  <button
+    class="btn btn-primary"
+    type="button"
+    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    (click)="analyse()"
+  >
+    @if (isLoading()) {
+      <span class="spinner"></span> Analysing...
+    } @else {
+      &#9650; Analyse Ads
+    }
+  </button>
+
+  @if (!authStore.isAuthenticated()) {
+    <span class="auth-hint">Connect Meta account in Workspace to analyse performance.</span>
+  }
+</div>
+
+<!-- Error -->
+@if (error()) {
+  <div class="error-banner" role="alert">{{ error() }}</div>
+}
+
+<!-- Empty state -->
+@if (!isLoading() && verdicts().length === 0 && !error()) {
+  <div class="empty-state">
+    <div class="empty-icon">&#128270;</div>
+    <div class="empty-title">No analysis loaded</div>
+    <div class="empty-sub">
+      Select a date range and click "Analyse Ads" to evaluate your creatives against
+      the learning rules configured in Workspace.
+    </div>
+  </div>
+}
+
+<!-- Results -->
+@if (verdicts().length > 0) {
+
+  <!-- Summary strip -->
+  <div class="summary-strip">
+    <div class="strip-item">
+      <span class="strip-count">{{ verdictCount('winner') }}</span>
+      <span class="strip-label verdict-label--winner">Winners</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-count">{{ verdictCount('ok') }}</span>
+      <span class="strip-label verdict-label--ok">On Track</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-count">{{ verdictCount('low-ctr') }}</span>
+      <span class="strip-label verdict-label--low-ctr">Low CTR</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-count">{{ verdictCount('high-cpc') }}</span>
+      <span class="strip-label verdict-label--high-cpc">High CPC</span>
+    </div>
+    <div class="strip-item">
+      <span class="strip-count">{{ verdictCount('needs-data') }}</span>
+      <span class="strip-label verdict-label--needs-data">Needs Data</span>
+    </div>
+  </div>
+
+  <!-- Verdicts thresholds note -->
+  <div class="rules-note">
+    Evaluated against workspace learning rules:
+    min spend {{ fmtCurrency(workspaceStore.learningRules().minSpend) }} &middot;
+    min impressions {{ fmtNumber(workspaceStore.learningRules().minImpressions) }} &middot;
+    winner min spend {{ fmtCurrency(workspaceStore.learningRules().winnerMinSpend) }}.
+    <a routerLink="/workspace" class="rules-link">Edit rules in Workspace.</a>
+  </div>
+
+  <!-- Ad verdicts table -->
+  <div class="table-wrap">
+    <table class="data-table" aria-label="Ad performance analysis">
+      <thead>
+        <tr>
+          <th scope="col">Ad</th>
+          <th scope="col">Ad Set</th>
+          <th scope="col" class="col-num">Spend</th>
+          <th scope="col" class="col-num">Impressions</th>
+          <th scope="col" class="col-num">Clicks</th>
+          <th scope="col" class="col-num">CTR</th>
+          <th scope="col" class="col-num">CPC</th>
+          <th scope="col">Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of verdicts(); track v.adId) {
+          <tr>
+            <td class="col-name">{{ v.adName }}</td>
+            <td class="col-adset">{{ v.adSetName }}</td>
+            <td class="col-num">{{ fmtCurrency(v.spend) }}</td>
+            <td class="col-num">{{ fmtNumber(v.impressions) }}</td>
+            <td class="col-num">{{ fmtNumber(v.clicks) }}</td>
+            <td class="col-num">{{ fmtCtr(v.ctr) }}</td>
+            <td class="col-num">{{ fmtCurrency(v.cpc) }}</td>
+            <td>
+              <span
+                class="verdict-badge"
+                [class]="verdictClass(v.verdict)"
+                [title]="v.reason"
+              >{{ verdictLabel(v.verdict) }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

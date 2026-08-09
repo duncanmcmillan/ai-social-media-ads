@@ -1,0 +1,186 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 16px;
+  gap: 16px;
+  overflow: auto;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.preset-select {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-700);
+  font-size: 13px;
+  cursor: pointer;
+  appearance: auto;
+
+  &:focus { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
+.auth-hint {
+  font-size: 12px;
+  color: var(--neutral-400);
+}
+
+/* ── Error ───────────────────────────────────────────────────────────── */
+.error-banner {
+  padding: 10px 14px;
+  background: #fee2e2;
+  border: 1px solid #f87171;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #991b1b;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 6px;
+  text-align: center;
+  padding: 48px 0;
+  color: var(--neutral-500);
+}
+
+.empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+.empty-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 200;
+  color: var(--neutral-700);
+}
+
+.empty-sub { font-size: 13px; }
+
+/* ── Summary metric cards ────────────────────────────────────────────── */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.metric-card {
+  padding: 14px 16px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  background: var(--neutral-0, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-value {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--neutral-900, #111);
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.metric-sub {
+  font-size: 11px;
+  color: var(--neutral-400);
+}
+
+/* ── Section heading ─────────────────────────────────────────────────── */
+.section-heading {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--neutral-500);
+  flex-shrink: 0;
+}
+
+/* ── Campaign breakdown table ────────────────────────────────────────── */
+.table-wrap {
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--neutral-50, #fafafa);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--neutral-500);
+    border-bottom: 1px solid var(--neutral-200);
+    white-space: nowrap;
+
+    &.col-num { text-align: right; }
+  }
+
+  td {
+    padding: 10px 14px;
+    color: var(--neutral-700);
+    border-bottom: 1px solid var(--neutral-100);
+    vertical-align: middle;
+
+    &.col-num { text-align: right; white-space: nowrap; color: var(--neutral-600); }
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--neutral-50, #fafafa); }
+}
+
+.col-name { max-width: 280px; }
+
+/* ── No campaigns ─────────────────────────────────────────────────────── */
+.no-campaigns {
+  font-size: 13px;
+  color: var(--neutral-400);
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

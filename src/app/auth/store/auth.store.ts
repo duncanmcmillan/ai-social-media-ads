@@ -185,6 +185,39 @@ export const AuthStore = signalStore(
     },
 
     /**
+     * Sets a manually-entered access token (e.g. from the Graph API Explorer).
+     * Validates the token by fetching the user profile and ad accounts.
+     * The token is held in memory only — it will not survive app restart.
+     *
+     * @param token - A valid Facebook access token with ads_management scope.
+     */
+    async setManualToken(token: string): Promise<void> {
+      patchState(store, { isLoading: true, error: null });
+      try {
+        const { user, accounts } = await fetchUserData(token);
+        const autoSelect = accounts.length === 1 ? accounts[0] : null;
+        patchState(store, {
+          isAuthenticated: true,
+          accessToken: token,
+          user,
+          adAccounts: accounts,
+          ...(autoSelect ? { selectedAccount: autoSelect, adAccountId: autoSelect.id } : {}),
+          isLoading: false,
+        });
+        if (autoSelect) {
+          bridge?.saveAccountId(autoSelect.id).catch(() => {});
+        }
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'Token validation failed — check scope and expiry',
+          isAuthenticated: false,
+          accessToken: null,
+          isLoading: false,
+        });
+      }
+    },
+
+    /**
      * Signs the user out by clearing stored tokens and resetting profile state.
      */
     async signOut(): Promise<void> {

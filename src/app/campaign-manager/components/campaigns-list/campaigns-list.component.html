@@ -2,10 +2,10 @@
   <button
     class="btn btn-primary"
     type="button"
-    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    [disabled]="store.campaignsLoading() || !authStore.isAuthenticated()"
     (click)="sync()"
   >
-    @if (isLoading()) {
+    @if (store.campaignsLoading()) {
       <span class="spinner"></span> Syncing...
     } @else {
       &#8635; Sync from Meta
@@ -17,17 +17,17 @@
   }
 </div>
 
-@if (error()) {
-  <div class="list-error" role="alert">{{ error() }}</div>
+@if (store.campaignsError()) {
+  <div class="list-error" role="alert">{{ store.campaignsError() }}</div>
 }
 
-@if (campaigns().length === 0 && !isLoading()) {
+@if (store.campaigns().length === 0 && !store.campaignsLoading()) {
   <div class="list-empty">
     <div class="list-empty-icon">&#128202;</div>
     <div class="list-empty-title">No campaigns loaded</div>
     <div class="list-empty-sub">Click "Sync from Meta" to pull your campaigns.</div>
   </div>
-} @else if (campaigns().length > 0) {
+} @else if (store.campaigns().length > 0) {
   <div class="list-table-wrap">
     <table class="list-table" aria-label="Campaigns">
       <thead>
@@ -37,20 +37,31 @@
           <th scope="col">Objective</th>
           <th scope="col">Budget</th>
           <th scope="col">Created</th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
-        @for (c of campaigns(); track c.id) {
+        @for (c of store.campaigns(); track c.id) {
           <tr>
             <td class="col-name">{{ c.name }}</td>
             <td><span class="status-badge" [class]="'status-' + c.status.toLowerCase()">{{ c.status }}</span></td>
-            <td class="col-obj">{{ c.objective }}</td>
+            <td class="col-obj">{{ objectiveLabel(c.objective) }}</td>
             <td class="col-budget">
-              @if (c.dailyBudget != null) { ${{ c.dailyBudget / 100 | number:'1.2-2' }}/day }
-              @else if (c.lifetimeBudget != null) { ${{ c.lifetimeBudget / 100 | number:'1.2-2' }} lifetime }
+              @if (c.dailyBudget != null) { {{ formatBudget(c.dailyBudget) }}/day }
+              @else if (c.lifetimeBudget != null) { {{ formatBudget(c.lifetimeBudget) }} lifetime }
               @else { — }
             </td>
             <td class="col-date">{{ c.createdTime | date:'dd MMM yyyy' }}</td>
+            <td class="col-actions">
+              @if (c.status === 'ACTIVE' || c.status === 'PAUSED') {
+                <button
+                  class="action-btn"
+                  type="button"
+                  [disabled]="store.togglingId() === c.id"
+                  (click)="toggleStatus(c)"
+                >{{ c.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
+              }
+            </td>
           </tr>
         }
       </tbody>
