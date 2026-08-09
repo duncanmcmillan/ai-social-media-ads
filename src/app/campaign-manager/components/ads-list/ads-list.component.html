@@ -2,10 +2,10 @@
   <button
     class="btn btn-primary"
     type="button"
-    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    [disabled]="store.adsLoading() || !authStore.isAuthenticated()"
     (click)="sync()"
   >
-    @if (isLoading()) {
+    @if (store.adsLoading()) {
       <span class="spinner"></span> Syncing...
     } @else {
       &#8635; Sync from Meta
@@ -17,17 +17,17 @@
   }
 </div>
 
-@if (error()) {
-  <div class="list-error" role="alert">{{ error() }}</div>
+@if (store.adsError()) {
+  <div class="list-error" role="alert">{{ store.adsError() }}</div>
 }
 
-@if (ads().length === 0 && !isLoading()) {
+@if (store.ads().length === 0 && !store.adsLoading()) {
   <div class="list-empty">
     <div class="list-empty-icon">&#128196;</div>
     <div class="list-empty-title">No ads loaded</div>
     <div class="list-empty-sub">Click "Sync from Meta" to pull your ads.</div>
   </div>
-} @else if (ads().length > 0) {
+} @else if (store.ads().length > 0) {
   <div class="list-table-wrap">
     <table class="list-table" aria-label="Ads">
       <thead>
@@ -40,18 +40,18 @@
         </tr>
       </thead>
       <tbody>
-        @for (ad of ads(); track ad.id) {
+        @for (ad of store.ads(); track ad.id) {
           <tr>
             <td class="col-name">{{ ad.name }}</td>
             <td><span class="status-badge" [class]="'status-' + ad.status.toLowerCase()">{{ ad.status }}</span></td>
-            <td class="col-meta">{{ adSetNames().get(ad.adSetId) ?? ad.adSetId }}</td>
+            <td class="col-meta">{{ store.adSetNames()[ad.adSetId] || ad.adSetId }}</td>
             <td class="col-date">{{ ad.createdTime | date:'dd MMM yyyy' }}</td>
             <td class="col-actions">
               @if (ad.status === 'ACTIVE' || ad.status === 'PAUSED') {
                 <button
                   class="action-btn"
                   type="button"
-                  [disabled]="togglingId() === ad.id"
+                  [disabled]="store.togglingId() === ad.id"
                   (click)="toggleStatus(ad)"
                 >{{ ad.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
               }

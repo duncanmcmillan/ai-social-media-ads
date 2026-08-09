@@ -2,10 +2,10 @@
   <button
     class="btn btn-primary"
     type="button"
-    [disabled]="isLoading() || !authStore.isAuthenticated()"
+    [disabled]="store.campaignsLoading() || !authStore.isAuthenticated()"
     (click)="sync()"
   >
-    @if (isLoading()) {
+    @if (store.campaignsLoading()) {
       <span class="spinner"></span> Syncing...
     } @else {
       &#8635; Sync from Meta
@@ -17,17 +17,17 @@
   }
 </div>
 
-@if (error()) {
-  <div class="list-error" role="alert">{{ error() }}</div>
+@if (store.campaignsError()) {
+  <div class="list-error" role="alert">{{ store.campaignsError() }}</div>
 }
 
-@if (campaigns().length === 0 && !isLoading()) {
+@if (store.campaigns().length === 0 && !store.campaignsLoading()) {
   <div class="list-empty">
     <div class="list-empty-icon">&#128202;</div>
     <div class="list-empty-title">No campaigns loaded</div>
     <div class="list-empty-sub">Click "Sync from Meta" to pull your campaigns.</div>
   </div>
-} @else if (campaigns().length > 0) {
+} @else if (store.campaigns().length > 0) {
   <div class="list-table-wrap">
     <table class="list-table" aria-label="Campaigns">
       <thead>
@@ -41,7 +41,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (c of campaigns(); track c.id) {
+        @for (c of store.campaigns(); track c.id) {
           <tr>
             <td class="col-name">{{ c.name }}</td>
             <td><span class="status-badge" [class]="'status-' + c.status.toLowerCase()">{{ c.status }}</span></td>
@@ -57,7 +57,7 @@
                 <button
                   class="action-btn"
                   type="button"
-                  [disabled]="togglingId() === c.id"
+                  [disabled]="store.togglingId() === c.id"
                   (click)="toggleStatus(c)"
                 >{{ c.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
               }

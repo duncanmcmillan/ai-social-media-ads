@@ -1,12 +1,12 @@
 /**
  * @fileoverview Campaigns list component.
  * Displays all campaigns for the connected ad account in a sortable table.
- * Data is fetched from the Facebook Marketing API on demand.
+ * Data is persisted in CampaignManagerStore so it survives tab navigation.
  */
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AuthStore } from '../../../auth';
-import { MarketingApiService } from '../../../core/services/facebook/marketing-api/marketing-api.service';
+import { CampaignManagerStore } from '../../store/campaign-manager.store';
 import type { Campaign, CampaignObjective } from '../../../core/models';
 
 /** Maps Facebook campaign objective enum values to human-readable labels. */
@@ -29,13 +29,7 @@ const OBJECTIVE_LABELS: Record<CampaignObjective, string> = {
 })
 export class CampaignsListComponent {
   protected readonly authStore = inject(AuthStore);
-  private readonly marketingApi = inject(MarketingApiService);
-
-  protected readonly campaigns = signal<Campaign[]>([]);
-  protected readonly isLoading = signal(false);
-  protected readonly error = signal<string | null>(null);
-  /** ID of the campaign currently being toggled, to show per-row loading state. */
-  protected readonly togglingId = signal<string | null>(null);
+  protected readonly store = inject(CampaignManagerStore);
 
   /** Returns a human-readable label for a campaign objective enum value. */
   protected objectiveLabel(obj: CampaignObjective): string {
@@ -51,39 +45,13 @@ export class CampaignsListComponent {
     return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
   }
 
-  /**
-   * Fetches campaigns from the Facebook Marketing API.
-   * Requires the user to be authenticated with an ad account selected.
-   */
-  protected async sync(): Promise<void> {
-    this.isLoading.set(true);
-    this.error.set(null);
-    try {
-      const data = await this.marketingApi.getCampaigns();
-      this.campaigns.set(data);
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Failed to load campaigns.');
-    } finally {
-      this.isLoading.set(false);
-    }
+  /** Triggers a fresh sync from the Facebook Marketing API. */
+  protected sync(): void {
+    void this.store.syncCampaigns();
   }
 
-  /**
-   * Toggles the status of a campaign between ACTIVE and PAUSED.
-   * @param campaign - Campaign to toggle.
-   */
-  protected async toggleStatus(campaign: Campaign): Promise<void> {
-    const newStatus = campaign.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
-    this.togglingId.set(campaign.id);
-    try {
-      await this.marketingApi.updateCampaign(campaign.id, { status: newStatus });
-      this.campaigns.update(list =>
-        list.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c)
-      );
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Failed to update campaign status.');
-    } finally {
-      this.togglingId.set(null);
-    }
+  /** Toggles the status of a campaign between ACTIVE and PAUSED. */
+  protected toggleStatus(campaign: Campaign): void {
+    void this.store.toggleCampaignStatus(campaign);
   }
 }

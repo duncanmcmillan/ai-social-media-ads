@@ -1,12 +1,12 @@
 /**
  * @fileoverview Ad Sets list component.
  * Displays all ad sets across campaigns for the connected ad account.
- * Data is fetched from the Facebook Marketing API on demand.
+ * Data is persisted in CampaignManagerStore so it survives tab navigation.
  */
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AuthStore } from '../../../auth';
-import { MarketingApiService } from '../../../core/services/facebook/marketing-api/marketing-api.service';
+import { CampaignManagerStore } from '../../store/campaign-manager.store';
 import type { AdSet, OptimizationGoal, BillingEvent } from '../../../core/models';
 
 /** Maps Facebook optimisation goal enum values to human-readable labels. */
@@ -52,13 +52,7 @@ const BILLING_LABELS: Record<BillingEvent, string> = {
 })
 export class AdSetsListComponent {
   protected readonly authStore = inject(AuthStore);
-  private readonly marketingApi = inject(MarketingApiService);
-
-  protected readonly adSets = signal<AdSet[]>([]);
-  protected readonly isLoading = signal(false);
-  protected readonly error = signal<string | null>(null);
-  /** ID of the ad set currently being toggled, to show per-row loading state. */
-  protected readonly togglingId = signal<string | null>(null);
+  protected readonly store = inject(CampaignManagerStore);
 
   /** Returns a human-readable label for an optimisation goal enum value. */
   protected optimizationLabel(goal: OptimizationGoal): string {
@@ -79,40 +73,13 @@ export class AdSetsListComponent {
     return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount / 100);
   }
 
-  /**
-   * Fetches ad sets from the Facebook Marketing API.
-   * Requires the user to be authenticated with an ad account selected.
-   */
-  protected async sync(): Promise<void> {
-    this.isLoading.set(true);
-    this.error.set(null);
-    try {
-      const campaigns = await this.marketingApi.getCampaigns();
-      const results = await Promise.all(campaigns.map(c => this.marketingApi.getAdSets(c.id)));
-      this.adSets.set(results.flat());
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Failed to load ad sets.');
-    } finally {
-      this.isLoading.set(false);
-    }
+  /** Triggers a fresh sync from the Facebook Marketing API. */
+  protected sync(): void {
+    void this.store.syncAdSets();
   }
 
-  /**
-   * Toggles the status of an ad set between ACTIVE and PAUSED.
-   * @param adSet - Ad set to toggle.
-   */
-  protected async toggleStatus(adSet: AdSet): Promise<void> {
-    const newStatus = adSet.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
-    this.togglingId.set(adSet.id);
-    try {
-      await this.marketingApi.updateAdSet(adSet.id, { status: newStatus });
-      this.adSets.update(list =>
-        list.map(a => a.id === adSet.id ? { ...a, status: newStatus } : a)
-      );
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Failed to update ad set status.');
-    } finally {
-      this.togglingId.set(null);
-    }
+  /** Toggles the status of an ad set between ACTIVE and PAUSED. */
+  protected toggleStatus(adSet: AdSet): void {
+    void this.store.toggleAdSetStatus(adSet);
   }
 }
