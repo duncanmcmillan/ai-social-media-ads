@@ -2,8 +2,8 @@
 <div class="toolbar">
   <select
     class="preset-select"
-    [value]="selectedPreset()"
-    (change)="selectedPreset.set($any($event.target).value)"
+    [value]="monitoringStore.selectedPreset()"
+    (change)="monitoringStore.setPreset($any($event.target).value)"
     aria-label="Date range"
   >
     @for (p of datePresets; track p) {
@@ -14,15 +14,21 @@
   <button
     class="btn btn-primary"
     type="button"
-    [disabled]="isLoading() || !authStore.isAuthenticated()"
-    (click)="sync()"
+    [disabled]="monitoringStore.isLoading() || !authStore.isAuthenticated()"
+    (click)="monitoringStore.sync()"
   >
-    @if (isLoading()) {
+    @if (monitoringStore.isLoading()) {
       <span class="spinner"></span> Loading...
     } @else {
       &#8635; Fetch Insights
     }
   </button>
+
+  @if (monitoringStore.campaignRows().length > 0) {
+    <button class="btn btn-secondary" type="button" (click)="exportCsv()">
+      &#8681; Export CSV
+    </button>
+  }
 
   @if (!authStore.isAuthenticated()) {
     <span class="auth-hint">Connect Meta account in Workspace to load insights.</span>
@@ -30,12 +36,12 @@
 </div>
 
 <!-- Error -->
-@if (error()) {
-  <div class="error-banner" role="alert">{{ error() }}</div>
+@if (monitoringStore.error()) {
+  <div class="error-banner" role="alert">{{ monitoringStore.error() }}</div>
 }
 
 <!-- Empty state -->
-@if (!isLoading() && !summary()) {
+@if (!monitoringStore.isLoading() && !monitoringStore.summary()) {
   <div class="empty-state">
     <div class="empty-icon">&#128200;</div>
     <div class="empty-title">No data loaded</div>
@@ -44,7 +50,7 @@
 }
 
 <!-- Summary metric cards -->
-@if (summary()) {
+@if (monitoringStore.summary()) {
   <div class="summary-cards">
     @for (card of cards(); track card.label) {
       <div class="metric-card">
@@ -56,27 +62,74 @@
   </div>
 
   <!-- Campaign breakdown -->
-  @if (campaignRows().length > 0) {
+  @if (monitoringStore.campaignRows().length > 0) {
     <div class="section-heading">Campaign Breakdown</div>
     <div class="table-wrap">
       <table class="data-table" aria-label="Campaign insights">
         <thead>
           <tr>
-            <th scope="col">Campaign</th>
-            <th scope="col" class="col-num">Spend</th>
-            <th scope="col" class="col-num">Impressions</th>
-            <th scope="col" class="col-num">Reach</th>
-            <th scope="col" class="col-num">Clicks</th>
-            <th scope="col" class="col-num">CTR</th>
-            <th scope="col" class="col-num">CPC</th>
-            <th scope="col" class="col-num">CPM</th>
+            <th scope="col" class="col-sortable" (click)="sortBy('campaignName')">
+              Campaign
+              <span class="sort-chevron" [class.active]="sortCol() === 'campaignName'">
+                {{ sortCol() === 'campaignName' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('spend')">
+              Spend
+              <span class="sort-chevron" [class.active]="sortCol() === 'spend'">
+                {{ sortCol() === 'spend' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('impressions')">
+              Impressions
+              <span class="sort-chevron" [class.active]="sortCol() === 'impressions'">
+                {{ sortCol() === 'impressions' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('reach')">
+              Reach
+              <span class="sort-chevron" [class.active]="sortCol() === 'reach'">
+                {{ sortCol() === 'reach' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('clicks')">
+              Clicks
+              <span class="sort-chevron" [class.active]="sortCol() === 'clicks'">
+                {{ sortCol() === 'clicks' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('ctr')">
+              CTR
+              <span class="sort-chevron" [class.active]="sortCol() === 'ctr'">
+                {{ sortCol() === 'ctr' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('cpc')">
+              CPC
+              <span class="sort-chevron" [class.active]="sortCol() === 'cpc'">
+                {{ sortCol() === 'cpc' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('cpm')">
+              CPM
+              <span class="sort-chevron" [class.active]="sortCol() === 'cpm'">
+                {{ sortCol() === 'cpm' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
-          @for (row of campaignRows(); track row.campaignId) {
+          @for (row of sortedRows(); track row.campaignId) {
             <tr>
               <td class="col-name">{{ row.campaignName }}</td>
-              <td class="col-num">{{ fmtCurrency(+row.spend) }}</td>
+              <td class="col-num col-spend">
+                <div class="spend-cell">
+                  <span>{{ fmtCurrency(+row.spend) }}</span>
+                  <div class="spend-bar-track">
+                    <div class="spend-bar-fill" [style.width.%]="spendFraction(row) * 100"></div>
+                  </div>
+                </div>
+              </td>
               <td class="col-num">{{ fmtNumber(+row.impressions) }}</td>
               <td class="col-num">{{ fmtNumber(+row.reach) }}</td>
               <td class="col-num">{{ fmtNumber(+row.clicks) }}</td>
@@ -88,7 +141,7 @@
         </tbody>
       </table>
     </div>
-  } @else if (!isLoading()) {
+  } @else if (!monitoringStore.isLoading()) {
     <div class="no-campaigns">No campaign data for this period.</div>
   }
 }

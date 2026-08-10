@@ -1,15 +1,15 @@
 /**
  * @fileoverview Monitoring & Tools component.
  * Displays account-level summary metrics and a per-campaign breakdown table.
- * Data is fetched from the Facebook Insights API on demand.
+ * Data is fetched from the Facebook Insights API on demand and persisted in
+ * MonitoringStore so results survive tab navigation.
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AuthStore } from '../../auth';
-import {
-  InsightsApiService,
-  type CampaignInsightRow,
-  type DatePreset,
-  type InsightMetrics,
+import { MonitoringStore } from '../store/monitoring.store';
+import type {
+  CampaignInsightRow,
+  DatePreset,
 } from '../../core/services/facebook/insights-api/insights-api.service';
 
 /** Human-readable labels for each date preset. */
@@ -31,6 +31,9 @@ const DATE_PRESETS: DatePreset[] = [
   'last_30d', 'last_month', 'this_month', 'this_year',
 ];
 
+/** Sortable column keys for the campaign breakdown table. */
+type SortCol = 'campaignName' | 'spend' | 'impressions' | 'reach' | 'clicks' | 'ctr' | 'cpc' | 'cpm';
+
 /** Performance monitoring dashboard. */
 @Component({
   selector: 'app-monitoring',
@@ -41,64 +44,108 @@ const DATE_PRESETS: DatePreset[] = [
 })
 export class MonitoringComponent {
   protected readonly authStore = inject(AuthStore);
-  private readonly insightsApi = inject(InsightsApiService);
+  protected readonly monitoringStore = inject(MonitoringStore);
 
   protected readonly datePresets = DATE_PRESETS;
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
 
-  protected readonly selectedPreset = signal<DatePreset>('last_30d');
-  protected readonly isLoading = signal(false);
-  protected readonly error = signal<string | null>(null);
+  // ── Sorting (view-local — no need to persist in root store) ───────────────
 
-  /** Account-level summary metrics (null until first fetch). */
-  protected readonly summary = signal<InsightMetrics | null>(null);
+  protected readonly sortCol = signal<SortCol>('spend');
+  protected readonly sortDir = signal<'asc' | 'desc'>('desc');
 
-  /** Per-campaign breakdown rows. */
-  protected readonly campaignRows = signal<CampaignInsightRow[]>([]);
+  protected sortBy(col: SortCol): void {
+    if (this.sortCol() === col) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortCol.set(col);
+      // Text columns default ascending; numeric columns default descending.
+      this.sortDir.set(col === 'campaignName' ? 'asc' : 'desc');
+    }
+  }
+
+  protected readonly sortedRows = computed(() => {
+    const rows: CampaignInsightRow[] = [...this.monitoringStore.campaignRows()];
+    const col = this.sortCol();
+    const dir = this.sortDir() === 'asc' ? 1 : -1;
+
+    return rows.sort((a, b) => {
+      if (col === 'campaignName') {
+        return dir * a.campaignName.localeCompare(b.campaignName);
+      }
+      return dir * (parseFloat(a[col]) - parseFloat(b[col]));
+    });
+  });
+
+  /** Maximum spend across all rows — used to scale the inline spend bar. */
+  protected readonly maxSpend = computed(() => {
+    const rows = this.monitoringStore.campaignRows();
+    if (rows.length === 0) return 0;
+    return Math.max(...rows.map(r => parseFloat(r.spend) || 0));
+  });
+
+  /** Fraction (0–1) of the max spend for a row — drives the spend bar width. */
+  protected spendFraction(row: CampaignInsightRow): number {
+    const max = this.maxSpend();
+    return max === 0 ? 0 : (parseFloat(row.spend) || 0) / max;
+  }
+
+  // ── Summary cards ─────────────────────────────────────────────────────────
 
   /** Account currency for formatting — falls back to USD. */
   private get currency(): string {
     return this.authStore.selectedAccount()?.currency ?? 'USD';
   }
 
-  /** Metric card definitions derived from summary signal. */
+  /** Metric card definitions derived from the store summary. */
   protected readonly cards = computed(() => {
-    const s = this.summary();
+    const s = this.monitoringStore.summary();
     if (!s) return [];
-    const fmt = (v: string) => this.fmtCurrency(parseFloat(v));
+    const fmt  = (v: string) => this.fmtCurrency(parseFloat(v));
     const fmtN = (v: string) => this.fmtNumber(parseInt(v, 10));
-    const fmtPct = (v: string) => `${parseFloat(v).toFixed(2)}%`;
+    const fmtP = (v: string) => `${parseFloat(v).toFixed(2)}%`;
     return [
-      { label: 'Spend',       value: fmt(s.spend),                  sub: 'Total spend' },
-      { label: 'Impressions', value: fmtN(s.impressions),           sub: 'Total impressions' },
-      { label: 'Reach',       value: fmtN(s.reach),                 sub: 'Unique people' },
-      { label: 'Clicks',      value: fmtN(s.clicks),                sub: 'Link clicks' },
-      { label: 'CTR',         value: fmtPct(s.ctr),                 sub: 'Click-through rate' },
-      { label: 'CPC',         value: fmt(s.cpc),                    sub: 'Cost per click' },
-      { label: 'CPM',         value: fmt(s.cpm),                    sub: 'Per 1,000 impressions' },
+      { label: 'Spend',       value: fmt(s.spend),        sub: 'Total spend' },
+      { label: 'Impressions', value: fmtN(s.impressions), sub: 'Total impressions' },
+      { label: 'Reach',       value: fmtN(s.reach),       sub: 'Unique people' },
+      { label: 'Clicks',      value: fmtN(s.clicks),      sub: 'Link clicks' },
+      { label: 'CTR',         value: fmtP(s.ctr),         sub: 'Click-through rate' },
+      { label: 'CPC',         value: fmt(s.cpc),           sub: 'Cost per click' },
+      { label: 'CPM',         value: fmt(s.cpm),           sub: 'Per 1,000 impressions' },
     ];
   });
 
-  /** Fetches account summary and per-campaign insights. */
-  protected async sync(): Promise<void> {
-    this.isLoading.set(true);
-    this.error.set(null);
-    this.summary.set(null);
-    this.campaignRows.set([]);
-    const preset = this.selectedPreset();
-    try {
-      const [accountData, campaignData] = await Promise.all([
-        this.insightsApi.getAccountInsights(preset),
-        this.insightsApi.getCampaignLevelInsights(preset),
-      ]);
-      this.summary.set(accountData[0] ?? null);
-      this.campaignRows.set(campaignData);
-    } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Failed to load insights.');
-    } finally {
-      this.isLoading.set(false);
-    }
+  // ── CSV export ────────────────────────────────────────────────────────────
+
+  protected exportCsv(): void {
+    const rows = this.sortedRows();
+    if (rows.length === 0) return;
+
+    const header = ['Campaign', 'Spend', 'Impressions', 'Reach', 'Clicks', 'CTR (%)', 'CPC', 'CPM'];
+    const csv = [
+      header.join(','),
+      ...rows.map(r => [
+        `"${r.campaignName.replace(/"/g, '""')}"`,
+        r.spend,
+        r.impressions,
+        r.reach,
+        r.clicks,
+        r.ctr,
+        r.cpc,
+        r.cpm,
+      ].join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `monitoring-${this.monitoringStore.selectedPreset()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
+
+  // ── Formatters ────────────────────────────────────────────────────────────
 
   /** Formats a currency value using the selected account's currency. */
   protected fmtCurrency(value: number): string {
