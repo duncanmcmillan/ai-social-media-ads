@@ -78,6 +78,10 @@ export interface WorkspaceLearningRules {
   winnerMinSpend: number;
   /** ROAS floor for the winner label. */
   winnerMinRoas: number;
+  /** Minimum CTR (%) — ads below this are flagged Low CTR. */
+  minCtr: number;
+  /** Maximum CPC — ads above this are flagged High CPC. */
+  maxCpc: number;
   /** Flag as loser when CPA exceeds this multiple of target CPA. */
   killCpaMultiple: number;
   /** Frequency ceiling for prospecting audiences before fatigue counts. */
@@ -132,6 +136,8 @@ export const DEFAULT_WORKSPACE_STATE: WorkspaceState = {
     minConversions: 5,
     winnerMinSpend: 300,
     winnerMinRoas: 2,
+    minCtr: 1.0,
+    maxCpc: 5.0,
     killCpaMultiple: 3,
     prospectingFrequencyMax: 3.5,
     retargetingFrequencyMax: 8,

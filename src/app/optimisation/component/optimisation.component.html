@@ -78,6 +78,8 @@
     Evaluated against workspace learning rules:
     min spend {{ fmtCurrency(workspaceStore.learningRules().minSpend) }} &middot;
     min impressions {{ fmtNumber(workspaceStore.learningRules().minImpressions) }} &middot;
+    min CTR {{ workspaceStore.learningRules().minCtr }}% &middot;
+    max CPC {{ fmtCurrency(workspaceStore.learningRules().maxCpc) }} &middot;
     winner min spend {{ fmtCurrency(workspaceStore.learningRules().winnerMinSpend) }}.
     <a routerLink="/workspace" class="rules-link">Edit rules in Workspace.</a>
   </div>

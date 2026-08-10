@@ -288,6 +288,8 @@ export class WorkspaceComponent implements AfterViewInit {
       minConversions: 5,
       winnerMinSpend: 300,
       winnerMinRoas: 2,
+      minCtr: 1.0,
+      maxCpc: 5.0,
       killCpaMultiple: 3,
       prospectingFrequencyMax: 3.5,
       retargetingFrequencyMax: 8,

@@ -120,16 +120,15 @@ export class OptimisationComponent {
     if (spend < rules.minSpend || impressions < rules.minImpressions) {
       verdict = 'needs-data';
       reason  = `Spend ${this.fmtCurrency(spend)} and ${this.fmtNumber(impressions)} impressions — below thresholds (${this.fmtCurrency(rules.minSpend)} spend / ${this.fmtNumber(rules.minImpressions)} impressions needed).`;
-    } else if (spend >= rules.winnerMinSpend && ctr >= 1.5) {
+    } else if (spend >= rules.winnerMinSpend && ctr >= rules.minCtr) {
       verdict = 'winner';
-      reason  = `Spend ${this.fmtCurrency(spend)} with ${this.fmtCtr(ctr)} CTR — meets winner criteria.`;
-    } else if (ctr < 1.0) {
+      reason  = `Spend ${this.fmtCurrency(spend)} with ${this.fmtCtr(ctr)} CTR — meets winner criteria (min spend ${this.fmtCurrency(rules.winnerMinSpend)}, min CTR ${rules.minCtr}%).`;
+    } else if (ctr < rules.minCtr) {
       verdict = 'low-ctr';
-      reason  = `CTR of ${this.fmtCtr(ctr)} is below 1% target after sufficient impressions.`;
-    } else if (cpc > 5.0) {
-      // Flag high CPC as a rough signal; users can refine thresholds via learning rules
+      reason  = `CTR of ${this.fmtCtr(ctr)} is below the ${rules.minCtr}% threshold set in Workspace Learning Rules.`;
+    } else if (cpc > rules.maxCpc) {
       verdict = 'high-cpc';
-      reason  = `CPC of ${this.fmtCurrency(cpc)} is high. Consider narrowing audience or refreshing creative.`;
+      reason  = `CPC of ${this.fmtCurrency(cpc)} exceeds the ${this.fmtCurrency(rules.maxCpc)} limit set in Workspace Learning Rules.`;
     } else {
       verdict = 'ok';
       reason  = `Spend ${this.fmtCurrency(spend)}, CTR ${this.fmtCtr(ctr)} — within normal range.`;
