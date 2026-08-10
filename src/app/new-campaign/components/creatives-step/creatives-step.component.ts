@@ -6,6 +6,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NewCampaignStore } from '../../store/new-campaign.store';
 import { WorkspaceStore } from '../../../workspace';
 import { AuthStore } from '../../../auth';
+import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
 import type { DraftCreative, WebsiteUrlMode } from '../../model/draft.model';
 
 const TONES = ['Conversational', 'Professional', 'Urgent', 'Bold', 'Emotional'];
@@ -37,6 +38,7 @@ function uuid(): string { return crypto.randomUUID(); }
 /** Step 3 of the New Campaign wizard — Creative upload and copy. */
 @Component({
   selector: 'app-creatives-step',
+  imports: [VideoModalComponent],
   templateUrl: './creatives-step.component.html',
   styleUrl: './creatives-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,6 +47,9 @@ export class CreativesStepComponent {
   protected readonly store = inject(NewCampaignStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
   protected readonly authStore = inject(AuthStore);
+
+  /** Controls the help video modal. */
+  protected readonly videoOpen = signal(false);
 
   protected readonly tones = TONES;
   protected readonly hooks = HOOKS;

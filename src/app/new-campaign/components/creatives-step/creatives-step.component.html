@@ -1,3 +1,19 @@
+<div class="step-panel-header">
+  <span class="step-panel-title">Creatives</span>
+  <button
+    class="step-video-btn"
+    type="button"
+    title="Help video coming soon"
+    aria-label="Watch help video"
+    (click)="videoOpen.set(true)"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/>
+      <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/>
+    </svg>
+  </button>
+</div>
+
 <div class="creatives-layout">
 
   <!-- Left: Upload panel + file list -->
@@ -343,4 +359,8 @@
       </div>
     </div>
   </div>
+}
+
+@if (videoOpen()) {
+  <app-video-modal src="" title="Creatives" (closed)="videoOpen.set(false)" />
 }

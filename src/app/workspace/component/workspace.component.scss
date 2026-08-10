@@ -81,6 +81,51 @@
   margin: 0;
 }
 
+/* ── Section header action buttons (video + chevron) ────────────────── */
+.ws-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Video help button ───────────────────────────────────────────────── */
+.ws-video-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--neutral-300);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  &:hover {
+    background: var(--neutral-100);
+    color: var(--neutral-500);
+  }
+
+  /* When a video is available, show in accent colour */
+  &--available {
+    color: var(--accent-500, #f97316);
+
+    &:hover {
+      background: #fff7ed;
+      color: var(--accent-600, #ea580c);
+    }
+  }
+}
+
 /* ── Chevron toggle button ───────────────────────────────────────────── */
 .ws-chevron-btn {
   display: flex;

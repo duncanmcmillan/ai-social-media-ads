@@ -2,8 +2,9 @@
  * @fileoverview Step 2 — Ad Sets.
  * Tab-per-ad-set navigation with audience, placement, and budget fields.
  */
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
+import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
 import type { DraftAdSet } from '../../model/draft.model';
 
 /** Generates a client-side UUID for draft objects. */
@@ -39,12 +40,16 @@ const BILLING_EVENTS = ['IMPRESSIONS', 'LINK_CLICKS', 'APP_INSTALLS'] as const;
 /** Step 2 of the New Campaign wizard — Ad Set configuration. */
 @Component({
   selector: 'app-ad-sets-step',
+  imports: [VideoModalComponent],
   templateUrl: './ad-sets-step.component.html',
   styleUrl: './ad-sets-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdSetsStepComponent {
   protected readonly store = inject(NewCampaignStore);
+
+  /** Controls the help video modal. */
+  protected readonly videoOpen = signal(false);
 
   protected readonly optimizationGoals = OPTIMIZATION_GOALS;
   protected readonly billingEvents = BILLING_EVENTS;

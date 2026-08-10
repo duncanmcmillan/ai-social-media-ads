@@ -1,3 +1,38 @@
+/* ── Step panel header ───────────────────────────────────────────────── */
+.step-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.step-panel-title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--neutral-600);
+  letter-spacing: 0.04em;
+}
+
+.step-video-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--neutral-300);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  svg { width: 16px; height: 16px; display: block; }
+  &:hover { background: var(--neutral-100); color: var(--neutral-500); }
+}
+
 .creatives-layout {
   display: flex;
   gap: 20px;

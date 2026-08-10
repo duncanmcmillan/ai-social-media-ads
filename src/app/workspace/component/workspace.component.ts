@@ -10,6 +10,7 @@ import {
   Component,
   DestroyRef,
   NgZone,
+  computed,
   effect,
   inject,
   signal,
@@ -18,6 +19,7 @@ import { AuthStore } from '../../auth';
 import { AdAccountStatus } from '../../auth';
 import { WorkspaceStore } from '../store/workspace.store';
 import { AiService } from '../../core/services/ai/ai.service';
+import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
 
 /** Metadata for each collapsible workspace section. */
 interface Section {
@@ -41,7 +43,7 @@ const SECTIONS: Section[] = [
  */
 @Component({
   selector: 'app-workspace',
-  imports: [],
+  imports: [VideoModalComponent],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,6 +101,48 @@ export class WorkspaceComponent implements AfterViewInit {
 
   /** ID of the section currently most visible in the scroll area. */
   protected readonly activeSection = signal<string>(SECTIONS[0].id);
+
+  // ── Video help modal ───────────────────────────────────────────────────
+
+  /**
+   * Maps each section ID to its help video filename inside the `videos/` directory.
+   * Set the value to null until the screencast for that section has been recorded.
+   * Example: 'ws-account': 'videos/account-details.mp4'
+   */
+  private readonly sectionVideos: Record<string, string | null> = {
+    'ws-account':    null,
+    'ws-meta':       null,
+    'ws-placements': null,
+    'ws-targeting':  null,
+    'ws-enhance':    null,
+    'ws-rules':      null,
+    'ws-ai':         null,
+  };
+
+  /** ID of the section whose video is currently open, or null. */
+  protected readonly videoKey = signal<string | null>(null);
+
+  /** Resolved video src for the open modal (null when no video is recorded yet). */
+  protected readonly videoModalSrc = computed(() => {
+    const key = this.videoKey();
+    return key ? (this.sectionVideos[key] ?? null) : null;
+  });
+
+  /** Title for the open video modal. */
+  protected readonly videoModalTitle = computed(() => {
+    const key = this.videoKey();
+    return SECTIONS.find(s => s.id === key)?.label ?? '';
+  });
+
+  /** Returns true when the given section has a recorded video available. */
+  protected hasVideo(id: string): boolean {
+    return !!this.sectionVideos[id];
+  }
+
+  /** Opens the video modal for the given section (no-op if no video recorded yet). */
+  protected openVideo(id: string): void {
+    this.videoKey.set(id);
+  }
 
   private observer?: IntersectionObserver;
 

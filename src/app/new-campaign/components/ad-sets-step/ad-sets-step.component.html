@@ -8,7 +8,21 @@
   <div class="step-card">
     <div class="step-card-header">
       <h2 class="step-card-title">Ad sets</h2>
-      <span class="step-card-meta">{{ store.adSets().length }} ad set{{ store.adSets().length !== 1 ? 's' : '' }}</span>
+      <div class="step-card-actions">
+        <span class="step-card-meta">{{ store.adSets().length }} ad set{{ store.adSets().length !== 1 ? 's' : '' }}</span>
+        <button
+          class="step-video-btn"
+          type="button"
+          title="Help video coming soon"
+          aria-label="Watch help video"
+          (click)="videoOpen.set(true)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Tab bar -->
@@ -138,4 +152,8 @@
       </div>
     }
   </div>
+}
+
+@if (videoOpen()) {
+  <app-video-modal src="" title="Ad Sets" (closed)="videoOpen.set(false)" />
 }

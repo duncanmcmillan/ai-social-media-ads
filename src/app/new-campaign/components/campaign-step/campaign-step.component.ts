@@ -2,9 +2,10 @@
  * @fileoverview Step 1 — Campaign Details.
  * Handles campaign name, objective, budget, UTM, and AI draft generation.
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
 import { AuthStore } from '../../../auth';
+import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
 import type { CampaignObjective } from '../../../core/models/index';
 
 const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = [
@@ -19,6 +20,7 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
 /** Step 1 of the New Campaign wizard. */
 @Component({
   selector: 'app-campaign-step',
+  imports: [VideoModalComponent],
   templateUrl: './campaign-step.component.html',
   styleUrl: './campaign-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,9 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
 export class CampaignStepComponent {
   protected readonly store = inject(NewCampaignStore);
   private readonly authStore = inject(AuthStore);
+
+  /** Controls the help video modal. */
+  protected readonly videoOpen = signal(false);
 
   /** Exposed objective options. */
   protected readonly objectives = OBJECTIVES;

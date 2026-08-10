@@ -46,6 +46,31 @@
 
 .step-card-meta { font-size: 12px; color: var(--neutral-400); }
 
+.step-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.step-video-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--neutral-300);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  svg { width: 16px; height: 16px; display: block; }
+  &:hover { background: var(--neutral-100); color: var(--neutral-500); }
+}
+
 /* Tabs */
 .adset-tabs {
   display: flex;

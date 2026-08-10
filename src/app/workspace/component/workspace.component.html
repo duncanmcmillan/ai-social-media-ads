@@ -15,13 +15,28 @@
     <section class="ws-section" id="ws-account">
       <div class="ws-section-header" (click)="toggle('ws-account')">
         <h2 class="ws-section-title">Account Details</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-account')"
-          [attr.aria-expanded]="!isCollapsed('ws-account')"
-          aria-label="Toggle Account Details"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button
+            class="ws-video-btn"
+            type="button"
+            [class.ws-video-btn--available]="hasVideo('ws-account')"
+            (click)="$event.stopPropagation(); openVideo('ws-account')"
+            [attr.aria-label]="hasVideo('ws-account') ? 'Watch help video for Account Details' : 'Help video coming soon'"
+            [title]="hasVideo('ws-account') ? 'Watch help video' : 'Help video coming soon'"
+          >
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button
+            class="ws-chevron-btn"
+            type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-account')"
+            [attr.aria-expanded]="!isCollapsed('ws-account')"
+            aria-label="Toggle Account Details"
+          >&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-account')">
         <div class="ws-section-body-inner">
@@ -206,13 +221,20 @@
     <section class="ws-section" id="ws-meta">
       <div class="ws-section-header" (click)="toggle('ws-meta')">
         <h2 class="ws-section-title">Meta Defaults</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-meta')"
-          [attr.aria-expanded]="!isCollapsed('ws-meta')"
-          aria-label="Toggle Meta Defaults"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-meta')"
+            (click)="$event.stopPropagation(); openVideo('ws-meta')"
+            [title]="hasVideo('ws-meta') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-meta')"
+            [attr.aria-expanded]="!isCollapsed('ws-meta')"
+            aria-label="Toggle Meta Defaults">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-meta')">
         <div class="ws-section-body-inner">
@@ -332,13 +354,20 @@
     <section class="ws-section" id="ws-placements">
       <div class="ws-section-header" (click)="toggle('ws-placements')">
         <h2 class="ws-section-title">Placements &amp; Audience</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-placements')"
-          [attr.aria-expanded]="!isCollapsed('ws-placements')"
-          aria-label="Toggle Placements &amp; Audience"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-placements')"
+            (click)="$event.stopPropagation(); openVideo('ws-placements')"
+            [title]="hasVideo('ws-placements') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-placements')"
+            [attr.aria-expanded]="!isCollapsed('ws-placements')"
+            aria-label="Toggle Placements &amp; Audience">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-placements')">
         <div class="ws-section-body-inner">
@@ -379,13 +408,20 @@
     <section class="ws-section" id="ws-targeting">
       <div class="ws-section-header" (click)="toggle('ws-targeting')">
         <h2 class="ws-section-title">Default Targeting</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-targeting')"
-          [attr.aria-expanded]="!isCollapsed('ws-targeting')"
-          aria-label="Toggle Default Targeting"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-targeting')"
+            (click)="$event.stopPropagation(); openVideo('ws-targeting')"
+            [title]="hasVideo('ws-targeting') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-targeting')"
+            [attr.aria-expanded]="!isCollapsed('ws-targeting')"
+            aria-label="Toggle Default Targeting">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-targeting')">
         <div class="ws-section-body-inner">
@@ -426,13 +462,20 @@
     <section class="ws-section" id="ws-enhance">
       <div class="ws-section-header" (click)="toggle('ws-enhance')">
         <h2 class="ws-section-title">Enhancements</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-enhance')"
-          [attr.aria-expanded]="!isCollapsed('ws-enhance')"
-          aria-label="Toggle Enhancements"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-enhance')"
+            (click)="$event.stopPropagation(); openVideo('ws-enhance')"
+            [title]="hasVideo('ws-enhance') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-enhance')"
+            [attr.aria-expanded]="!isCollapsed('ws-enhance')"
+            aria-label="Toggle Enhancements">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-enhance')">
         <div class="ws-section-body-inner">
@@ -520,13 +563,20 @@
     <section class="ws-section ws-section--last" id="ws-rules">
       <div class="ws-section-header" (click)="toggle('ws-rules')">
         <h2 class="ws-section-title">Learning Rules</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-rules')"
-          [attr.aria-expanded]="!isCollapsed('ws-rules')"
-          aria-label="Toggle Learning Rules"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-rules')"
+            (click)="$event.stopPropagation(); openVideo('ws-rules')"
+            [title]="hasVideo('ws-rules') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-rules')"
+            [attr.aria-expanded]="!isCollapsed('ws-rules')"
+            aria-label="Toggle Learning Rules">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-rules')">
         <div class="ws-section-body-inner">
@@ -631,13 +681,20 @@
     <section class="ws-section" id="ws-ai">
       <div class="ws-section-header" (click)="toggle('ws-ai')">
         <h2 class="ws-section-title">AI Settings</h2>
-        <button
-          class="ws-chevron-btn"
-          type="button"
-          [class.ws-chevron-btn--open]="!isCollapsed('ws-ai')"
-          [attr.aria-expanded]="!isCollapsed('ws-ai')"
-          aria-label="Toggle AI Settings"
-        >&#8250;</button>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-ai')"
+            (click)="$event.stopPropagation(); openVideo('ws-ai')"
+            [title]="hasVideo('ws-ai') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-ai')"
+            [attr.aria-expanded]="!isCollapsed('ws-ai')"
+            aria-label="Toggle AI Settings">&#8250;</button>
+        </div>
       </div>
       <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-ai')">
         <div class="ws-section-body-inner">
@@ -693,3 +750,12 @@
   </nav>
 
 </div><!-- /ws-layout -->
+
+<!-- ── Video help modal ───────────────────────────────────────────────── -->
+@if (videoKey()) {
+  <app-video-modal
+    [src]="videoModalSrc() ?? ''"
+    [title]="videoModalTitle()"
+    (closed)="videoKey.set(null)"
+  />
+}
