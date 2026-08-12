@@ -110,7 +110,7 @@ export class WorkspaceComponent implements AfterViewInit {
    * Example: 'ws-account': 'videos/account-details.mp4'
    */
   private readonly sectionVideos: Record<string, string | null> = {
-    'ws-account':    null,
+    'ws-account':    'videos/account-details.mov',
     'ws-meta':       null,
     'ws-placements': null,
     'ws-targeting':  null,
