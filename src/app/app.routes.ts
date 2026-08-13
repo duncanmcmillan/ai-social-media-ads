@@ -30,4 +30,9 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./monitoring/monitoring.routes').then(m => m.MONITORING_ROUTES),
   },
+  {
+    path: 'meta-setup',
+    loadChildren: () =>
+      import('./meta-setup/meta-setup.routes').then(m => m.META_SETUP_ROUTES),
+  },
 ];

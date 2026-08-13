@@ -1,0 +1,149 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 16px;
+  gap: 24px;
+  overflow: auto;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────── */
+.page-header {
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  color: var(--neutral-800);
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--neutral-500);
+}
+
+/* ── Video grid ──────────────────────────────────────────────────────── */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+
+/* ── Video card ──────────────────────────────────────────────────────── */
+.video-card {
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  background: var(--neutral-0, #fff);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Thumbnail ───────────────────────────────────────────────────────── */
+.card-thumb {
+  height: 160px;
+  background: var(--neutral-50, #fafafa);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--neutral-200);
+  color: var(--neutral-300);
+
+  &.card-thumb--clickable {
+    cursor: pointer;
+    color: var(--accent-500, #f97316);
+
+    &:hover {
+      background: var(--neutral-100);
+    }
+  }
+}
+
+.thumb-icon {
+  width: 52px;
+  height: 52px;
+}
+
+.thumb-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--neutral-400);
+}
+
+/* ── Card body ───────────────────────────────────────────────────────── */
+.card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  color: var(--neutral-800);
+}
+
+.card-desc {
+  font-size: 12px;
+  color: var(--neutral-500);
+  line-height: 1.6;
+}
+
+/* ── Topic chips ─────────────────────────────────────────────────────── */
+.card-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.topic-chip {
+  font-size: 11px;
+  color: var(--neutral-500);
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+/* ── Card button ─────────────────────────────────────────────────────── */
+.card-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  height: 32px;
+  padding-inline: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--neutral-300);
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-700);
+  font-size: 13px;
+  cursor: pointer;
+  align-self: flex-start;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--neutral-50);
+    border-color: var(--neutral-400);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
