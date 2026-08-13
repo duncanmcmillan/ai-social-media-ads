@@ -114,7 +114,7 @@ export class WorkspaceComponent implements AfterViewInit {
     'ws-meta':       'videos/workspace-meta-defaults.mov',
     'ws-placements': 'videos/workspace-placements-audience.mov',
     'ws-targeting':  'videos/workspace-default-targeting.mov',
-    'ws-enhance':    null,
+    'ws-enhance':    'videos/workspace-enhancements.mov',
     'ws-rules':      null,
     'ws-ai':         null,
   };
