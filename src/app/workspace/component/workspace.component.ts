@@ -112,7 +112,7 @@ export class WorkspaceComponent implements AfterViewInit {
   private readonly sectionVideos: Record<string, string | null> = {
     'ws-account':    'videos/account-details.mov',
     'ws-meta':       'videos/workspace-meta-defaults.mov',
-    'ws-placements': null,
+    'ws-placements': 'videos/workspace-placements-audience.mov',
     'ws-targeting':  null,
     'ws-enhance':    null,
     'ws-rules':      null,
