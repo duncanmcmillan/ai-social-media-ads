@@ -190,6 +190,22 @@ ${body}</body></html>`);
     return normalised;
   });
 
+  // ── Tokens: revoke access token server-side ──────────────────────────
+  // Called on sign-out and GDPR deletion so the token is invalidated at
+  // Facebook's end, not just locally.  Best-effort — a network failure here
+  // must not block the local sign-out.
+  ipcMain.handle('facebook:revoke-token', async (_event, { accessToken }) => {
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/me/permissions?access_token=${encodeURIComponent(accessToken)}`,
+        { method: 'DELETE' }
+      );
+      return res.ok;
+    } catch {
+      return false;
+    }
+  });
+
   // ── Tokens: refresh access token (stub — use long-lived tokens for now) ─
   ipcMain.handle('facebook:refresh-token', async () => {
     // Facebook user tokens can be exchanged for long-lived tokens via

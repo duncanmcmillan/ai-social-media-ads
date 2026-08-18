@@ -57,6 +57,10 @@ contextBridge.exposeInMainWorld('facebook', {
   clearTokens: () =>
     ipcRenderer.invoke('facebook:clear-tokens'),
 
+  /** Revoke the access token server-side (best-effort, returns boolean success) */
+  revokeToken: (accessToken) =>
+    ipcRenderer.invoke('facebook:revoke-token', { accessToken }),
+
   /** Save Facebook App credentials securely (encrypted at rest) */
   saveConfig: (appId, appSecret, adAccountId) =>
     ipcRenderer.invoke('facebook:save-config', { appId, appSecret, adAccountId }),

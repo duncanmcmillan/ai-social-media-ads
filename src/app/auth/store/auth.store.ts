@@ -130,6 +130,8 @@ const initialState: AuthState = {
 type FacebookBridge = {
   loadTokens: () => Promise<FacebookTokens | null>;
   clearTokens: () => Promise<void>;
+  /** Revokes the token server-side via DELETE /me/permissions. Best-effort. */
+  revokeToken: (accessToken: string) => Promise<boolean>;
   loadConfig: () => Promise<FacebookConfig | null>;
   startOAuth: (authUrl: string) => Promise<{ code: string; state: string }>;
   exchangeToken: (tokenUrl: string, code: string, redirectUri: string) => Promise<FacebookTokens>;
@@ -218,11 +220,14 @@ export const AuthStore = signalStore(
     },
 
     /**
-     * Signs the user out by clearing stored tokens and resetting profile state.
+     * Signs the user out by revoking the token server-side, clearing stored
+     * tokens from encrypted storage, and resetting all profile state.
      */
     async signOut(): Promise<void> {
+      const token = store.accessToken();
       if (bridge) {
         try {
+          if (token) await bridge.revokeToken(token);
           await bridge.clearTokens();
         } catch {
           // ignore — clear local state regardless
@@ -242,10 +247,13 @@ export const AuthStore = signalStore(
 
     /**
      * Clears all stored credentials and tokens (GDPR erasure).
+     * Revokes the access token server-side before deleting local data.
      */
     async deleteAllData(): Promise<void> {
+      const token = store.accessToken();
       if (bridge) {
         try {
+          if (token) await bridge.revokeToken(token);
           await bridge.clearTokens();
           await bridge.clearConfig();
         } catch {
@@ -253,6 +261,46 @@ export const AuthStore = signalStore(
         }
       }
       patchState(store, initialState);
+    },
+
+    /**
+     * Forces the user to sign out due to an auth or permission error detected
+     * during an API call (e.g. Facebook error codes 190, 102, 10, 200).
+     * Clears local state immediately without waiting for server-side revocation
+     * since the token may already be invalid.
+     *
+     * @param reason - The error message to surface to the user.
+     */
+    forceSignOut(reason: string): void {
+      bridge?.clearTokens().catch(() => {});
+      patchState(store, {
+        isAuthenticated: false,
+        accessToken: null,
+        user: null,
+        adAccounts: [],
+        selectedAccount: null,
+        pages: [],
+        pixels: [],
+        error: `Session ended: ${reason} — please sign in again.`,
+      });
+    },
+
+    /**
+     * Throws if the currently selected ad account is not active.
+     * Call this before making any Marketing API write operation.
+     *
+     * @throws When no account is selected or the account status is not Active.
+     */
+    assertAccountActive(): void {
+      const account = store.selectedAccount();
+      if (!account) throw new Error('No ad account selected.');
+      if (account.accountStatus !== AdAccountStatus.Active) {
+        const statusName = AdAccountStatus[account.accountStatus] ?? String(account.accountStatus);
+        throw new Error(
+          `Ad account "${account.name}" is not active (${statusName}). ` +
+          `Select an active account or contact Meta support.`
+        );
+      }
     },
 
     /**

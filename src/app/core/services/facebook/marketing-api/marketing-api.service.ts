@@ -34,8 +34,12 @@ export class MarketingApiService {
   private readonly http = inject(HttpClient);
   private readonly authStore = inject(AuthStore);
 
-  /** Returns common Graph API query parameters including the access token. */
+  /**
+   * Returns common Graph API query parameters including the access token.
+   * @throws When not authenticated or the selected ad account is not active.
+   */
   private authParams(): HttpParams {
+    this.authStore.assertAccountActive();
     const token = this.authStore.accessToken();
     if (!token) throw new Error('Not authenticated — no access token available.');
     return new HttpParams().set('access_token', token);
