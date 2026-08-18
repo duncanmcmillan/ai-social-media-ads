@@ -5,6 +5,7 @@ import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import { MarketingApiService } from './marketing-api.service';
 import { AuthStore } from '../../../../auth';
+import { AdAccountStatus } from '../../../../auth/model/auth.model';
 import type { CampaignPayload, AdSetPayload, AdPayload } from '../../../models/index';
 
 const GRAPH_BASE = 'https://graph.facebook.com/v21.0';
@@ -12,13 +13,18 @@ const GRAPH_BASE = 'https://graph.facebook.com/v21.0';
 const buildMockStore = (overrides: Partial<{
   accessToken: string | null;
   adAccountId: string | null;
+  assertAccountActiveShouldThrow: boolean;
 }> = {}) => ({
   accessToken: signal<string | null>(overrides.accessToken !== undefined ? overrides.accessToken : 'test-token'),
   adAccountId: signal<string | null>(overrides.adAccountId !== undefined ? overrides.adAccountId : 'act_123'),
+  selectedAccount: signal({ id: 'act_123', name: 'Test Account', currency: 'GBP', timezoneName: 'Europe/London', accountStatus: AdAccountStatus.Active }),
   isAuthenticated: signal(true),
   isLoading: signal(false),
   error: signal<string | null>(null),
   appId: signal<string | null>(null),
+  assertAccountActive: overrides.assertAccountActiveShouldThrow
+    ? vi.fn().mockImplementation(() => { throw new Error('Ad account "Test Account" is not active (Disabled).'); })
+    : vi.fn(),
   loadStoredTokens: vi.fn().mockResolvedValue(undefined),
   signOut: vi.fn().mockResolvedValue(undefined),
   deleteAllData: vi.fn().mockResolvedValue(undefined),
@@ -79,7 +85,7 @@ describe('MarketingApiService', () => {
   // ── createCampaign ──────────────────────────────────────────────────────────
 
   it('createCampaign() should POST to the ad account campaigns edge', async () => {
-    const payload: CampaignPayload = { name: 'New Campaign', objective: 'OUTCOME_TRAFFIC', status: 'PAUSED' };
+    const payload: CampaignPayload = { name: 'New Campaign', objective: 'OUTCOME_TRAFFIC', status: 'PAUSED', specialAdCategories: [] };
 
     const promise = service.createCampaign(payload);
 
@@ -87,7 +93,10 @@ describe('MarketingApiService', () => {
       r.url === `${GRAPH_BASE}/act_123/campaigns` && r.params.get('access_token') === 'test-token'
     );
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(payload);
+    expect(req.request.body['name']).toBe(payload.name);
+    expect(req.request.body['objective']).toBe(payload.objective);
+    expect(req.request.body['status']).toBe(payload.status);
+    expect(req.request.body['special_ad_categories']).toEqual([]);
     req.flush({ id: '456' });
 
     const result = await promise;
@@ -96,7 +105,7 @@ describe('MarketingApiService', () => {
 
   it('createCampaign() should throw when no ad account is set', async () => {
     mockStore.adAccountId.set(null);
-    await expect(service.createCampaign({ name: 'x', objective: 'OUTCOME_TRAFFIC', status: 'PAUSED' })).rejects.toThrow(
+    await expect(service.createCampaign({ name: 'x', objective: 'OUTCOME_TRAFFIC', status: 'PAUSED', specialAdCategories: [] })).rejects.toThrow(
       'No ad account selected.'
     );
   });
@@ -145,6 +154,7 @@ describe('MarketingApiService', () => {
       billingEvent: 'IMPRESSIONS',
       optimizationGoal: 'REACH',
       dailyBudget: 1000,
+      targeting: { geoLocations: { countries: ['GB'] } },
     };
 
     const promise = service.createAdSet(payload);
@@ -162,7 +172,7 @@ describe('MarketingApiService', () => {
   it('createAdSet() should throw when no ad account is set', async () => {
     mockStore.adAccountId.set(null);
     await expect(
-      service.createAdSet({ name: 'x', campaignId: 'y', status: 'PAUSED', billingEvent: 'IMPRESSIONS', optimizationGoal: 'REACH', dailyBudget: 1000 })
+      service.createAdSet({ name: 'x', campaignId: 'y', status: 'PAUSED', billingEvent: 'IMPRESSIONS', optimizationGoal: 'REACH', dailyBudget: 1000, targeting: { geoLocations: { countries: ['GB'] } } })
     ).rejects.toThrow('No ad account selected.');
   });
 
@@ -218,5 +228,46 @@ describe('MarketingApiService', () => {
   it('should throw when no access token is available', async () => {
     mockStore.accessToken.set(null);
     await expect(service.getCampaigns()).rejects.toThrow('Not authenticated');
+  });
+
+  // ── account status guard ─────────────────────────────────────────────────────
+
+  it('assertAccountActive is called before every API operation', async () => {
+    const promise = service.getCampaigns();
+    httpMock.expectOne(r => r.url.includes('campaigns')).flush({ data: [] });
+    await promise;
+    expect(mockStore.assertAccountActive).toHaveBeenCalled();
+  });
+
+  it('getCampaigns() should throw when the selected account is not active', async () => {
+    TestBed.resetTestingModule();
+    const restrictedStore = buildMockStore({ assertAccountActiveShouldThrow: true });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AuthStore, useValue: restrictedStore },
+      ],
+    });
+    const restrictedService = TestBed.inject(MarketingApiService);
+    await expect(restrictedService.getCampaigns()).rejects.toThrow(/not active/);
+    TestBed.inject(HttpTestingController).verify();
+  });
+
+  it('createCampaign() should throw when the selected account is not active', async () => {
+    TestBed.resetTestingModule();
+    const restrictedStore = buildMockStore({ assertAccountActiveShouldThrow: true });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AuthStore, useValue: restrictedStore },
+      ],
+    });
+    const restrictedService = TestBed.inject(MarketingApiService);
+    await expect(
+      restrictedService.createCampaign({ name: 'x', objective: 'OUTCOME_TRAFFIC', status: 'PAUSED', specialAdCategories: [] })
+    ).rejects.toThrow(/not active/);
+    TestBed.inject(HttpTestingController).verify();
   });
 });
