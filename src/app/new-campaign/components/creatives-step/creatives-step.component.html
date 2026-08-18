@@ -1,9 +1,9 @@
 <div class="step-panel-header">
   <span class="step-panel-title">Creatives</span>
   <button
-    class="step-video-btn"
+    class="step-video-btn step-video-btn--available"
     type="button"
-    title="Help video coming soon"
+    title="Watch help video"
     aria-label="Watch help video"
     (click)="videoOpen.set(true)"
   >
@@ -362,5 +362,5 @@
 }
 
 @if (videoOpen()) {
-  <app-video-modal src="" title="Creatives" (closed)="videoOpen.set(false)" />
+  <app-video-modal src="videos/new-campaign-creatives.mov" title="Creatives" (closed)="videoOpen.set(false)" />
 }

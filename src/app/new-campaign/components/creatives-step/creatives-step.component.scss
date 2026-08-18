@@ -31,6 +31,15 @@
 
   svg { width: 16px; height: 16px; display: block; }
   &:hover { background: var(--neutral-100); color: var(--neutral-500); }
+
+  &--available {
+    color: var(--accent-500, #f97316);
+
+    &:hover {
+      background: #fff7ed;
+      color: var(--accent-600, #ea580c);
+    }
+  }
 }
 
 .creatives-layout {
