@@ -116,7 +116,7 @@ export class WorkspaceComponent implements AfterViewInit {
     'ws-targeting':  'videos/workspace-default-targeting.mov',
     'ws-enhance':    'videos/workspace-enhancements.mov',
     'ws-rules':      'videos/workspace-learning-rules.mov',
-    'ws-ai':         null,
+    'ws-ai':         'videos/workspace-ai-settings.mov',
   };
 
   /** ID of the section whose video is currently open, or null. */
