@@ -1,0 +1,236 @@
+META APP REVIEW — SUBMISSION NOTES
+===================================
+App: AI Social Media Ads
+Platform: Desktop (Electron + Angular)
+Graph API version: v22.0
+Date: 2026-08-18
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. BUSINESS USE CASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AI Social Media Ads is a desktop application for marketing teams
+and freelance media buyers. It provides an end-to-end workflow for
+creating and managing Facebook advertising campaigns:
+
+  • A guided campaign creation wizard (objective, budget, ad sets,
+    targeting, creative upload, ad copy generation via AI).
+  • A live monitoring dashboard showing campaign, ad set, and ad
+    status alongside Insights metrics (impressions, clicks, spend,
+    ROAS) with one-click pause/resume controls.
+  • A workspace configuration panel for setting global defaults
+    (Meta Page, Pixel, URL parameters, targeting rules) that are
+    pre-populated into every new campaign.
+  • AI-generated optimisation recommendations based on current
+    performance data.
+
+The app automates the repetitive parts of campaign creation —
+applying consistent settings, generating ad copy, and surfacing
+performance alerts — so that marketing professionals can manage
+more accounts in less time without leaving a single interface.
+
+WHY ads_management IS REQUIRED:
+Every write operation in the app (creating campaigns, ad sets,
+ads, uploading creatives, updating statuses) requires this
+permission. There is no read-only mode; creating and managing ads
+is the core purpose of the application.
+
+PERMISSION JUSTIFICATION:
+
+  ads_management
+  Used for: POST /{ad-account-id}/campaigns (create campaign),
+  POST /{ad-account-id}/adsets (create ad set),
+  POST /{ad-account-id}/adcreatives (create creative),
+  POST /{ad-account-id}/adimages (upload image),
+  POST /{ad-account-id}/ads (create ad),
+  POST /{campaign-id} / /{ad-set-id} / /{ad-id} (status updates).
+  Cannot be omitted: all write operations require this scope.
+
+  ads_read
+  Used for: GET /{ad-account-id}/campaigns, /adsets, /ads
+  (reading current status); GET /{ad-account-id}/insights
+  (performance metrics for the monitoring dashboard).
+  Cannot be omitted: the monitoring dashboard requires read access
+  to display live performance data.
+
+  business_management
+  Used for: GET /me/adaccounts?fields=id,name,account_status,...
+  (listing ad accounts accessible to the user).
+  Cannot be omitted: required when the user's ad accounts are held
+  inside a Business Manager rather than a personal account.
+
+  pages_read_engagement
+  Used for: GET /me/accounts?fields=id,name,category
+  (populating the Facebook Page selector used as page_id in
+  ad creative object_story_spec).
+  Cannot be omitted: ad creatives require a Page ID; the user must
+  be able to select which of their pages to associate with the ad.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. SCREENCAST — END-TO-END FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The screencast demonstrates the following sequence:
+
+  1. App launch — the GDPR/privacy consent gate is shown; the user
+     accepts before any data is stored or any API calls are made.
+
+  2. Facebook Login — the user clicks "Connect Facebook". The
+     system browser opens at the Facebook OAuth dialog showing the
+     four permission scopes being requested. The user approves.
+
+  3. Callback and token exchange — the browser redirects to
+     localhost:7331/callback. The app exchanges the auth code for
+     an access token (using the stored App Secret in the Electron
+     main process — the secret never touches the renderer).
+
+  4. Account selection — the app loads the user's ad accounts via
+     GET /me/adaccounts and the user selects one.
+
+  5. Campaign creation — the user completes the campaign wizard:
+     sets objective and budget, configures an ad set with
+     targeting, uploads an image creative, and publishes. The app
+     calls POST /{ad-account-id}/campaigns, /adsets,
+     /adcreatives, /adimages, and /ads in sequence.
+
+  6. Monitoring dashboard — after creation, the app loads campaign
+     status and Insights metrics showing the new campaign is live.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. DATA PROTECTION AND PRIVACY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DATA STORAGE:
+All personal data is stored locally on the user's device.
+Nothing is transmitted to any server controlled by the app
+developer. All API calls go directly from the user's device to
+graph.facebook.com.
+
+  fb-tokens.enc   — Facebook access token, token type, expiry.
+                    Encrypted via Electron safeStorage
+                    (OS keychain-backed AES encryption).
+
+  fb-config.enc   — Facebook App ID, App Secret, Ad Account ID.
+                    Encrypted via Electron safeStorage.
+                    The App Secret is NEVER passed to the Angular
+                    renderer process — it is read and used
+                    exclusively in the Electron main process.
+
+  gdpr-consent.json — Consent record (boolean + ISO timestamp).
+                      Not encrypted (contains no personal data).
+
+THE APP SECRET:
+The Facebook App Secret is stored encrypted and is only read in
+the Electron main process during the token exchange step. It is
+never sent to the renderer (Angular/browser context) and never
+appears in network requests other than the single POST to
+graph.facebook.com/oauth/access_token during login.
+
+GDPR / DATA DELETION:
+A consent gate runs on every app launch. No data is stored and
+no API calls are made until the user has accepted the privacy
+notice.
+
+When the user requests data deletion ("Delete all my data"):
+
+  Step 1: The app calls DELETE /me/permissions with the stored
+          access token to revoke it server-side at Facebook's end.
+
+  Step 2: fb-tokens.enc, fb-config.enc, ai-key.enc, and
+          gdpr-consent.json are deleted from the device.
+
+  Step 3: All in-memory state is cleared (access token, user
+          profile, ad accounts, pages, pixels).
+
+After deletion the token is invalid both locally and at
+Facebook's end.
+
+MINIMUM PERMISSIONS:
+The app requests only the four permissions listed in Section 1.
+No additional scopes are requested speculatively or for future
+features not yet implemented.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. TECHNICAL IMPLEMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TOKEN REVOCATION HANDLING:
+
+  On sign-out: AuthStore.signOut() calls
+  DELETE /me/permissions before clearing the local token, so the
+  token is invalidated at Facebook's end and not just removed
+  from local storage.
+
+  On GDPR deletion: same revocation call is made before files
+  are deleted.
+
+  Best-effort: a network failure during revocation does not block
+  the local sign-out — local state is always cleared regardless.
+
+PERMISSION REVOCATION DETECTION:
+
+  All errors from Facebook API calls pass through
+  parseFacebookError() which inspects the error code field:
+
+    Code 190 — Invalid OAuth 2.0 Access Token → isAuthError
+    Code 102 — Session has been invalidated   → isAuthError
+    Code  10 — Application lacks permission   → isPermissionError
+    Code 200 — Permissions error              → isPermissionError
+
+  When isAuthError or isPermissionError is true, the store calls
+  AuthStore.forceSignOut(reason), which immediately:
+
+    • Clears isAuthenticated, accessToken, user, adAccounts,
+      selectedAccount, pages, and pixels from application state.
+    • Surfaces the message:
+      "Session ended: {reason} — please sign in again."
+    • Attempts to clear the locally stored token (best-effort).
+
+  The user is returned to the sign-in screen automatically.
+
+AD ACCOUNT RESTRICTION HANDLING:
+
+  At login, the app fetches account_status for every ad account
+  via GET /me/adaccounts?fields=account_status and stores it.
+
+  Status codes handled (from the AdAccountStatus enum):
+    1   = Active
+    2   = Disabled
+    3   = Unsettled
+    7   = PendingReview
+    9   = InGracePeriod
+    100 = PendingClosure
+    101 = Closed
+
+  Before every Marketing API call, AuthStore.assertAccountActive()
+  is invoked. If the selected account's status is not Active (1),
+  the API call is blocked and the user sees:
+
+    "Ad account '{name}' is not active ({status}).
+     Select an active account or contact Meta support."
+
+  This prevents the app from attempting operations on restricted
+  accounts and gives the user actionable guidance.
+
+OAUTH IMPLEMENTATION DETAIL:
+
+  The app uses the system browser (not an embedded WebView) for
+  OAuth, in compliance with Facebook's platform policies.
+
+  Flow:
+    1. Electron opens system browser at the Facebook OAuth URL.
+    2. A temporary HTTP server on localhost:7331 catches the
+       redirect.
+    3. The auth code is extracted from the callback URL.
+    4. The main process (not the renderer) exchanges the code for
+       an access token using the stored App Secret.
+    5. The token is encrypted and stored. The code and secret
+       are never exposed to the renderer process.
+
+  The redirect URI http://localhost:7331/callback is registered
+  as a Valid OAuth Redirect URI in the Facebook App Dashboard
+  under App > Facebook Login > Settings.
