@@ -30,12 +30,12 @@
     <h2 class="step-card-title">Campaign</h2>
     <div class="step-card-actions">
       <span class="step-card-meta">
-        {{ store.campaign().budgetType === 'campaign' ? 'Campaign budget' : 'Ad set budget' }}
+        {{ store.campaign().budgetType === 'campaign' ? 'Campaign' : 'Ad set budget' }}
       </span>
       <button
         class="step-video-btn"
         type="button"
-        title="Help video coming soon"
+        title="Watch help video"
         aria-label="Watch help video"
         (click)="videoOpen.set(true)"
       >
@@ -155,5 +155,5 @@
 </div>
 
 @if (videoOpen()) {
-  <app-video-modal src="" title="Campaign" (closed)="videoOpen.set(false)" />
+  <app-video-modal src="videos/new-campaign-campaign.mov" title="Campaign" (closed)="videoOpen.set(false)" />
 }
