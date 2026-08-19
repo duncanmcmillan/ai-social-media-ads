@@ -99,35 +99,117 @@ The guide covers cloning the repo, installing dependencies, launching via `npm r
 |---|---|
 | Minimum resolution | 1080p |
 | Monitor width | 1440px or less |
-| Audio | Not required (no narration) |
+| Audio | **Not listened to by reviewers — omit narration** |
 | Language | English UI preferred |
-| Mouse cursor | Visible; increase size for clarity |
+| Mouse cursor | Visible; increase cursor size in System Preferences |
 | Recording format | Full-screen or window-only |
+| Tool used | QuickTime Player (macOS) |
 
-### Recommended tools
+> **Key implication:** Because audio is ignored, every action and UI element must be self-explanatory from the video alone — either through clear labels in the app, or through text overlays / captions added in post (iMovie).
 
-- **Camtasia** or **Snagit** — dedicated screen recording (recommended)
-- **QuickTime** or **OBS** — free alternatives
-- **iMovie** — post-production annotations and zoom
+### Trademark and logo requirements
 
-### Content requirements
+Meta prohibits the use of its brand assets in app icons, screenshots, or recordings submitted for review:
 
-- [ ] Show the user granting each permission in the Facebook OAuth dialog
-- [ ] Demonstrate actual usage of each permission/feature after login
-- [ ] Add **captions or tooltips** to explain button labels and UI elements
-- [ ] Explain what each screen does — reviewers are not familiar with the app
+- **Do not** use Facebook, Instagram, Meta, WhatsApp, or Messenger logos, wordmarks, or brand colours in the app icon or any submitted asset
+- **Do not** imply Meta endorsement of the app
+- **You may** reference Meta products by name in plain text (e.g. "Connect to Facebook")
+- The current app icon (the DM monogram) contains no Meta trademarks — **no action required**
+- Screenshots and recordings showing the Facebook OAuth dialog are fine — that is Meta's own UI, not ours
+
+- [ ] App icon reviewed — no Meta trademarks present
+
+### Common mistakes that cause rejection
+
+Based on Meta's documented common mistakes:
+
+| Mistake | How we avoid it |
+|---|---|
+| App inaccessible to reviewer | App is in Live mode; installation guide provided; reviewer uses their own Facebook account |
+| Missing screen recordings | One recording per permission, each showing end-to-end usage |
+| App appears unfinished | All four permissions have working end-to-end flows |
+| Permissions requested for future features | Only the four permissions actively used are requested |
+| Facebook Login not found or not working | Login is the first screen after consent gate; tested end-to-end in Live mode |
+| Fake account credentials provided | Reviewers use their own accounts; no credentials provided |
+| Copy-pasted usage descriptions | Each permission has a unique description answering Meta's specific questions |
+| Recording does not show the full auth flow | Recording starts logged out, shows OAuth dialog with all four scopes, shows post-login state |
+
+### Content requirements per recording
+
+Each recording must demonstrate:
+
+- [ ] App launched from a **logged-out state**
+- [ ] Complete OAuth flow — Facebook dialog shown with all four permission scopes visible
+- [ ] User approves permissions
+- [ ] Post-login state showing the feature that uses that permission
+- [ ] The specific API action being taken (e.g. creating a campaign, reading insights)
+- [ ] Mouse used (not keyboard shortcuts) — actions slow enough for reviewer to follow
+- [ ] Zoom into small or complex UI sections
+
+### UI annotation audit — what needs captions / tooltips before re-recording
+
+Since audio is ignored, the following elements need visual clarification either added to the app (tooltips / info icons) **before recording**, or annotated in post-production (iMovie text overlays).
+
+#### Acronyms used without explanation (add `title` tooltip or info icon)
+
+These appear in table headers, field labels, and metric displays:
+
+| Acronym | Full meaning | Where it appears | Fix |
+|---|---|---|---|
+| CTR | Click-Through Rate | Monitoring table, Optimisation table, Workspace (Min CTR field), verdict chips | Add `title="Click-Through Rate"` to column headers; info icon on Workspace field |
+| CPC | Cost Per Click | Monitoring table, Optimisation table, Workspace (Max CPC field), verdict chips | As above |
+| CPM | Cost Per Mille (per 1,000 impressions) | Monitoring table | Add `title="Cost Per Mille (per 1,000 impressions)"` |
+| CPA | Cost Per Acquisition | Workspace (Kill CPA Multiple field) | Info icon on field label |
+| ROAS | Return on Ad Spend | Workspace (Winner Min ROAS field) | Info icon on field label |
+| DSA | Digital Services Act (EU) | Workspace (EU Advertising Identity section) | Expand section heading or add info icon |
+| UTM | Urchin Tracking Module (URL tracking) | Campaign Step, Workspace naming fields | Add `title` or info icon |
+| CTA | Call to Action | Creatives Step (Call to Action field label is already spelled out — no action needed) | None — already clear |
+
+#### Icon-only controls that need visible labels or tooltips
+
+| Control | Location | Current state | Fix |
+|---|---|---|---|
+| Video play button (▶) | All new-campaign steps, Workspace sections | Has `aria-label` and `title` — shows on hover | Fine for recording; ensure cursor hovers to trigger tooltip in video |
+| Section chevron toggles (›) | Workspace accordion sections | `aria-label="Toggle [section]"` — not visible | Fine — sections are labelled by heading |
+| Sort arrows (⇅ ▲ ▼) | Monitoring table headers | Text symbols, no tooltip | Add `title` attribute explaining "Sort ascending/descending" |
+| ↻ icon on "Fetch Insights" | Monitoring | Button has text label alongside icon | No action needed |
+| ↓ icon on "Export CSV" | Monitoring | Button has text label alongside icon | No action needed |
+
+#### Ambiguous button labels
+
+| Label | Location | Issue | Fix |
+|---|---|---|---|
+| "Sync from Meta" | Campaigns, Ad Sets, Ads list | Slightly ambiguous — sync what? | Could add tooltip: "Refresh campaign data from your Meta ad account" |
+| "Fetch Insights" | Monitoring | Inconsistent naming vs "Sync from Meta" | Could rename to "Sync Insights" for consistency — or leave and add tooltip |
+| "Analyse Ads" | Optimisation | Clear enough in context | No action needed |
+| "Build draft" | Campaign Step (AI) | Might not be obvious to reviewer | Add tooltip: "Use AI to generate a campaign structure from a description" |
+
+#### Verdict chips in Optimisation (need tooltip on hover)
+
+| Chip | Meaning | Fix |
+|---|---|---|
+| Winners | ROAS above threshold, spend above floor | Add `title` attribute with definition |
+| On Track | Meets minimum thresholds, still learning | As above |
+| Low CTR | CTR below workspace minimum | As above |
+| High CPC | CPC above workspace maximum | As above |
+| Needs Data | Insufficient spend/impressions to evaluate | As above |
+
+### Recommended action before re-recording
+
+1. **Add `title` attributes** to all acronym column headers and field labels listed above (quick code change — shows as browser tooltip on hover)
+2. **Add info icons** to the Workspace fields for ROAS, CPA, DSA, and UTM with a `title` tooltip
+3. **Add `title` tooltips** to Optimisation verdict chips
+4. **Re-record all four screencasts** with QuickTime Player at full screen, cursor size increased, actions performed slowly
+5. **Post-produce in iMovie** — add text callouts at key moments (e.g. "Creating campaign — uses ads_management permission", "Viewing insights — uses ads_read permission")
 
 ### Our screen recordings
 
-<!-- List each recording file, what it covers, and which permission(s) it satisfies -->
-
-| Recording | Covers | Permission(s) |
-|---|---|---|
-| | | |
-
-### Caption / tooltip notes
-
-<!-- Note any UI elements that need captions added before recording -->
+| Recording | Covers | Permission(s) demonstrated | Status |
+|---|---|---|---|
+| Login + account selection | OAuth flow, consent gate, ad account loading | `ads_management`, `ads_read`, `business_management`, `pages_read_engagement` | Re-record after UI fixes |
+| Campaign creation wizard | Campaign → Ad Set → Creative → Launch Ads | `ads_management` | Re-record after UI fixes |
+| Monitoring dashboard | Fetching insights, pause/resume controls | `ads_read` | Re-record after UI fixes |
+| Workspace setup | Ad account selection, Page/Pixel selection | `business_management`, `pages_read_engagement` | Re-record after UI fixes |
 
 ---
 
