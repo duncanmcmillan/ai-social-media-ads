@@ -77,14 +77,18 @@ The screencast demonstrates the following sequence:
   1. App launch — the GDPR/privacy consent gate is shown; the user
      accepts before any data is stored or any API calls are made.
 
-  2. Facebook Login — the user clicks "Connect Facebook". The
-     system browser opens at the Facebook OAuth dialog showing the
-     four permission scopes being requested. The user approves.
+  2. Facebook Login — the user clicks "Connect Facebook". An
+     Electron BrowserWindow opens at the Facebook OAuth dialog
+     showing the four permission scopes being requested. The user
+     approves.
 
-  3. Callback and token exchange — the browser redirects to
-     localhost:7331/callback. The app exchanges the auth code for
-     an access token (using the stored App Secret in the Electron
-     main process — the secret never touches the renderer).
+  3. Callback and token exchange — Facebook redirects to
+     https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback.
+     Electron intercepts the redirect before the page loads,
+     extracts the auth code, and closes the window. The app
+     exchanges the code for an access token (using the stored App
+     Secret in the Electron main process — the secret never touches
+     the renderer).
 
   4. Account selection — the app loads the user's ad accounts via
      GET /me/adaccounts and the user selects one.
@@ -218,19 +222,23 @@ AD ACCOUNT RESTRICTION HANDLING:
 
 OAUTH IMPLEMENTATION DETAIL:
 
-  The app uses the system browser (not an embedded WebView) for
-  OAuth, in compliance with Facebook's platform policies.
+  The app uses an Electron BrowserWindow (not an embedded WebView
+  and not a system browser) for OAuth, in compliance with
+  Facebook's platform policies.
 
   Flow:
-    1. Electron opens system browser at the Facebook OAuth URL.
-    2. A temporary HTTP server on localhost:7331 catches the
-       redirect.
-    3. The auth code is extracted from the callback URL.
-    4. The main process (not the renderer) exchanges the code for
+    1. Electron opens a BrowserWindow at the Facebook OAuth URL.
+    2. The user authenticates and grants permissions.
+    3. Facebook redirects to
+       https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback?code=...
+    4. Electron intercepts the redirect via the will-redirect event
+       before the page loads, extracts the auth code, prevents
+       navigation, and closes the window.
+    5. The main process (not the renderer) exchanges the code for
        an access token using the stored App Secret.
-    5. The token is encrypted and stored. The code and secret
+    6. The token is encrypted and stored. The code and secret
        are never exposed to the renderer process.
 
-  The redirect URI http://localhost:7331/callback is registered
-  as a Valid OAuth Redirect URI in the Facebook App Dashboard
-  under App > Facebook Login > Settings.
+  The redirect URI https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback
+  is registered as a Valid OAuth Redirect URI in the Facebook App
+  Dashboard under App > Facebook Login for Business > Settings.

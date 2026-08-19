@@ -1,13 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, safeStorage, nativeTheme } = require('electron/main');
 const path = require('node:path');
 const fs   = require('node:fs');
-const http = require('node:http');
 const { URL } = require('node:url');
-
-// Port for the local OAuth callback server.
-// Register http://localhost:7331/callback as a Valid OAuth Redirect URI
-// in the Facebook app dashboard (App → Facebook Login → Settings).
-const OAUTH_PORT = 7331;
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
@@ -99,61 +93,73 @@ app.whenReady().then(() => {
   nativeTheme.on('updated', pushA11yPreferences);
   app.on('accessibility-support-changed', pushA11yPreferences);
 
-  // ── OAuth: open system browser + local HTTP server to catch the callback ──
-  // Facebook blocks OAuth in embedded WebViews, so we use shell.openExternal
-  // to open the login page in the user's default browser.  A temporary HTTP
-  // server on localhost catches the redirect and resolves the promise.
+  // ── OAuth: open Electron BrowserWindow to handle the Facebook OAuth callback ──
+  // Uses a GitHub Pages URL as the redirect URI so the flow works in Facebook
+  // Live mode (localhost is dev-only; custom schemes like fb-ads:// are not
+  // accepted by Facebook Login for Business).
   //
-  // Register http://localhost:7331/callback as a Valid OAuth Redirect URI in
-  // the Facebook app dashboard: App → Facebook Login → Settings.
+  // The GitHub Pages page does NOT need to exist — Electron intercepts the
+  // will-redirect event before the BrowserWindow loads the page, extracts the
+  // auth code, and closes the window via event.preventDefault().
+  //
+  // Register the CALLBACK_URI below as a Valid OAuth Redirect URI in the
+  // Facebook app dashboard: App → Facebook Login for Business → Settings.
   ipcMain.handle('facebook:start-oauth', (_event, { authUrl }) => {
     return new Promise((resolve, reject) => {
-      let server;
+      const CALLBACK_PREFIX = 'https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback';
+      let settled = false;
+
+      const authWindow = new BrowserWindow({
+        width: 600,
+        height: 700,
+        title: 'Connect Facebook',
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+        },
+      });
 
       const timeout = setTimeout(() => {
-        server?.close();
-        reject(new Error('OAuth timed out after 5 minutes'));
+        if (!settled) {
+          settled = true;
+          authWindow.close();
+          reject(new Error('OAuth timed out after 5 minutes'));
+        }
       }, 5 * 60 * 1000);
 
-      server = http.createServer((req, res) => {
-        try {
-          const url   = new URL(req.url, `http://localhost:${OAUTH_PORT}`);
-          const code  = url.searchParams.get('code');
-          const error = url.searchParams.get('error');
-          const state = url.searchParams.get('state') ?? '';
+      function handleCallbackUrl(event, url) {
+        if (!url.startsWith(CALLBACK_PREFIX)) return;
 
-          const body = error
-            ? `<h2>Connection failed</h2><p>${error}</p><p>You can close this tab.</p>`
-            : `<h2>Connected!</h2><p>You can close this tab and return to the app.</p>`;
+        // Prevent the BrowserWindow from attempting to load the custom scheme.
+        event.preventDefault();
 
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(`<!DOCTYPE html><html><head><title>Facebook Login</title></head>
-<body style="font-family:system-ui,sans-serif;text-align:center;padding:60px;color:#333">
-${body}</body></html>`);
+        const parsed = new URL(url);
+        const code   = parsed.searchParams.get('code');
+        const error  = parsed.searchParams.get('error');
+        const state  = parsed.searchParams.get('state') ?? '';
 
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        authWindow.close();
+
+        if (error) reject(new Error(`Facebook OAuth error: ${error}`));
+        else if (code) resolve({ code, state });
+        else           reject(new Error('OAuth callback missing code'));
+      }
+
+      authWindow.webContents.on('will-navigate', (e, url) => handleCallbackUrl(e, url));
+      authWindow.webContents.on('will-redirect', (e, url) => handleCallbackUrl(e, url));
+
+      authWindow.on('closed', () => {
+        if (!settled) {
+          settled = true;
           clearTimeout(timeout);
-          server.close();
-
-          if (error)      reject(new Error(`Facebook OAuth error: ${error}`));
-          else if (code)  resolve({ code, state });
-          else            reject(new Error('OAuth callback missing code'));
-        } catch (e) {
-          res.writeHead(500);
-          res.end('Internal error');
-          clearTimeout(timeout);
-          server.close();
-          reject(e);
+          reject(new Error('OAuth window was closed'));
         }
       });
 
-      server.on('error', err => {
-        clearTimeout(timeout);
-        reject(new Error(`Local OAuth server error: ${err.message}`));
-      });
-
-      server.listen(OAUTH_PORT, '127.0.0.1', () => {
-        shell.openExternal(authUrl);
-      });
+      authWindow.loadURL(authUrl);
     });
   });
 

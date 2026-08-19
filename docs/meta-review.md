@@ -38,23 +38,23 @@ Every write operation in the app — creating a campaign, an ad set, an ad creat
 
 ### How authentication works
 
-The app uses Facebook Login with a localhost redirect — **not** an embedded WebView. Facebook's policy prohibits OAuth in embedded browsers, so the app opens the system default browser (via Electron's `shell.openExternal`) and catches the callback via a temporary HTTP server on `localhost:7331`.
+The app uses Facebook Login with an Electron `BrowserWindow` and a GitHub Pages redirect URI — not an embedded WebView and not a localhost server. Facebook's policy prohibits OAuth in embedded browsers; the app opens a `BrowserWindow` that loads the Facebook OAuth dialog and intercepts the redirect to extract the auth code before the redirect target page is loaded.
 
 **Step-by-step:**
 
 1. User clicks "Connect Facebook" in the app.
 2. App verifies that App ID and App Secret have been configured and stored.
-3. Electron opens the system browser at:
+3. Electron opens a `BrowserWindow` and loads:
    ```
    https://www.facebook.com/v22.0/dialog/oauth
      ?client_id={APP_ID}
-     &redirect_uri=http://localhost:7331/callback
+     &redirect_uri=https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback
      &scope=ads_management,ads_read,business_management,pages_read_engagement
      &response_type=code
    ```
 4. The user logs in to Facebook (if not already) and reviews the permission consent screen.
-5. Facebook redirects to `http://localhost:7331/callback?code=...`.
-6. The temporary HTTP server in the Electron main process captures the `code` parameter and closes.
+5. Facebook redirects to `https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback?code=...`.
+6. Electron intercepts the `will-redirect` event before the BrowserWindow loads the redirect target, extracts the `code` parameter, calls `event.preventDefault()` to block the navigation, and closes the window. The GitHub Pages page never loads.
 7. The main process exchanges the code for an access token via `POST https://graph.facebook.com/v22.0/oauth/access_token`, using the stored App Secret (which **never passes through the renderer process**).
 8. The access token is encrypted and stored locally (see Section 4).
 9. The app immediately calls `GET /me` and `GET /me/adaccounts` to load the user's profile and available ad accounts.
