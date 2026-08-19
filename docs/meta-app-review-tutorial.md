@@ -99,13 +99,13 @@ The guide covers cloning the repo, installing dependencies, launching via `npm r
 |---|---|
 | Minimum resolution | 1080p |
 | Monitor width | 1440px or less |
-| Audio | **Not listened to by reviewers — omit narration** |
+| Audio | **Audible to app users / clients; Meta reviewers do not listen during review** |
 | Language | English UI preferred |
 | Mouse cursor | Visible; increase cursor size in System Preferences |
 | Recording format | Full-screen or window-only |
 | Tool used | QuickTime Player (macOS) |
 
-> **Key implication:** Because audio is ignored, every action and UI element must be self-explanatory from the video alone — either through clear labels in the app, or through text overlays / captions added in post (iMovie).
+> **Note on audio:** Include narration — it will be heard by users and clients who watch the recordings. Meta reviewers will mute or skip it, so the video must also be self-explanatory visually: clear labels in the app, slow deliberate mouse movements, and text callouts in post (iMovie) where needed.
 
 ### Trademark and logo requirements
 
@@ -215,83 +215,57 @@ These appear in table headers, field labels, and metric displays:
 
 ## Submit for Review
 
-### Step 1 — Select Permissions and Features
+### Step 1 — Add a Use Case
 
-**Where:** [developers.facebook.com](https://developers.facebook.com) → select the app → left sidebar: **App Review → Permissions and Features**
+**Where:** [developers.facebook.com](https://developers.facebook.com) → select the app → left sidebar: **App Review**
 
 #### Overview
 
-The "Permissions and Features" page is a searchable catalogue of every permission and platform feature available on the Meta platform. Each entry shows:
+Meta's App Review no longer lists individual permissions as selectable items. Instead, permissions are bundled into **Use Cases** — each Use Case represents a real-world scenario (e.g. "Create and manage ads") and grants the underlying permissions required for that scenario.
 
-- **Name** and a one-line description
-- **Current access level** — *Standard Access* (limited, works for your own test accounts) or *Advanced Access* (required for users outside your developer account)
-- An **"Add to Submission"** button (or "Request Advanced Access") to queue the permission for review
-
-Adding a permission here just adds it to the current draft submission. Nothing is sent to Meta until you reach Step 6 and click Submit.
+For this app, **one Use Case covers all four required permissions.** You do not need to add them individually.
 
 #### Navigation
 
 1. Open [developers.facebook.com](https://developers.facebook.com) and log in with the Facebook account that owns the app.
 2. Select **AI Social Media Ads** from the My Apps dropdown (top right).
-3. In the left sidebar, click **App Review**, then **Permissions and Features**.
-4. The page loads with a search box at the top and a list of all requestable permissions below.
+3. In the left sidebar, click **App Review**.
+4. Look for an **"Add Use Cases"** button or a **"Use Cases"** section (the exact label may vary by UI version).
 
-#### What you see on the page
+#### Which Use Case to select
 
-The page is divided into three areas:
+Look for a use case related to **advertising / Marketing API**, most likely named something like:
 
-| Area | Contents |
+- *"Advertise with the Marketing API"*
+- *"Create and manage ads using the Marketing API"*
+- *"Marketing API"*
+
+This single use case should include all four permissions: `ads_management`, `ads_read`, `business_management`, and `pages_read_engagement`.
+
+> **Verify the included permissions:** When you hover over or expand the use case card, it should list the permissions it grants. Confirm all four are present before adding it.
+
+#### Marketing API Access Tier
+
+When adding a Marketing API use case, you may also be prompted to select an **Access Tier**:
+
+| Tier | What it means |
 |---|---|
-| **Current Submission** (top) | Permissions already queued for this submission — empty at first |
-| **In Development** | Permissions you have already added to your app but not yet submitted for review |
-| **Available to Request** | Permissions available to add to the submission |
+| **Standard** | Rate limits suitable for most apps; sufficient for this app |
+| **Advanced** | Higher rate limits for large-scale or agency platforms |
 
-Permissions you have already used in your app (via Facebook Login scopes) typically appear in "In Development" — they just need to be promoted to Advanced Access.
+Select **Standard** unless you have a specific reason to request Advanced. Standard tier is sufficient for an app managing campaigns for a single user or small number of clients.
 
-#### How to add each permission
+#### What happens after adding the Use Case
 
-For each of the four permissions:
-
-1. Type the permission name into the search box (e.g. `ads_management`).
-2. Find the matching card.
-3. Click **"Add to Submission"** (or **"Request Advanced Access"** — both do the same thing at this stage).
-4. The card moves to the **Current Submission** section at the top.
-5. The button changes to **"Remove from Submission"** — confirm it is there before moving on.
-
-> **Tip:** If a permission shows "Advanced Access already approved", it does not need to be submitted again. This is unlikely for a new app.
-
-#### Access tiers for our four permissions
-
-All four permissions require **Advanced Access** to work for users outside the developer account.
-
-| Permission | Standard Access limit | Why we need Advanced |
-|---|---|---|
-| `ads_management` | Can only write to the **developer's own** ad account | Must write to any authenticated user's ad account |
-| `ads_read` | Can only read from the **developer's own** ad account | Must read any authenticated user's campaigns and insights |
-| `business_management` | Can only list **developer's own** Business Manager | Must list any authenticated user's Business Manager and ad accounts |
-| `pages_read_engagement` | Can only access **developer's own** Pages | Must list any authenticated user's Pages for the Page selector |
-
-#### Order to add permissions
-
-No enforced order, but working down the list in the UI avoids missing any:
-
-1. `ads_management`
-2. `ads_read`
-3. `business_management`
-4. `pages_read_engagement`
-
-#### What happens after adding all four
-
-The **Current Submission** section at the top of the page shows all four cards. Each card shows a yellow or orange "In Submission" badge. The next step links in the submission flow (data handling questions, usage descriptions, recordings) become available once at least one permission is in the submission.
+The use case appears in the submission with the individual permissions listed beneath it. The submission flow then prompts you to complete the data handling questions (Step 2) and usage descriptions / recordings (Step 5) for the use case.
 
 #### Checklist
 
-- [ ] Navigated to App Review → Permissions and Features
-- [ ] `ads_management` — "Add to Submission" clicked; card appears in Current Submission
-- [ ] `ads_read` — "Add to Submission" clicked; card appears in Current Submission
-- [ ] `business_management` — "Add to Submission" clicked; card appears in Current Submission
-- [ ] `pages_read_engagement` — "Add to Submission" clicked; card appears in Current Submission
-- [ ] All four cards visible in the Current Submission section
+- [ ] Navigated to App Review
+- [ ] Located the Marketing API / "Create and manage ads" Use Case
+- [ ] Confirmed all four permissions are included in the use case
+- [ ] Use Case added to submission
+- [ ] Marketing API Access Tier selected (Standard)
 
 ---
 
@@ -301,39 +275,43 @@ The **Current Submission** section at the top of the page shows all four cards. 
 
 #### Is it required?
 
-Business verification is **required for `business_management`** and is commonly required for `ads_management` too. Meta will either block submission or flag it during review if verification is outstanding. If the submission flow shows a banner saying "Business Verification required", complete this step before proceeding.
+Business verification may be prompted automatically during the submission flow. Whether it is mandatory depends on the use case and access tier selected. **Check first** — if the submission flow does not show a verification prompt or blocker, you may be able to proceed without it.
 
-It is not required if the app only requests permissions that fall under Standard Access, which is not our case.
+If it is required, there is a conflict for UK sole traders operating below the HMRC registration threshold — see below.
 
-#### What it verifies
+#### The sole trader conflict (UK)
 
-Meta checks that the app is owned by a legitimate business entity — not to verify the developer personally. You will need to provide:
-
-| Document type | Accepted examples |
+| Rule | Detail |
 |---|---|
-| Business registration | Companies House certificate, certificate of incorporation, business licence |
-| Tax document | VAT registration, tax ID letter from HMRC / IRS |
-| Utility / bank statement | In the business name, issued within 3 months |
+| HMRC registration threshold | You do not need to register for Self Assessment until self-employment income exceeds £1,000/year |
+| Companies House registration | Not required for sole traders — only for limited companies |
+| Meta's accepted documents | Business registration certificate, tax ID letter, or business bank statement |
 
-Only one document is typically required, but Meta may ask for a second if the first is unclear.
+**The problem:** If you are operating below £1,000/year and have not voluntarily registered with HMRC, you have no official document that proves a business exists — because legally none is required to exist yet.
 
-#### Process
+#### Options
+
+**Option A — Voluntary HMRC Self Assessment registration (recommended)**
+You can register for Self Assessment with HMRC at any time, before you hit the threshold. HMRC will issue a **UTR (Unique Taxpayer Reference)** letter to your address. This letter, combined with your name and address, may satisfy Meta's verification as proof of self-employment. Register at [gov.uk/register-for-self-assessment](https://www.gov.uk/register-for-self-assessment).
+
+**Option B — Skip verification (if the flow allows it)**
+If the submission flow does not mandate business verification for your chosen use case and access tier, proceed without it. Some use cases at Standard tier do not require it. Attempt submission first; only pursue verification if blocked.
+
+**Option C — Form a limited company**
+Registering a limited company with Companies House takes ~24 hours online and costs £50. You immediately have a registration number and certificate — unambiguous proof. This is the cleanest long-term solution if you plan to sell the app commercially, but is likely overkill at this stage.
+
+> **Recommended approach:** Attempt the submission first (Option B). If Meta blocks it with a verification requirement, register voluntarily with HMRC for Self Assessment (Option A) and use the UTR letter.
+
+#### If verification is required and you have a document
 
 1. In the App Dashboard, go to **Publish → Start Verification** (or follow the prompt in the submission flow).
-2. Enter the legal business name, registered address, and country.
-3. Upload one of the accepted documents listed above.
-4. Submit — Meta reviews documents within **3–5 business days** (can be up to 14).
-5. Status updates appear in the App Dashboard and are emailed to the contact address.
+2. Enter your name as the business name (sole traders trade under their own name).
+3. Upload the best document available — UTR letter, business bank statement, or SA302 from HMRC.
+4. Submit — Meta reviews within **3–5 business days** (up to 14).
 
-> **Do this early.** Business verification runs in parallel with the rest of the submission prep but can be the longest step. Start it before completing Steps 2–5 so it does not block the final submission.
-
-#### If you are submitting as an individual (sole trader / freelancer)
-
-Meta accepts sole trader verification. Use a document that shows your name and business activity — a self-assessment tax letter, sole trader bank account statement, or equivalent. Enter your own name as the business name if you trade under your own name.
-
-- [ ] Business verification started
-- [ ] Verification document uploaded
-- [ ] Verification approved (status shows "Verified" in App Dashboard)
+- [ ] Checked whether verification is required (attempt submission first)
+- [ ] If required: document obtained and uploaded
+- [ ] If required: verification approved (status shows "Verified" in App Dashboard)
 
 ---
 
@@ -467,16 +445,14 @@ Fill in every required field before proceeding — Meta's submission flow will b
 |---|---|
 | App Icon | 1024×1024 PNG — the DM monogram; upload via the icon slot on the Basic Settings page |
 | Privacy Policy URL | `https://duncanmcmillan.github.io/ai-social-media-ads/privacy-policy` |
-| App Purpose | **Yourself or your own business** (you manage your own ad accounts); or **Clients** if the app will be distributed to other businesses — choose the one that matches your actual use case for the submission |
-| App Category | **Business and Pages** |
+| App Category | **Business and Pages** (or closest equivalent shown in the UI) |
 | Contact email | Verify the email shown is reachable — Meta sends review decisions here |
 
-> **App Purpose note:** "Yourself" scopes the review to single-user / internal use. "Clients" signals multi-tenant use and may trigger additional policy scrutiny. Select whichever is accurate for how this app will actually be distributed.
+> **Note:** An "App Purpose" field does not appear in the current Meta UI — it has been removed or is not present for this app type. Fill in all fields that are shown; do not look for one that does not exist.
 
 - [ ] App icon uploaded (1024×1024, no Meta trademarks or logos)
 - [ ] Privacy Policy URL saved
-- [ ] App Purpose selected
-- [ ] App Category set to Business and Pages
+- [ ] App Category set
 - [ ] Contact email confirmed
 
 ---
