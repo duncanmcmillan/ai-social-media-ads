@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from './auth';
+import { LicenceStore } from './core';
 
 const THEME_KEY = 'theme';
 
@@ -34,6 +35,7 @@ const isElectron = !!eWin.versions;
 })
 export class App implements AfterViewInit {
   private readonly authStore = inject(AuthStore);
+  private readonly licenceStore = inject(LicenceStore);
 
   /** Electron version string shown in the nav bar meta badge. */
   protected readonly info = isElectron
@@ -67,6 +69,7 @@ export class App implements AfterViewInit {
     }
 
     await this.authStore.loadStoredTokens();
+    void this.licenceStore.checkLicence();
   }
 
   /**

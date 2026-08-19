@@ -11,18 +11,22 @@
     }
   </select>
 
-  <button
-    class="btn btn-primary"
-    type="button"
-    [disabled]="isLoading() || !authStore.isAuthenticated()"
-    (click)="analyse()"
-  >
-    @if (isLoading()) {
-      <span class="spinner"></span> Analysing...
-    } @else {
-      &#9650; Analyse Ads
-    }
-  </button>
+  @if (licenceStore.tier() === 'pro') {
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="isLoading() || !authStore.isAuthenticated()"
+      (click)="analyse()"
+    >
+      @if (isLoading()) {
+        <span class="spinner"></span> Analysing...
+      } @else {
+        &#9650; Analyse Ads
+      }
+    </button>
+  } @else {
+    <app-upgrade-prompt />
+  }
 
   @if (!authStore.isAuthenticated()) {
     <span class="auth-hint">Connect Meta account in Workspace to analyse performance.</span>

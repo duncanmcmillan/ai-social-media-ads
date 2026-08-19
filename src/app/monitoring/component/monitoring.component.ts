@@ -6,6 +6,7 @@
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { AuthStore } from '../../auth';
+import { LicenceStore } from '../../core';
 import { MonitoringStore } from '../store/monitoring.store';
 import type {
   CampaignInsightRow,
@@ -25,11 +26,14 @@ const DATE_PRESET_LABELS: Record<DatePreset, string> = {
   this_year:   'This year',
 };
 
-/** Ordered list of available date presets for the selector. */
+/** Full ordered list of date presets. */
 const DATE_PRESETS: DatePreset[] = [
   'today', 'yesterday', 'last_7d', 'last_14d', 'last_28d',
   'last_30d', 'last_month', 'this_month', 'this_year',
 ];
+
+/** Presets available on the free tier (last_7d and shorter). */
+const FREE_PRESETS = new Set<DatePreset>(['today', 'yesterday', 'last_7d']);
 
 /** Sortable column keys for the campaign breakdown table. */
 type SortCol = 'campaignName' | 'spend' | 'impressions' | 'reach' | 'clicks' | 'ctr' | 'cpc' | 'cpm';
@@ -45,9 +49,16 @@ type SortCol = 'campaignName' | 'spend' | 'impressions' | 'reach' | 'clicks' | '
 export class MonitoringComponent {
   protected readonly authStore = inject(AuthStore);
   protected readonly monitoringStore = inject(MonitoringStore);
+  protected readonly licenceStore = inject(LicenceStore);
 
-  protected readonly datePresets = DATE_PRESETS;
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
+
+  /** Presets available to the current tier — free users only see last_7d and shorter. */
+  protected readonly availablePresets = computed(() =>
+    this.licenceStore.tier() === 'pro'
+      ? DATE_PRESETS
+      : DATE_PRESETS.filter(p => FREE_PRESETS.has(p))
+  );
 
   // ── Sorting (view-local — no need to persist in root store) ───────────────
 

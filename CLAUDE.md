@@ -176,6 +176,9 @@ Current personal-data files tracked by the deletion handler:
 - `fb-config.enc` — Facebook App credentials
 - `gdpr-consent.json` — consent record
 
+**Not** deleted by `gdpr:delete-all-data`:
+- `licence.enc` — LemonSqueezy Pro licence key and instance ID. This is a purchase record, not personal tracking data. Deleting it would deactivate the user's paid licence, so it is intentionally excluded from GDPR deletion.
+
 ## Facebook OAuth
 
 The app uses a custom protocol `fb-ads://oauth/callback` for OAuth redirect. The Electron main process:

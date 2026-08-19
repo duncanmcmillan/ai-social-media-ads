@@ -1,29 +1,36 @@
 <!-- AI Draft Builder -->
-<div class="ai-prompt-bar">
-  <span class="ai-label">Build with AI</span>
-  <input
-    class="ai-input"
-    type="text"
-    placeholder="Describe your business or campaign goal..."
-    [value]="aiPrompt"
-    (input)="aiPrompt = $any($event.target).value"
-    (keydown.enter)="onBuildDraft()"
-    aria-label="AI campaign description"
-  />
-  <button
-    class="btn btn-ai"
-    data-tooltip="Use AI to generate a campaign structure from a plain-language description of your business or goal"
-    (click)="onBuildDraft()"
-    [disabled]="!aiPrompt.trim() || store.isGeneratingAdSets()"
-    type="button"
-  >
-    @if (store.isGeneratingAdSets()) {
-      <span class="spinner"></span> Generating...
-    } @else {
-      Build draft
-    }
-  </button>
-</div>
+@if (licenceStore.tier() === 'pro') {
+  <div class="ai-prompt-bar">
+    <span class="ai-label">Build with AI</span>
+    <input
+      class="ai-input"
+      type="text"
+      placeholder="Describe your business or campaign goal..."
+      [value]="aiPrompt"
+      (input)="aiPrompt = $any($event.target).value"
+      (keydown.enter)="onBuildDraft()"
+      aria-label="AI campaign description"
+    />
+    <button
+      class="btn btn-ai"
+      data-tooltip="Use AI to generate a campaign structure from a plain-language description of your business or goal"
+      (click)="onBuildDraft()"
+      [disabled]="!aiPrompt.trim() || store.isGeneratingAdSets()"
+      type="button"
+    >
+      @if (store.isGeneratingAdSets()) {
+        <span class="spinner"></span> Generating...
+      } @else {
+        Build draft
+      }
+    </button>
+  </div>
+} @else {
+  <div class="ai-prompt-bar ai-prompt-bar--locked">
+    <span class="ai-label">Build with AI</span>
+    <app-upgrade-prompt />
+  </div>
+}
 
 <!-- Campaign Section -->
 <div class="step-card">

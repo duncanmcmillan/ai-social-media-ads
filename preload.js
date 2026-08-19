@@ -97,6 +97,25 @@ contextBridge.exposeInMainWorld('ai', {
     ipcRenderer.invoke('ai:generate-copy', { context }),
 });
 
+// ── Licence bridge ───────────────────────────────────────────────────────────
+contextBridge.exposeInMainWorld('licence', {
+  /** Activate a LemonSqueezy licence key on this machine. Resolves with { tier, expiresAt }. */
+  activate: (key) =>
+    ipcRenderer.invoke('licence:activate', { key }),
+
+  /** Validate the stored key against LemonSqueezy with offline grace period. Always resolves. */
+  validate: () =>
+    ipcRenderer.invoke('licence:validate'),
+
+  /** Deactivate the stored key on this machine (for moving to another device). */
+  deactivate: () =>
+    ipcRenderer.invoke('licence:deactivate'),
+
+  /** Read cached licence status from licence.enc without a network call. */
+  getStatus: () =>
+    ipcRenderer.invoke('licence:get-status'),
+});
+
 // ── Settings bridge ─────────────────────────────────────────────────────────
 contextBridge.exposeInMainWorld('settings', {
   // Reserved for future app-level settings (notifications, preferences, etc.)

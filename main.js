@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, safeStorage, nativeTheme } = require('electron/main');
 const path = require('node:path');
 const fs   = require('node:fs');
+const os   = require('node:os');
 const { URL } = require('node:url');
 
 // ── Paths ──────────────────────────────────────────────────────────────────
@@ -8,6 +9,9 @@ const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
 const CONFIG_PATH  = () => path.join(app.getPath('userData'), 'fb-config.enc');
 const AI_KEY_PATH  = () => path.join(app.getPath('userData'), 'ai-key.enc');
 const CONSENT_PATH = () => path.join(app.getPath('userData'), 'gdpr-consent.json');
+// NOTE: licence.enc is intentionally NOT deleted by gdpr:delete-all-data.
+// It is a purchase record, not personal tracking data.
+const LICENCE_PATH = () => path.join(app.getPath('userData'), 'licence.enc');
 
 // ── Single-instance lock (focus existing window if re-launched) ────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -330,6 +334,94 @@ The JSON must match this exact shape:
     });
     const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
     return JSON.parse(stripCodeFences(text));
+  });
+
+  // ── Licence: activate a LemonSqueezy licence key on this machine ─────
+  ipcMain.handle('licence:activate', async (_event, { key }) => {
+    const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/activate', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key, instance_name: os.hostname() }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.activated) {
+      const msg = data.error ?? data.license_key?.status ?? 'Invalid licence key.';
+      throw new Error(msg);
+    }
+
+    const instanceId = data.instance?.id;
+    const expiresAt  = data.license_key?.expires_at ?? null;
+
+    safeWrite(LICENCE_PATH(), { key, instanceId, tier: 'pro', validatedAt: new Date().toISOString(), expiresAt });
+    return { tier: 'pro', expiresAt };
+  });
+
+  // ── Licence: validate stored key on launch (with 7-day offline grace) ─
+  ipcMain.handle('licence:validate', async () => {
+    const GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
+    const json = safeRead(LICENCE_PATH());
+    if (!json) return { tier: 'free', expiresAt: null };
+
+    let cached;
+    try { cached = JSON.parse(json); } catch { return { tier: 'free', expiresAt: null }; }
+
+    try {
+      const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ license_key: cached.key, instance_id: cached.instanceId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        safeDelete(LICENCE_PATH());
+        return { tier: 'free', expiresAt: null };
+      }
+
+      // Update validatedAt timestamp so the grace period resets on each successful check.
+      safeWrite(LICENCE_PATH(), { ...cached, validatedAt: new Date().toISOString() });
+      return { tier: 'pro', expiresAt: cached.expiresAt ?? null };
+
+    } catch (_networkErr) {
+      // Offline — apply grace period.
+      if (!cached.validatedAt) return { tier: 'free', expiresAt: null };
+      const age = Date.now() - new Date(cached.validatedAt).getTime();
+      return age <= GRACE_MS
+        ? { tier: cached.tier ?? 'free', expiresAt: cached.expiresAt ?? null }
+        : { tier: 'free', expiresAt: null };
+    }
+  });
+
+  // ── Licence: deactivate on this machine (for moving to another device) ─
+  ipcMain.handle('licence:deactivate', async () => {
+    const json = safeRead(LICENCE_PATH());
+    if (!json) return;
+    let cached;
+    try { cached = JSON.parse(json); } catch { safeDelete(LICENCE_PATH()); return; }
+
+    try {
+      await fetch('https://api.lemonsqueezy.com/v1/licenses/deactivate', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ license_key: cached.key, instance_id: cached.instanceId }),
+      });
+    } finally {
+      safeDelete(LICENCE_PATH());
+    }
+  });
+
+  // ── Licence: read cached status without a network call ────────────────
+  ipcMain.handle('licence:get-status', () => {
+    const json = safeRead(LICENCE_PATH());
+    if (!json) return { tier: 'free', expiresAt: null };
+    try {
+      const { tier, expiresAt } = JSON.parse(json);
+      return { tier: tier ?? 'free', expiresAt: expiresAt ?? null };
+    } catch {
+      return { tier: 'free', expiresAt: null };
+    }
   });
 
   // ── GDPR: check whether the user has accepted the privacy notice ──────

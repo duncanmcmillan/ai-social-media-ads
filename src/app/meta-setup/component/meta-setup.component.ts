@@ -2,9 +2,11 @@
  * @fileoverview Meta Setup tab component.
  * A video library of guided setup walkthroughs for Meta prerequisites —
  * App credentials, Ad Account, Pages, permissions, and Pixel configuration.
+ * Also hosts the licence key entry section for LemonSqueezy Pro activation.
  */
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
+import { LicenceStore } from '../../core';
 
 /** A single setup guide entry. */
 interface SetupVideo {
@@ -41,7 +43,7 @@ const SETUP_VIDEOS: SetupVideo[] = [
   },
 ];
 
-/** Meta Setup tab — guided video walkthroughs for Meta prerequisites. */
+/** Meta Setup tab — guided video walkthroughs for Meta prerequisites, and licence management. */
 @Component({
   selector: 'app-meta-setup',
   imports: [VideoModalComponent],
@@ -51,9 +53,13 @@ const SETUP_VIDEOS: SetupVideo[] = [
 })
 export class MetaSetupComponent {
   protected readonly videos = SETUP_VIDEOS;
+  protected readonly licenceStore = inject(LicenceStore);
 
   /** Key of the currently open video modal, or null. */
   protected readonly openKey = signal<string | null>(null);
+
+  /** Current value of the licence key input field. */
+  protected licenceKeyInput = '';
 
   protected openVideo(key: string, src: string | null): void {
     if (src) this.openKey.set(key);
@@ -67,5 +73,24 @@ export class MetaSetupComponent {
   protected get openTitle(): string {
     const key = this.openKey();
     return this.videos.find(v => v.key === key)?.title ?? '';
+  }
+
+  /**
+   * Submits the licence key input to the store for activation.
+   * No-op when the input is blank or a check is already in flight.
+   */
+  protected onActivate(): void {
+    const key = this.licenceKeyInput.trim();
+    if (!key || this.licenceStore.isChecking()) return;
+    void this.licenceStore.activateLicence(key);
+  }
+
+  /**
+   * Deactivates the current licence on this machine.
+   * Prompts the user first to avoid accidental deactivation.
+   */
+  protected onDeactivate(): void {
+    if (!confirm('Deactivate your Pro licence on this machine? You can re-activate on another device.')) return;
+    void this.licenceStore.deactivateLicence();
   }
 }

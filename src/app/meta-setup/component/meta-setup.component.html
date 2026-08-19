@@ -3,6 +3,70 @@
   <div class="page-sub">Step-by-step video walkthroughs to get your Meta account ready before creating campaigns.</div>
 </div>
 
+<!-- Licence section -->
+<section class="licence-section" aria-labelledby="licence-heading">
+  <h2 class="section-title" id="licence-heading">Licence</h2>
+
+  <!-- Current status -->
+  <div class="licence-status">
+    @if (licenceStore.tier() === 'pro') {
+      <span class="status-badge status-badge--pro">Pro</span>
+      @if (licenceStore.expiresAt()) {
+        <span class="status-meta">Renews {{ licenceStore.expiresAt()!.slice(0, 10) }}</span>
+      } @else {
+        <span class="status-meta">Active</span>
+      }
+      <button
+        class="deactivate-link"
+        type="button"
+        (click)="onDeactivate()"
+        [disabled]="licenceStore.isChecking()"
+      >Deactivate (move to another machine)</button>
+    } @else {
+      <span class="status-badge status-badge--free">Free</span>
+      <span class="status-meta">AI generation, Optimisation, and extended date ranges require Pro.</span>
+    }
+  </div>
+
+  @if (licenceStore.error()) {
+    <div class="licence-error" role="alert">{{ licenceStore.error() }}</div>
+  }
+
+  <!-- Key entry (only shown when not yet Pro) -->
+  @if (licenceStore.tier() !== 'pro') {
+    <div class="licence-form">
+      <input
+        class="licence-input"
+        type="text"
+        placeholder="LS-XXXX-XXXX-XXXX-XXXX"
+        [value]="licenceKeyInput"
+        (input)="licenceKeyInput = $any($event.target).value"
+        (keydown.enter)="onActivate()"
+        aria-label="Licence key"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button
+        class="btn btn-primary btn-sm"
+        type="button"
+        (click)="onActivate()"
+        [disabled]="!licenceKeyInput.trim() || licenceStore.isChecking()"
+      >
+        @if (licenceStore.isChecking()) {
+          <span class="spinner"></span> Activating&hellip;
+        } @else {
+          Activate
+        }
+      </button>
+    </div>
+    <p class="licence-hint">
+      Don&rsquo;t have a licence?
+      <!-- Update href to live store URL before release -->
+      <a href="https://aiads.lemonsqueezy.com" target="_blank" rel="noopener noreferrer">Buy Pro &mdash; &pound;40/yr</a>
+    </p>
+  }
+</section>
+
 <div class="video-grid">
   @for (v of videos; track v.key) {
     <div class="video-card" [class.video-card--ready]="v.src">

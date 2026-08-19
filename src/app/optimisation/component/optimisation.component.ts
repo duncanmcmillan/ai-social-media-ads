@@ -6,7 +6,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../auth';
+import { LicenceStore } from '../../core';
 import { WorkspaceStore } from '../../workspace';
+import { UpgradePromptComponent } from '../../shared/upgrade-prompt/upgrade-prompt.component';
 import {
   InsightsApiService,
   type AdInsightRow,
@@ -58,7 +60,7 @@ export interface AdVerdict {
 /** Optimisation dashboard — evaluates per-ad insights against workspace learning rules. */
 @Component({
   selector: 'app-optimisation',
-  imports: [RouterLink],
+  imports: [RouterLink, UpgradePromptComponent],
   templateUrl: './optimisation.component.html',
   styleUrl: './optimisation.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +68,7 @@ export interface AdVerdict {
 export class OptimisationComponent {
   protected readonly authStore = inject(AuthStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
+  protected readonly licenceStore = inject(LicenceStore);
   private readonly insightsApi = inject(InsightsApiService);
 
   protected readonly datePresets = DATE_PRESETS;

@@ -6,7 +6,7 @@
     (change)="monitoringStore.setPreset($any($event.target).value)"
     aria-label="Date range"
   >
-    @for (p of datePresets; track p) {
+    @for (p of availablePresets(); track p) {
       <option [value]="p">{{ datePresetLabels[p] }}</option>
     }
   </select>
@@ -25,7 +25,7 @@
     }
   </button>
 
-  @if (monitoringStore.campaignRows().length > 0) {
+  @if (monitoringStore.campaignRows().length > 0 && licenceStore.tier() === 'pro') {
     <button class="btn btn-secondary" type="button" (click)="exportCsv()">
       &#8681; Export CSV
     </button>

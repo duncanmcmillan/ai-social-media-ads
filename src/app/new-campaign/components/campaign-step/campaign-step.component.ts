@@ -5,7 +5,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
 import { AuthStore } from '../../../auth';
+import { LicenceStore } from '../../../core';
 import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
+import { UpgradePromptComponent } from '../../../shared/upgrade-prompt/upgrade-prompt.component';
 import type { CampaignObjective } from '../../../core/models/index';
 
 const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = [
@@ -20,7 +22,7 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
 /** Step 1 of the New Campaign wizard. */
 @Component({
   selector: 'app-campaign-step',
-  imports: [VideoModalComponent],
+  imports: [VideoModalComponent, UpgradePromptComponent],
   templateUrl: './campaign-step.component.html',
   styleUrl: './campaign-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +30,7 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
 export class CampaignStepComponent {
   protected readonly store = inject(NewCampaignStore);
   private readonly authStore = inject(AuthStore);
+  protected readonly licenceStore = inject(LicenceStore);
 
   /** Controls the help video modal. */
   protected readonly videoOpen = signal(false);
