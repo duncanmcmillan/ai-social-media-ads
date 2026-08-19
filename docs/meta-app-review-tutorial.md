@@ -297,11 +297,43 @@ The **Current Submission** section at the top of the page shows all four cards. 
 
 ### Step 1.5 — Business Verification (if required)
 
-**Where:** App Dashboard → Publish → Start Verification
+**Where:** App Dashboard → Publish → Start Verification (or prompted automatically within the submission flow)
 
-<!-- Notes on business verification status and any steps remaining -->
+#### Is it required?
 
-- [ ] Business verification complete
+Business verification is **required for `business_management`** and is commonly required for `ads_management` too. Meta will either block submission or flag it during review if verification is outstanding. If the submission flow shows a banner saying "Business Verification required", complete this step before proceeding.
+
+It is not required if the app only requests permissions that fall under Standard Access, which is not our case.
+
+#### What it verifies
+
+Meta checks that the app is owned by a legitimate business entity — not to verify the developer personally. You will need to provide:
+
+| Document type | Accepted examples |
+|---|---|
+| Business registration | Companies House certificate, certificate of incorporation, business licence |
+| Tax document | VAT registration, tax ID letter from HMRC / IRS |
+| Utility / bank statement | In the business name, issued within 3 months |
+
+Only one document is typically required, but Meta may ask for a second if the first is unclear.
+
+#### Process
+
+1. In the App Dashboard, go to **Publish → Start Verification** (or follow the prompt in the submission flow).
+2. Enter the legal business name, registered address, and country.
+3. Upload one of the accepted documents listed above.
+4. Submit — Meta reviews documents within **3–5 business days** (can be up to 14).
+5. Status updates appear in the App Dashboard and are emailed to the contact address.
+
+> **Do this early.** Business verification runs in parallel with the rest of the submission prep but can be the longest step. Start it before completing Steps 2–5 so it does not block the final submission.
+
+#### If you are submitting as an individual (sole trader / freelancer)
+
+Meta accepts sole trader verification. Use a document that shows your name and business activity — a self-assessment tax letter, sole trader bank account statement, or equivalent. Enter your own name as the business name if you trade under your own name.
+
+- [ ] Business verification started
+- [ ] Verification document uploaded
+- [ ] Verification approved (status shows "Verified" in App Dashboard)
 
 ---
 
