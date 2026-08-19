@@ -124,6 +124,8 @@
   overflow: auto;
   flex: 1;
   min-height: 0;
+
+  &:has(.info-icon:hover) { overflow: visible; }
 }
 
 .data-table {
