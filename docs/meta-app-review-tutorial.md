@@ -9,24 +9,85 @@ Fill in each section as we work through the process.
 
 ### What this review is for
 
-<!-- Why we need App Review, which permissions require it, and what it unlocks -->
+**App:** AI Social Media Ads
+**Platform:** Desktop (Electron + Angular)
+**Graph API version:** v22.0
+
+AI Social Media Ads is a desktop application for marketing teams and freelance media buyers. It provides an end-to-end workflow for creating and managing Facebook advertising campaigns:
+
+- A guided campaign creation wizard (objective, budget, ad sets, targeting, creative upload, ad copy generation via AI).
+- A live monitoring dashboard showing campaign, ad set, and ad status alongside Insights metrics (impressions, clicks, spend, ROAS) with one-click pause/resume controls.
+- A workspace configuration panel for setting global defaults (Meta Page, Pixel, URL parameters, targeting rules) that are pre-populated into every new campaign.
+- AI-generated optimisation recommendations based on current performance data.
+
+The app automates the repetitive parts of campaign creation — applying consistent settings, generating ad copy, and surfacing performance alerts — so that marketing professionals can manage more accounts in less time without leaving a single interface.
+
+App Review is required because the four permissions listed below are **not available by default** in Live mode. Without review approval, users outside the developer account cannot authenticate and the app cannot write to the Marketing API.
 
 ### Permissions being reviewed
 
-| Permission | Reason required |
+| Permission | What it is used for | Why it cannot be omitted |
+|---|---|---|
+| `ads_management` | `POST /{ad-account-id}/campaigns`, `/adsets`, `/adcreatives`, `/adimages`, `/ads` (create); `POST /{id}` (status updates — pause/resume) | Required for every write operation. There is no read-only mode; creating and managing ads is the core purpose of the app. |
+| `ads_read` | `GET /{ad-account-id}/campaigns`, `/adsets`, `/ads` (read status); `GET /{ad-account-id}/insights` (performance metrics) | Required to display live campaign status and the Insights metrics dashboard. |
+| `business_management` | `GET /me/adaccounts?fields=id,name,account_status,...` (list accessible ad accounts) | Required when the user's ad accounts are held inside a Business Manager rather than a personal account. |
+| `pages_read_engagement` | `GET /me/accounts?fields=id,name,category` (list Facebook Pages for the Page selector) | Required to populate the Page selector used as `page_id` in ad creative `object_story_spec`. Ad creatives require a Page ID. |
+
+### App icon requirements
+
+The app icon must be uploaded to **App Dashboard → Settings → Basic** before submission.
+
+| Requirement | Detail |
 |---|---|
-| `ads_management` | |
-| `ads_read` | |
-| `business_management` | |
-| `pages_read_engagement` | |
+| Size | 1024 × 1024 px |
+| Format | PNG or JPG |
+| Meta trademarks / logos | **Not permitted** — no Facebook, Instagram, Meta, or Messenger logos or wordmarks |
+| Content | Must represent the app, not a person or generic placeholder |
+
+- [ ] Icon uploaded to Settings → Basic
+- [ ] Icon does not include any Meta trademark or logo
+
+### Platform Terms alignment
+
+The app is built in compliance with the [Meta Platform Terms](https://developers.facebook.com/terms). Key obligations and how the app meets them:
+
+| Obligation | How AI Social Media Ads complies |
+|---|---|
+| Only request permissions necessary for core functionality | Four permissions requested; each is directly required by a named feature. No speculative or future-use scopes. |
+| Do not sell or transfer Platform Data | All data stays on the user's device. No data is sent to any server controlled by the app developer. |
+| Provide a privacy policy explaining data collection and deletion rights | Privacy policy hosted at `https://duncanmcmillan.github.io/ai-social-media-ads/privacy-policy` |
+| Delete user data on request | "Delete all my data" flow revokes the token server-side, deletes all local encrypted files, and clears in-memory state. |
+| Maintain security safeguards | Access token and App Secret stored encrypted via Electron `safeStorage` (OS keychain-backed AES). App Secret never exposed to renderer process. |
+| Report security incidents | Acknowledged — contact email set in App Dashboard. |
+
+### Developer Policies alignment
+
+The app is built in compliance with the [Meta Developer Policies](https://developers.facebook.com/devpolicy). Key policy areas and how the app meets them:
+
+| Policy area | How AI Social Media Ads complies |
+|---|---|
+| Advertising data used only for campaign performance | Insights data (impressions, clicks, spend, ROAS) is displayed only to the authenticated user for their own campaigns. No aggregate profiling, no cross-account mixing. |
+| Obtain user consent before acting on their behalf | OAuth consent screen shown for all four permission scopes before any API call is made. GDPR consent gate on every launch. |
+| Do not retarget using Meta data | No retargeting — the app reads campaign performance data only to display it back to the user who owns it. |
+| Ensure clients agree to Meta's Terms of Service | The app is a single-user tool; the authenticated user is the ad account owner, bound by Meta's own Terms when they use Facebook Ads. |
+| Transparency to advertisers | The app displays Meta reporting directly — no blending with other platforms. The user sees raw Meta data as returned by the API. |
+
+### Installation guide
+
+Instructions for a Meta reviewer (or new user) to install and run the app on macOS or Windows:
+
+**→ [docs/installation-guide.md](./installation-guide.md)**
+
+The guide covers cloning the repo, installing dependencies, launching via `npm run dev`, and building a distributable installer via `npm run make`. It also covers first-time Meta Setup (entering App ID and App Secret) and common troubleshooting steps.
 
 ### Important things to know
 
-- The app must be **complete and ready for testing** before submission — reviewers will test it
+- The app must be **complete and ready for testing** before submission — reviewers will test it live
 - Each permission requires **at least one successful API call within the last 30 days**
-- **Do not copy and paste** usage descriptions between permissions — each must be unique
+- **Do not copy and paste** usage descriptions between permissions — each must be unique and answer the specific guidance questions Meta provides for that permission
 - The review decision is typically returned **within one week**
-- App stays in **Development mode** during review; only switch to Live after approval
+- The app should remain in **Live mode** during review so the reviewer can test it; data created in Development mode is not visible in Live mode
+- Do **not** include your own Meta account credentials in the access instructions — reviewers use their own test accounts
 
 ---
 
