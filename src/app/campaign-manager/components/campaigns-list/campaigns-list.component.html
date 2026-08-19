@@ -2,6 +2,7 @@
   <button
     class="btn btn-primary"
     type="button"
+    title="Pull the latest campaign data from your Meta ad account"
     [disabled]="store.campaignsLoading() || !authStore.isAuthenticated()"
     (click)="sync()"
   >

@@ -519,7 +519,7 @@
             </div>
 
             <div class="ws-field">
-              <label class="ws-label">Naming &amp; UTM</label>
+              <label class="ws-label" title="UTM — Urchin Tracking Module: query parameters appended to ad destination URLs to track traffic sources in analytics tools">Naming &amp; UTM</label>
               <p class="ws-field-hint">Available tokens: {{ namingTokens }}</p>
               <label class="ws-sublabel" for="creative-name-tmpl">Creative Name Template</label>
               <input id="creative-name-tmpl" class="ws-input ws-input--mono" type="text"
@@ -529,14 +529,14 @@
               <input id="adset-name-tmpl" class="ws-input ws-input--mono" type="text"
                 [value]="workspaceStore.enhancements().adSetNameTemplate"
                 (change)="setTemplate('adSetNameTemplate', $any($event.target).value)" />
-              <label class="ws-sublabel ws-sublabel--mt" for="utm-params">UTM Parameters</label>
+              <label class="ws-sublabel ws-sublabel--mt" for="utm-params" title="Urchin Tracking Module parameters appended to ad URLs so analytics tools can identify traffic from this campaign">UTM Parameters</label>
               <input id="utm-params" class="ws-input ws-input--mono" type="text"
                 [value]="workspaceStore.enhancements().utmParameters"
                 (change)="setTemplate('utmParameters', $any($event.target).value)" />
             </div>
 
             <div class="ws-field ws-field--last">
-              <label class="ws-label">EU Advertising Identity (DSA)</label>
+              <label class="ws-label" title="DSA — Digital Services Act: EU legislation requiring ads to disclose who paid for them and who benefits">EU Advertising Identity (DSA)</label>
               <p class="ws-field-hint">Required for ads targeting EU audiences. Maps to <code>beneficiary</code> and <code>payer</code> on the Facebook AdCreative object.</p>
               <div class="ws-field-row">
                 <div class="ws-field-col">
@@ -621,8 +621,8 @@
                     (change)="setLearningRule('winnerMinSpend', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="win-roas">Winner Min ROAS</label>
-                  <p class="ws-rule-hint">ROAS floor for the winner label</p>
+                  <label class="ws-sublabel" for="win-roas" title="ROAS — Return on Ad Spend: revenue generated per £/$ spent on ads. A ROAS of 3 means £3 returned for every £1 spent.">Winner Min ROAS</label>
+                  <p class="ws-rule-hint">Return on Ad Spend floor for the winner label</p>
                   <input id="win-roas" class="ws-input ws-input--sm" type="number" step="0.1"
                     [value]="workspaceStore.learningRules().winnerMinRoas"
                     (change)="setLearningRule('winnerMinRoas', +$any($event.target).value)" />
@@ -634,15 +634,15 @@
               <span class="ws-rule-group-label">Performance Flags</span>
               <div class="ws-field-row">
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="min-ctr">Min CTR (%)</label>
-                  <p class="ws-rule-hint">Ads with CTR below this are flagged Low CTR</p>
+                  <label class="ws-sublabel" for="min-ctr" title="CTR — Click-Through Rate: percentage of ad impressions that result in a click">Min CTR (%)</label>
+                  <p class="ws-rule-hint">Ads with a Click-Through Rate below this are flagged Low CTR</p>
                   <input id="min-ctr" class="ws-input ws-input--sm" type="number" step="0.1" min="0"
                     [value]="workspaceStore.learningRules().minCtr"
                     (change)="setLearningRule('minCtr', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="max-cpc">Max CPC</label>
-                  <p class="ws-rule-hint">Ads with CPC above this are flagged High CPC</p>
+                  <label class="ws-sublabel" for="max-cpc" title="CPC — Cost Per Click: average amount paid for each link click on the ad">Max CPC</label>
+                  <p class="ws-rule-hint">Ads with a Cost Per Click above this are flagged High CPC</p>
                   <input id="max-cpc" class="ws-input ws-input--sm" type="number" step="0.1" min="0"
                     [value]="workspaceStore.learningRules().maxCpc"
                     (change)="setLearningRule('maxCpc', +$any($event.target).value)" />
@@ -653,8 +653,8 @@
             <div class="ws-rule-group">
               <span class="ws-rule-group-label">Kill Rule</span>
               <div class="ws-rule-field">
-                <label class="ws-sublabel" for="kill-cpa">Kill CPA Multiple</label>
-                <p class="ws-rule-hint">Flag as loser when CPA exceeds this multiple of your target CPA</p>
+                <label class="ws-sublabel" for="kill-cpa" title="CPA — Cost Per Acquisition: the cost to acquire one customer or conversion">Kill CPA Multiple</label>
+                <p class="ws-rule-hint">Flag as loser when Cost Per Acquisition exceeds this multiple of your target CPA</p>
                 <input id="kill-cpa" class="ws-input ws-input--sm" type="number" step="0.1"
                   [value]="workspaceStore.learningRules().killCpaMultiple"
                   (change)="setLearningRule('killCpaMultiple', +$any($event.target).value)" />
@@ -679,8 +679,8 @@
                     (change)="setLearningRule('retargetingFrequencyMax', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="ctr-drop">CTR Drop from Peak (%)</label>
-                  <p class="ws-rule-hint">CTR drop from its peak that marks an ad fatigued</p>
+                  <label class="ws-sublabel" for="ctr-drop" title="CTR — Click-Through Rate: if the rate drops by this percentage from its historical peak, the ad is flagged as fatigued">CTR Drop from Peak (%)</label>
+                  <p class="ws-rule-hint">Click-Through Rate drop from its peak that marks an ad as fatigued</p>
                   <input id="ctr-drop" class="ws-input ws-input--sm" type="number"
                     [value]="workspaceStore.learningRules().ctrDropFromPeak"
                     (change)="setLearningRule('ctrDropFromPeak', +$any($event.target).value)" />

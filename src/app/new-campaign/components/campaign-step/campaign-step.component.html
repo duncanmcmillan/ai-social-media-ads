@@ -12,6 +12,7 @@
   />
   <button
     class="btn btn-ai"
+    title="Use AI to generate a campaign structure from a plain-language description of your business or goal"
     (click)="onBuildDraft()"
     [disabled]="!aiPrompt.trim() || store.isGeneratingAdSets()"
     type="button"

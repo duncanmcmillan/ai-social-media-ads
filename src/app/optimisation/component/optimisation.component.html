@@ -53,23 +53,23 @@
   <div class="summary-strip">
     <div class="strip-item">
       <span class="strip-count">{{ verdictCount('winner') }}</span>
-      <span class="strip-label verdict-label--winner">Winners</span>
+      <span class="strip-label verdict-label--winner" title="ROAS (Return on Ad Spend) above threshold and spend above minimum floor">Winners</span>
     </div>
     <div class="strip-item">
       <span class="strip-count">{{ verdictCount('ok') }}</span>
-      <span class="strip-label verdict-label--ok">On Track</span>
+      <span class="strip-label verdict-label--ok" title="Meets minimum spend and impression thresholds but not yet a confirmed winner">On Track</span>
     </div>
     <div class="strip-item">
       <span class="strip-count">{{ verdictCount('low-ctr') }}</span>
-      <span class="strip-label verdict-label--low-ctr">Low CTR</span>
+      <span class="strip-label verdict-label--low-ctr" title="Click-Through Rate is below the workspace minimum — ad may need creative refresh">Low CTR</span>
     </div>
     <div class="strip-item">
       <span class="strip-count">{{ verdictCount('high-cpc') }}</span>
-      <span class="strip-label verdict-label--high-cpc">High CPC</span>
+      <span class="strip-label verdict-label--high-cpc" title="Cost Per Click is above the workspace maximum — ad is too expensive per click">High CPC</span>
     </div>
     <div class="strip-item">
       <span class="strip-count">{{ verdictCount('needs-data') }}</span>
-      <span class="strip-label verdict-label--needs-data">Needs Data</span>
+      <span class="strip-label verdict-label--needs-data" title="Insufficient spend or impressions to evaluate performance yet">Needs Data</span>
     </div>
   </div>
 
@@ -94,8 +94,8 @@
           <th scope="col" class="col-num">Spend</th>
           <th scope="col" class="col-num">Impressions</th>
           <th scope="col" class="col-num">Clicks</th>
-          <th scope="col" class="col-num">CTR</th>
-          <th scope="col" class="col-num">CPC</th>
+          <th scope="col" class="col-num" title="Click-Through Rate: percentage of impressions that result in a click">CTR</th>
+          <th scope="col" class="col-num" title="Cost Per Click: average cost for each link click">CPC</th>
           <th scope="col">Verdict</th>
         </tr>
       </thead>
