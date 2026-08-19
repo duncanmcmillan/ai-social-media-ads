@@ -217,14 +217,81 @@ These appear in table headers, field labels, and metric displays:
 
 ### Step 1 — Select Permissions and Features
 
-**Where:** App Dashboard → App Review → Permissions and Features
+**Where:** [developers.facebook.com](https://developers.facebook.com) → select the app → left sidebar: **App Review → Permissions and Features**
 
-<!-- Notes on which permissions to select and any issues encountered -->
+#### Overview
 
-- [ ] `ads_management` selected
-- [ ] `ads_read` selected
-- [ ] `business_management` selected
-- [ ] `pages_read_engagement` selected
+The "Permissions and Features" page is a searchable catalogue of every permission and platform feature available on the Meta platform. Each entry shows:
+
+- **Name** and a one-line description
+- **Current access level** — *Standard Access* (limited, works for your own test accounts) or *Advanced Access* (required for users outside your developer account)
+- An **"Add to Submission"** button (or "Request Advanced Access") to queue the permission for review
+
+Adding a permission here just adds it to the current draft submission. Nothing is sent to Meta until you reach Step 6 and click Submit.
+
+#### Navigation
+
+1. Open [developers.facebook.com](https://developers.facebook.com) and log in with the Facebook account that owns the app.
+2. Select **AI Social Media Ads** from the My Apps dropdown (top right).
+3. In the left sidebar, click **App Review**, then **Permissions and Features**.
+4. The page loads with a search box at the top and a list of all requestable permissions below.
+
+#### What you see on the page
+
+The page is divided into three areas:
+
+| Area | Contents |
+|---|---|
+| **Current Submission** (top) | Permissions already queued for this submission — empty at first |
+| **In Development** | Permissions you have already added to your app but not yet submitted for review |
+| **Available to Request** | Permissions available to add to the submission |
+
+Permissions you have already used in your app (via Facebook Login scopes) typically appear in "In Development" — they just need to be promoted to Advanced Access.
+
+#### How to add each permission
+
+For each of the four permissions:
+
+1. Type the permission name into the search box (e.g. `ads_management`).
+2. Find the matching card.
+3. Click **"Add to Submission"** (or **"Request Advanced Access"** — both do the same thing at this stage).
+4. The card moves to the **Current Submission** section at the top.
+5. The button changes to **"Remove from Submission"** — confirm it is there before moving on.
+
+> **Tip:** If a permission shows "Advanced Access already approved", it does not need to be submitted again. This is unlikely for a new app.
+
+#### Access tiers for our four permissions
+
+All four permissions require **Advanced Access** to work for users outside the developer account.
+
+| Permission | Standard Access limit | Why we need Advanced |
+|---|---|---|
+| `ads_management` | Can only write to the **developer's own** ad account | Must write to any authenticated user's ad account |
+| `ads_read` | Can only read from the **developer's own** ad account | Must read any authenticated user's campaigns and insights |
+| `business_management` | Can only list **developer's own** Business Manager | Must list any authenticated user's Business Manager and ad accounts |
+| `pages_read_engagement` | Can only access **developer's own** Pages | Must list any authenticated user's Pages for the Page selector |
+
+#### Order to add permissions
+
+No enforced order, but working down the list in the UI avoids missing any:
+
+1. `ads_management`
+2. `ads_read`
+3. `business_management`
+4. `pages_read_engagement`
+
+#### What happens after adding all four
+
+The **Current Submission** section at the top of the page shows all four cards. Each card shows a yellow or orange "In Submission" badge. The next step links in the submission flow (data handling questions, usage descriptions, recordings) become available once at least one permission is in the submission.
+
+#### Checklist
+
+- [ ] Navigated to App Review → Permissions and Features
+- [ ] `ads_management` — "Add to Submission" clicked; card appears in Current Submission
+- [ ] `ads_read` — "Add to Submission" clicked; card appears in Current Submission
+- [ ] `business_management` — "Add to Submission" clicked; card appears in Current Submission
+- [ ] `pages_read_engagement` — "Add to Submission" clicked; card appears in Current Submission
+- [ ] All four cards visible in the Current Submission section
 
 ---
 
@@ -241,25 +308,120 @@ These appear in table headers, field labels, and metric displays:
 ### Step 2 — Answer Data Handling Questions
 
 **What:** A short questionnaire about how each permission's data is used.
-Evaluation is immediate (up to 30 seconds).
+Evaluation is automatic and typically completes within 30 seconds. If your answers are consistent with Meta's Platform Terms (no third-party sharing, no selling, data used only for stated purpose), the questionnaire passes immediately without human review.
 
-<!-- Notes on the questions asked and answers given -->
+#### How the questionnaire works
 
-**`ads_management`**
+After adding permissions in Step 1, each permission card in the Current Submission section gains a **"Complete Data Use Checkup"** link (or the submission flow prompts you to complete it before proceeding). The questions are per-permission — you answer the same set of four questions for each of the four permissions.
 
->
+The four questions Meta asks for each permission:
 
-**`ads_read`**
+| # | Question | Type |
+|---|---|---|
+| 1 | How will you use this data? | Multi-select checkboxes |
+| 2 | Will you share any data you receive from this permission with a third party? | Yes / No |
+| 3 | Will you store any data you receive from this permission? | Yes / No |
+| 4 | Will you sell any data you receive from this permission? | Yes / No |
 
->
+If you answer **Yes** to question 3, two follow-up questions appear:
+- Will you store data beyond 90 days?
+- Will you delete stored data within 90 days of the person deleting your app?
 
-**`business_management`**
+> **Critical:** Answer **No** to questions 2 and 4 for all permissions. Third-party sharing and data selling are disqualifying — automatic rejection. Any answer that suggests the data leaves the user's device and is processed by a third party (analytics SDKs, data brokers, cloud functions) must be disclosed and will likely trigger manual or policy review.
 
->
+---
 
-**`pages_read_engagement`**
+#### `ads_management`
 
->
+**Q1 — How will you use this data?**
+Select:
+- ✅ *Provide core app features or services* (creating and managing ad campaigns is the entire purpose of the app)
+
+Do **not** select: analytics, targeted advertising, product improvement, or any option that implies the data is used beyond serving the current user.
+
+**Q2 — Will you share with a third party?**
+**No.** All API calls go directly from the user's device to the Meta Graph API via Electron IPC. No data passes through any server we control. No third-party SDKs receive this data.
+
+**Q3 — Will you store any data?**
+**No.** Campaigns, ad sets, and ads created or updated via `ads_management` are not written to disk by our app. The API response (e.g. newly created campaign ID and status) is held in the NgRx Signal Store (in-memory only) for the current session. The next app launch fetches fresh data from the API via `ads_read`.
+
+**Q4 — Will you sell any data?**
+**No.**
+
+---
+
+#### `ads_read`
+
+**Q1 — How will you use this data?**
+Select:
+- ✅ *Provide core app features or services* (displaying campaign status and performance metrics to the authenticated user)
+
+**Q2 — Will you share with a third party?**
+**No.** Campaign and insights data is fetched from the Meta API and displayed to the user in the monitoring and optimisation dashboards. It does not leave the device.
+
+**Q3 — Will you store any data?**
+**No.** Insights data (impressions, clicks, spend, ROAS, etc.) and campaign/ad set/ad status are held in the NgRx Signal Store (in-memory) for the current session only. No insights data is written to disk. On app restart the data is fetched fresh.
+
+**Q4 — Will you sell any data?**
+**No.**
+
+---
+
+#### `business_management`
+
+**Q1 — How will you use this data?**
+Select:
+- ✅ *Provide core app features or services* (listing the user's ad accounts so they can select which account to manage)
+
+**Q2 — Will you share with a third party?**
+**No.** The ad account list is fetched and displayed in the app's account selector. It does not leave the device.
+
+**Q3 — Will you store any data?**
+**Yes.** The **selected ad account ID and name** is saved to `fb-config.enc` on the user's device so the user does not have to re-select their account on every launch. No other `business_management` data is persisted.
+
+Follow-up answers:
+- *Will you store data beyond 90 days?* **Yes** — the account selection is stored indefinitely until the user changes it or deletes their data.
+- *Will you delete stored data within 90 days of the person deleting your app?* **Yes** — the GDPR "Delete all my data" flow (`gdpr:delete-all-data` IPC handler) deletes `fb-config.enc` immediately on request.
+
+**Q4 — Will you sell any data?**
+**No.**
+
+---
+
+#### `pages_read_engagement`
+
+**Q1 — How will you use this data?**
+Select:
+- ✅ *Provide core app features or services* (listing the user's Facebook Pages so they can select a Page to use as the ad identity in campaign creatives)
+
+**Q2 — Will you share with a third party?**
+**No.** The Page list is fetched and displayed in the workspace Page selector. It does not leave the device.
+
+**Q3 — Will you store any data?**
+**Yes.** The **selected Page ID and name** is saved to the workspace configuration on the user's device (encrypted local storage) so the Page selector is pre-populated on next launch.
+
+Follow-up answers:
+- *Will you store data beyond 90 days?* **Yes** — the Page selection is stored indefinitely.
+- *Will you delete stored data within 90 days of the person deleting your app?* **Yes** — deleted by the `gdpr:delete-all-data` handler along with `fb-config.enc` and `fb-tokens.enc`.
+
+**Q4 — Will you sell any data?**
+**No.**
+
+---
+
+#### What to expect after submitting the questionnaire
+
+- If all answers are accepted automatically, the permission cards update to show the questionnaire complete and the submission moves to the next stage.
+- If Meta flags an inconsistency (e.g. selected "analytics" in Q1 but answered "No" to third-party sharing), a warning appears — re-read the question and adjust.
+- The automatic evaluation does **not** approve the permissions — it only validates the data handling answers. Final approval still requires the usage descriptions and recordings (Steps 5–6).
+
+#### Checklist
+
+- [ ] `ads_management` data use questionnaire completed
+- [ ] `ads_read` data use questionnaire completed
+- [ ] `business_management` data use questionnaire completed
+- [ ] `pages_read_engagement` data use questionnaire completed
+- [ ] All four passed (no warning or rejection flags shown)
 
 ---
 
@@ -267,69 +429,126 @@ Evaluation is immediate (up to 30 seconds).
 
 **Where:** App Dashboard → Settings → Basic
 
-- [ ] App icon uploaded (1024×1024, no Meta trademarks or logos)
-- [ ] Privacy Policy URL set — `https://duncanmcmillan.github.io/ai-social-media-ads/privacy-policy`
-- [ ] App Purpose set (Yourself / Clients)
-- [ ] App Category selected
-- [ ] Primary contact email verified
+Fill in every required field before proceeding — Meta's submission flow will block you if any are missing.
 
-<!-- Notes on any issues with app settings -->
+| Field | Value |
+|---|---|
+| App Icon | 1024×1024 PNG — the DM monogram; upload via the icon slot on the Basic Settings page |
+| Privacy Policy URL | `https://duncanmcmillan.github.io/ai-social-media-ads/privacy-policy` |
+| App Purpose | **Yourself or your own business** (you manage your own ad accounts); or **Clients** if the app will be distributed to other businesses — choose the one that matches your actual use case for the submission |
+| App Category | **Business and Pages** |
+| Contact email | Verify the email shown is reachable — Meta sends review decisions here |
+
+> **App Purpose note:** "Yourself" scopes the review to single-user / internal use. "Clients" signals multi-tenant use and may trigger additional policy scrutiny. Select whichever is accurate for how this app will actually be distributed.
+
+- [ ] App icon uploaded (1024×1024, no Meta trademarks or logos)
+- [ ] Privacy Policy URL saved
+- [ ] App Purpose selected
+- [ ] App Category set to Business and Pages
+- [ ] Contact email confirmed
 
 ---
 
 ### Step 4 — Complete App Verification
 
-**What:** Confirm Meta authentication solution and describe how a reviewer can access the app.
+**Where:** Within the App Review submission flow — "App Verification" section
 
-- [ ] Facebook Login for Business confirmed as authentication method
-- [ ] Platform settings validated
-- [ ] Access instructions written (do **not** include your personal Meta account credentials)
+#### Authentication method
 
-**Access instructions for reviewer:**
+Confirm **Facebook Login for Business** (not the legacy "Facebook Login" product). This should already be configured as it powers the OAuth flow.
 
-<!-- Draft the instructions a Meta reviewer would follow to test the app.
-     They will need their own Facebook account and ad account. -->
+- [ ] Facebook Login for Business listed as the authentication method
+- [ ] Valid OAuth Redirect URI is present: `https://duncanmcmillan.github.io/ai-social-media-ads/oauth/callback`
 
+#### Platform
+
+The submission asks what platform the app runs on. Select **Desktop** (or "Other" → "Desktop app" depending on the UI version). The reviewer needs to know it is an Electron application, not a web app.
+
+- [ ] Platform set to Desktop
+
+#### Access instructions for reviewer
+
+Write instructions that let a Meta reviewer install and test the app using **their own** Facebook account. Do not include your own App Secret or personal account credentials.
+
+> **App Secret problem:** The app's Meta Setup screen asks the reviewer to enter an App ID and App Secret. The App Secret is private and cannot be shared. Options:
+> - Provide a separate test App registered in Meta Developers (with its own App ID and Secret) solely for the reviewer — safest approach
+> - Ship a pre-configured build where the App ID is hardcoded but the Secret is entered once by you before handing over (not ideal for a public submission)
+> - Document that the reviewer should use their own Meta Developer test app credentials
 >
+> Decide on the approach and update the instructions below accordingly before submitting.
+
+**Draft access instructions** (edit to match your chosen approach before pasting into Meta's form):
+
+```
+AI Social Media Ads is a cross-platform desktop application built with Electron.
+
+Installation:
+1. Visit https://github.com/duncanmcmillan/ai-social-media-ads/releases and download
+   the latest installer for your operating system (macOS .dmg / Windows .exe).
+2. Install and launch the application.
+
+First-time setup:
+3. Accept the privacy consent gate on first launch.
+4. On the Meta Setup screen, enter the provided test App ID and App Secret
+   (supplied separately via secure channel), then click Save.
+5. Click "Connect to Facebook" to begin the OAuth flow.
+6. Authenticate with your own Facebook account and grant all four requested permissions:
+   ads_management, ads_read, business_management, pages_read_engagement.
+7. Select an ad account from the dropdown (your own test ad account).
+
+Testing the core features:
+- Campaigns tab: click "Sync from Meta" to load existing campaigns; use "New Campaign"
+  to create a test campaign through the wizard.
+- Monitoring tab: click "Fetch Insights" to load performance data.
+- Ad Sets / Ads tabs: browse existing ad sets and ads for the selected campaign.
+- Workspace tab: review the global defaults panel.
+
+Requirements:
+- A Facebook account with at least one accessible ad account (Development mode or Live mode).
+- The account does not need real spend; empty ad accounts are fine for testing read flows.
+  For write flows (campaign creation), the account must have a valid payment method on file.
+```
+
+- [ ] Access instructions finalised and pasted into Meta's form
 
 ---
 
 ### Step 5 — Complete Usage Descriptions and Upload Recordings
 
 **Rules:**
-- Each permission must have its **own unique description** — do not copy and paste
-- Each description must answer the specific guidance questions Meta provides
+- Each description must be unique — Meta checks for copy-pasted text across permissions
+- Aim for 2–4 sentences: what API calls are made, what data is used, why the user benefits, why there is no less-privileged alternative
 - A screen recording must be uploaded for each permission
 
-**`ads_management` description**
+---
 
-<!-- Reference: docs/meta-review-submission.txt Section 1 for justification copy -->
+**`ads_management`**
 
->
+> AI Social Media Ads uses `ads_management` to create and manage Facebook ad campaigns on behalf of the authenticated user through a guided campaign creation wizard. The app posts campaign objectives, budgets, and schedules via `POST /act_{ad-account-id}/campaigns`; targeting parameters and bid strategies via `POST /act_{ad-account-id}/adsets`; creative assets and copy via `POST /act_{ad-account-id}/adcreatives` and `/adimages`; and complete ad objects via `POST /act_{ad-account-id}/ads`. The permission is also used to pause and resume delivery — `POST /{campaign-id}`, `/{adset-id}`, or `/{ad-id}` with `status=PAUSED` or `ACTIVE` — via one-click controls in the monitoring dashboard. Campaign creation and delivery management are the entire purpose of the app; there is no less-privileged permission that allows writing to a user's ad account.
 
 **Recording uploaded:** [ ]
 
 ---
 
-**`ads_read` description**
+**`ads_read`**
 
->
-
-**Recording uploaded:** [ ]
-
----
-
-**`business_management` description**
-
->
+> AI Social Media Ads uses `ads_read` to display the current delivery status and performance metrics of the user's campaigns, ad sets, and ads in a live monitoring dashboard. The app fetches campaign and ad object status via `GET /act_{ad-account-id}/campaigns`, `/adsets`, and `/ads`, and fetches Insights metrics — impressions, reach, clicks, CTR, CPC, CPM, and ROAS — via `GET /{object-id}/insights`. This data is shown only to the authenticated user for their own ad account and is also used by the built-in optimisation engine to surface performance recommendations. There is no alternative permission that provides read access to campaign status and Insights data.
 
 **Recording uploaded:** [ ]
 
 ---
 
-**`pages_read_engagement` description**
+**`business_management`**
 
->
+> AI Social Media Ads uses `business_management` to list the ad accounts accessible to the authenticated user, including accounts held under a Business Manager, via `GET /me/adaccounts?fields=id,name,account_status,currency,business`. The returned list populates an account selector shown immediately after login, allowing the user to choose which ad account the app manages. Without this permission, users whose ad accounts are administered through a Business Manager — the majority of professional advertisers — cannot have their accounts identified and the app cannot direct any API call to the correct account. The permission is exercised once at setup and again when the user switches accounts.
+
+**Recording uploaded:** [ ]
+
+---
+
+**`pages_read_engagement`**
+
+> AI Social Media Ads uses `pages_read_engagement` to list the Facebook Pages managed by the authenticated user via `GET /me/accounts?fields=id,name,category`, so the user can select a Page identity for their ad creatives. The selected Page ID is stored in the app's local workspace configuration and supplied as the `page_id` field inside `object_story_spec` when ad creatives are created via `POST /act_{ad-account-id}/adcreatives`. The Marketing API requires a valid `page_id` in every ad creative object; the call fails without it. There is no alternative permission that provides access to the user's managed Pages.
 
 **Recording uploaded:** [ ]
 
@@ -337,12 +556,30 @@ Evaluation is immediate (up to 30 seconds).
 
 ### Step 6 — Submit for Review
 
-- [ ] Platform Onboarding Terms accepted
-- [ ] All four permissions have descriptions and recordings
-- [ ] Submission confirmed
+**Where:** App Review → Permissions and Features → Submit for Review button (active once Steps 1–5 are complete for all permissions)
 
-**Submitted on:**
+Before clicking Submit:
 
-**Decision expected by:**
+- [ ] All four permissions appear in Current Submission with descriptions and recordings attached
+- [ ] Data handling questionnaire passed for all four
+- [ ] App Settings (Step 3) complete — no missing required fields shown
+- [ ] App Verification (Step 4) complete — no warnings shown
+- [ ] Platform Onboarding Terms read and accepted (checkbox shown just before the Submit button)
+- [ ] Submission confirmed — Meta shows a confirmation screen with a case/ticket reference
 
-<!-- Notes on any feedback or follow-up required after submission -->
+After submitting, the permission cards change to **"In Review"** status. Meta's policy states decisions are returned within seven business days; in practice it is often 3–5 days.
+
+**Submitted on:** <!-- fill in date -->
+
+**Decision received:** <!-- fill in date -->
+
+**Outcome:** <!-- Approved / Rejected / Needs changes -->
+
+**If rejected:** Meta provides a rejection reason per permission. Common reasons and fixes:
+
+| Rejection reason | Fix |
+|---|---|
+| Recording does not show the complete auth flow | Re-record starting from logged-out state; ensure all four permission scopes visible in OAuth dialog |
+| Usage description does not explain why permission is necessary | Add a sentence explicitly stating why no less-privileged alternative exists |
+| App inaccessible to reviewer | Check installer link; confirm App ID/Secret supplied correctly; test from a clean machine |
+| Business verification required | Complete Step 1.5 and resubmit |
