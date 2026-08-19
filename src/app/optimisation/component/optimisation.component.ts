@@ -148,6 +148,21 @@ export class OptimisationComponent {
     };
   }
 
+  /** Populates the verdicts signal with synthetic data for development — no API calls required. */
+  protected loadTestData(): void {
+    this.verdicts.set([
+      { adId: 'seed-1', adName: 'Summer Sale — Image — UK',           adSetName: 'Retargeting — Website Visitors 30d', spend: 312.40, impressions: 42100, clicks: 987, ctr: 2.34, cpc: 0.32, verdict: 'winner',     reason: 'Spend £312.40 with 2.34% CTR — meets winner criteria (min spend £100, min CTR 1.5%).' },
+      { adId: 'seed-2', adName: 'Summer Sale — Video — UK',            adSetName: 'Retargeting — Website Visitors 30d', spend: 218.90, impressions: 38200, clicks: 612, ctr: 1.60, cpc: 0.36, verdict: 'winner',     reason: 'Spend £218.90 with 1.60% CTR — meets winner criteria (min spend £100, min CTR 1.5%).' },
+      { adId: 'seed-3', adName: 'Brand Awareness — Carousel — 25–44', adSetName: 'Prospecting — UK — 25–44',           spend: 164.50, impressions: 28900, clicks: 498, ctr: 1.72, cpc: 0.33, verdict: 'ok',         reason: 'Spend £164.50, CTR 1.72% — within normal range.' },
+      { adId: 'seed-4', adName: 'Prospecting — Video — 18–34',         adSetName: 'Prospecting — UK — 18–34',           spend: 98.20,  impressions: 12400, clicks: 198, ctr: 1.60, cpc: 0.50, verdict: 'ok',         reason: 'Spend £98.20, CTR 1.60% — within normal range.' },
+      { adId: 'seed-5', adName: 'Retargeting — Static — Visitors 7d',  adSetName: 'Retargeting — Website Visitors 7d',  spend: 76.40,  impressions: 18200, clicks: 182, ctr: 1.00, cpc: 0.42, verdict: 'low-ctr',    reason: 'CTR of 1.00% is below the 1.5% threshold set in Workspace Learning Rules.' },
+      { adId: 'seed-6', adName: 'DPA — Catalogue — All Products',       adSetName: 'DPA — All Products',                spend: 53.32,  impressions: 9800,  clicks: 88,  ctr: 0.90, cpc: 0.61, verdict: 'low-ctr',    reason: 'CTR of 0.90% is below the 1.5% threshold set in Workspace Learning Rules.' },
+      { adId: 'seed-7', adName: 'Lead Gen — Form — UK B2B',             adSetName: 'Lead Gen — Decision Makers',        spend: 84.10,  impressions: 4200,  clicks: 63,  ctr: 1.50, cpc: 1.34, verdict: 'high-cpc',   reason: 'CPC of £1.34 exceeds the £1.00 limit set in Workspace Learning Rules.' },
+      { adId: 'seed-8', adName: 'New Creative Test — Image — UK',       adSetName: 'Prospecting — UK — 25–44',          spend: 12.40,  impressions: 930,   clicks: 12,  ctr: 1.29, cpc: 1.03, verdict: 'needs-data', reason: 'Spend £12.40 and 930 impressions — below thresholds (£50 spend / 1,000 impressions needed).' },
+    ]);
+    this.error.set(null);
+  }
+
   /** Fetches ad-level insights and evaluates each ad against learning rules. */
   protected async analyse(): Promise<void> {
     this.isLoading.set(true);
