@@ -99,20 +99,20 @@
                 {{ sortCol() === 'clicks' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" data-tooltip="Click-Through Rate: percentage of impressions that result in a click" (click)="sortBy('ctr')">
-              CTR
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('ctr')">
+              CTR <span class="info-icon" data-tooltip="Click-Through Rate: percentage of impressions that result in a click">i</span>
               <span class="sort-chevron" [class.active]="sortCol() === 'ctr'">
                 {{ sortCol() === 'ctr' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" data-tooltip="Cost Per Click: average cost for each link click" (click)="sortBy('cpc')">
-              CPC
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('cpc')">
+              CPC <span class="info-icon" data-tooltip="Cost Per Click: average cost for each link click">i</span>
               <span class="sort-chevron" [class.active]="sortCol() === 'cpc'">
                 {{ sortCol() === 'cpc' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" data-tooltip="Cost Per Mille: cost per 1,000 impressions" (click)="sortBy('cpm')">
-              CPM
+            <th scope="col" class="col-num col-sortable" (click)="sortBy('cpm')">
+              CPM <span class="info-icon" data-tooltip="Cost Per Mille: cost per 1,000 impressions">i</span>
               <span class="sort-chevron" [class.active]="sortCol() === 'cpm'">
                 {{ sortCol() === 'cpm' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>

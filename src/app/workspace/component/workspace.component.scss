@@ -57,6 +57,11 @@
   background: var(--neutral-0);
 
   &--last { margin-bottom: 0; }
+
+  /* Lift overflow when an info icon inside is hovered so the tooltip ::after
+     can escape. The animation still works the rest of the time because
+     overflow: hidden is restored the instant the hover ends. */
+  &:has(.info-icon:hover) { overflow: visible; }
 }
 
 /* ── Section header (accordion toggle) ──────────────────────────────── */
@@ -161,7 +166,12 @@
 }
 
 .ws-section-body-inner {
-  overflow: hidden;
+  /* min-height: 0 replaces the overflow: hidden trick for grid collapse,
+     while overflow: visible lets tooltip ::after pseudo-elements escape
+     the inner container. The outer .ws-section { overflow: hidden } still
+     clips content during the collapse animation. */
+  min-height: 0;
+  overflow: visible;
   padding: 0 0 0 0;
 
   /* Padding inside the open state so it collapses cleanly to zero */

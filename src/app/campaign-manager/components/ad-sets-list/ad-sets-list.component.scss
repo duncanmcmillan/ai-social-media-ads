@@ -48,6 +48,10 @@
   min-height: 0;
   border: 1px solid var(--neutral-200);
   border-radius: 4px;
+
+  /* Lift overflow while an info-icon inside is hovered so its tooltip
+     can escape the scroll container. */
+  &:has(.info-icon:hover) { overflow: visible; }
 }
 
 .list-table {
