@@ -14,7 +14,7 @@
   <button
     class="btn btn-primary"
     type="button"
-    title="Retrieve performance metrics from your Meta ad account for the selected date range"
+    data-tooltip="Retrieve performance metrics from your Meta ad account for the selected date range"
     [disabled]="monitoringStore.isLoading() || !authStore.isAuthenticated()"
     (click)="monitoringStore.sync()"
   >
@@ -99,19 +99,19 @@
                 {{ sortCol() === 'clicks' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" title="Click-Through Rate: percentage of impressions that result in a click" (click)="sortBy('ctr')">
+            <th scope="col" class="col-num col-sortable" data-tooltip="Click-Through Rate: percentage of impressions that result in a click" (click)="sortBy('ctr')">
               CTR
               <span class="sort-chevron" [class.active]="sortCol() === 'ctr'">
                 {{ sortCol() === 'ctr' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" title="Cost Per Click: average cost for each link click" (click)="sortBy('cpc')">
+            <th scope="col" class="col-num col-sortable" data-tooltip="Cost Per Click: average cost for each link click" (click)="sortBy('cpc')">
               CPC
               <span class="sort-chevron" [class.active]="sortCol() === 'cpc'">
                 {{ sortCol() === 'cpc' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}
               </span>
             </th>
-            <th scope="col" class="col-num col-sortable" title="Cost Per Mille: cost per 1,000 impressions" (click)="sortBy('cpm')">
+            <th scope="col" class="col-num col-sortable" data-tooltip="Cost Per Mille: cost per 1,000 impressions" (click)="sortBy('cpm')">
               CPM
               <span class="sort-chevron" [class.active]="sortCol() === 'cpm'">
                 {{ sortCol() === 'cpm' ? (sortDir() === 'asc' ? '▲' : '▼') : '⇅' }}

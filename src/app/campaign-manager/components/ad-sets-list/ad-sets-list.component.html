@@ -2,7 +2,7 @@
   <button
     class="btn btn-primary"
     type="button"
-    title="Pull the latest ad set data from your Meta ad account"
+    data-tooltip="Pull the latest ad set data from your Meta ad account"
     [disabled]="store.adSetsLoading() || !authStore.isAuthenticated()"
     (click)="sync()"
   >
@@ -35,8 +35,8 @@
         <tr>
           <th scope="col">Ad Set</th>
           <th scope="col">Status</th>
-          <th scope="col" title="The goal Meta optimises ad delivery towards (e.g. reach, link clicks, conversions)">Optimisation</th>
-          <th scope="col" title="The event that triggers a charge (e.g. per impression or per link click)">Billing</th>
+          <th scope="col" data-tooltip="The goal Meta optimises ad delivery towards (e.g. reach, link clicks, conversions)">Optimisation</th>
+          <th scope="col" data-tooltip="The event that triggers a charge (e.g. per impression or per link click)">Billing</th>
           <th scope="col">Budget</th>
           <th scope="col">Created</th>
           <th scope="col">Actions</th>
