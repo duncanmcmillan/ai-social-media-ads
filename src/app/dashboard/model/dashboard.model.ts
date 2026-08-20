@@ -212,6 +212,22 @@ export function evaluateAd(
   };
 }
 
+/** Slack notification delivery status for a single gate. */
+export type GateSlackStatus = 'sending' | 'sent' | 'error';
+
+/**
+ * Derives a stable deduplication key for a gate used to track Slack alert history.
+ * Learning-phase gates are keyed by type alone; fatigue and low-roas gates include
+ * the entity name extracted from the detail string.
+ *
+ * @param gate - The gate to derive a key for.
+ * @returns A string key unique to this gate instance.
+ */
+export function gateKey(gate: Gate): string {
+  if (gate.type === 'learning-phase') return 'learning-phase';
+  return `${gate.type}:${gate.detail.split('(')[0].trim()}`;
+}
+
 /** Verdict priority ordering from worst (index 0) to best (last index). */
 const VERDICT_PRIORITY: Verdict[] = ['high-cpc', 'low-ctr', 'low-volume', 'paused', 'needs-data', 'ok', 'winner'];
 

@@ -79,7 +79,9 @@ contextBridge.exposeInMainWorld('facebook', {
 });
 
 // ── AI bridge ────────────────────────────────────────────────────────────────
-contextBridge.exposeInMainWorld('ai', {
+// NOTE: 'ai' is taken by Chromium's built-in AI API (window.ai) in Chrome 127+,
+// so we use 'claudeAi' to avoid the conflict.
+contextBridge.exposeInMainWorld('claudeAi', {
   /** Save Anthropic API key to encrypted system storage. */
   saveApiKey: (key) =>
     ipcRenderer.invoke('ai:save-api-key', { key }),
@@ -123,4 +125,38 @@ contextBridge.exposeInMainWorld('licence', {
 // ── Settings bridge ─────────────────────────────────────────────────────────
 contextBridge.exposeInMainWorld('settings', {
   // Reserved for future app-level settings (notifications, preferences, etc.)
+});
+
+// ── Scheduler bridge ─────────────────────────────────────────────────────────
+// NOTE: 'scheduler' is taken by the native Chromium Prioritized Task Scheduling
+// API (window.scheduler), so we use 'appScheduler' to avoid the conflict.
+contextBridge.exposeInMainWorld('appScheduler', {
+  /** Returns `{ lastSyncAt, nextSyncAt }` ISO strings (or null) from scheduler.json. */
+  getTimestamps: () =>
+    ipcRenderer.invoke('scheduler:get-timestamps'),
+
+  /** Triggers an immediate sync and returns updated `{ lastSyncAt, nextSyncAt }`. */
+  syncNow: () =>
+    ipcRenderer.invoke('scheduler:sync-now'),
+
+  /**
+   * Resets the timer and timestamps WITHOUT firing sync-due.
+   * Used by the "Update now" button when the renderer drives the sync itself.
+   */
+  resetTimer: () =>
+    ipcRenderer.invoke('scheduler:reset-timer'),
+
+  /** Registers a callback invoked when the scheduler timer fires. */
+  onSyncDue: (cb) =>
+    ipcRenderer.on('scheduler:sync-due', cb),
+
+  /** Registers a callback invoked whenever timestamps change (sync fired or timer reset). */
+  onTimestampsUpdated: (cb) =>
+    ipcRenderer.on('scheduler:timestamps-updated', (_e, ts) => cb(ts)),
+
+  /** Removes all scheduler IPC listeners. Call in ngOnDestroy. */
+  removeListeners: () => {
+    ipcRenderer.removeAllListeners('scheduler:sync-due');
+    ipcRenderer.removeAllListeners('scheduler:timestamps-updated');
+  },
 });

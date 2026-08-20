@@ -59,12 +59,13 @@ export const WorkspaceStore = signalStore(
   withMethods((store) => {
     /** Reads all current signals into a plain state object for persistence. */
     const snapshot = (): WorkspaceState => ({
-      appType: store.appType(),
-      metaDefaults: store.metaDefaults(),
-      placements: store.placements(),
-      targeting: store.targeting(),
-      enhancements: store.enhancements(),
-      learningRules: store.learningRules(),
+      appType:         store.appType(),
+      slackWebhookUrl: store.slackWebhookUrl(),
+      metaDefaults:    store.metaDefaults(),
+      placements:      store.placements(),
+      targeting:       store.targeting(),
+      enhancements:    store.enhancements(),
+      learningRules:   store.learningRules(),
     });
 
     return {
@@ -119,6 +120,15 @@ export const WorkspaceStore = signalStore(
        */
       updateLearningRules(patch: Partial<WorkspaceLearningRules>): void {
         patchState(store, { learningRules: { ...store.learningRules(), ...patch } });
+        persist(snapshot());
+      },
+
+      /**
+       * Saves the Slack incoming webhook URL and persists.
+       * @param url - The Slack webhook URL, or empty string to clear.
+       */
+      setSlackWebhookUrl(url: string): void {
+        patchState(store, { slackWebhookUrl: url });
         persist(snapshot());
       },
 

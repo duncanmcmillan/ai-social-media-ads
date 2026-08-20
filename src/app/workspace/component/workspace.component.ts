@@ -19,7 +19,9 @@ import { AuthStore } from '../../auth';
 import { AdAccountStatus } from '../../auth';
 import { WorkspaceStore } from '../store/workspace.store';
 import { AiService } from '../../core/services/ai/ai.service';
+import { SlackService } from '../../core/services/slack/slack.service';
 import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
+import type { Gate } from '../../dashboard/model/dashboard.model';
 
 /** Metadata for each collapsible workspace section. */
 interface Section {
@@ -28,13 +30,14 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
-  { id: 'ws-account',    label: 'Account Details'       },
-  { id: 'ws-meta',       label: 'Meta Defaults'         },
-  { id: 'ws-placements', label: 'Placements & Audience' },
-  { id: 'ws-targeting',  label: 'Default Targeting'     },
-  { id: 'ws-enhance',    label: 'Enhancements'          },
-  { id: 'ws-rules',      label: 'Learning Rules'        },
-  { id: 'ws-ai',         label: 'AI Settings'           },
+  { id: 'ws-account',      label: 'Account Details'       },
+  { id: 'ws-meta',         label: 'Meta Defaults'         },
+  { id: 'ws-placements',   label: 'Placements & Audience' },
+  { id: 'ws-targeting',    label: 'Default Targeting'     },
+  { id: 'ws-enhance',      label: 'Enhancements'          },
+  { id: 'ws-rules',        label: 'Learning Rules'        },
+  { id: 'ws-ai',           label: 'AI Settings'           },
+  { id: 'ws-integrations', label: 'Integrations'          },
 ];
 
 /**
@@ -52,6 +55,7 @@ export class WorkspaceComponent implements AfterViewInit {
   protected readonly authStore = inject(AuthStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
   private readonly aiService = inject(AiService);
+  private readonly slackService = inject(SlackService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -96,6 +100,13 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Draft key input — write-only, cleared after save. */
   protected readonly aiKeyInput = signal('');
 
+  // ── Integrations — Slack webhook draft state ──────────────────────────────
+
+  /** Draft Slack webhook URL. Initialised from persisted workspace state. */
+  protected readonly slackWebhookDraft = signal(this.workspaceStore.slackWebhookUrl());
+  /** Feedback status for the Slack test button. */
+  protected readonly slackTestStatus = signal<'idle' | 'sending' | 'ok' | 'error'>('idle');
+
   /** Map of section id → collapsed state (true = collapsed). */
   protected readonly collapsed = signal<Record<string, boolean>>({});
 
@@ -110,13 +121,14 @@ export class WorkspaceComponent implements AfterViewInit {
    * Example: 'ws-account': 'videos/account-details.mp4'
    */
   private readonly sectionVideos: Record<string, string | null> = {
-    'ws-account':    'videos/account-details.mov',
-    'ws-meta':       'videos/workspace-meta-defaults.mov',
-    'ws-placements': 'videos/workspace-placements-audience.mov',
-    'ws-targeting':  'videos/workspace-default-targeting.mov',
-    'ws-enhance':    'videos/workspace-enhancements.mov',
-    'ws-rules':      'videos/workspace-learning-rules.mov',
-    'ws-ai':         'videos/workspace-ai-settings.mov',
+    'ws-account':      'videos/account-details.mov',
+    'ws-meta':         'videos/workspace-meta-defaults.mov',
+    'ws-placements':   'videos/workspace-placements-audience.mov',
+    'ws-targeting':    'videos/workspace-default-targeting.mov',
+    'ws-enhance':      'videos/workspace-enhancements.mov',
+    'ws-rules':        'videos/workspace-learning-rules.mov',
+    'ws-ai':           'videos/workspace-ai-settings.mov',
+    'ws-integrations': null,
   };
 
   /** ID of the section whose video is currently open, or null. */
@@ -362,5 +374,38 @@ export class WorkspaceComponent implements AfterViewInit {
     await this.aiService.saveApiKey(key);
     this.aiKeyIsSaved.set(true);
     this.aiKeyInput.set('');
+  }
+
+  // ── Integrations — Slack ───────────────────────────────────────────────────
+
+  /**
+   * Persists the draft Slack webhook URL to the workspace store.
+   */
+  protected saveSlackWebhook(): void {
+    this.workspaceStore.setSlackWebhookUrl(this.slackWebhookDraft().trim());
+  }
+
+  /**
+   * Sends a test Slack Block Kit card to verify webhook connectivity.
+   * @returns Promise that resolves once the test POST settles.
+   */
+  protected async testSlackWebhook(): Promise<void> {
+    const url = this.slackWebhookDraft().trim();
+    if (!url) return;
+    this.slackTestStatus.set('sending');
+    const testGate: Gate = {
+      type:     'fatigue',
+      label:    'Test Alert',
+      detail:   'Connectivity test from Workspace — Integrations settings.',
+      severity: 0.5,
+    };
+    try {
+      await this.slackService.sendGateAlert(testGate, url);
+      this.slackTestStatus.set('ok');
+    } catch {
+      this.slackTestStatus.set('error');
+    }
+    // Reset status indicator after 4 seconds.
+    setTimeout(() => this.slackTestStatus.set('idle'), 4000);
   }
 }

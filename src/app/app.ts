@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from './auth';
-import { LicenceStore } from './core';
+import { LicenceStore, SchedulerService } from './core';
 
 const THEME_KEY = 'theme';
 
@@ -36,6 +36,9 @@ const isElectron = !!eWin.versions;
 export class App implements AfterViewInit {
   private readonly authStore = inject(AuthStore);
   private readonly licenceStore = inject(LicenceStore);
+  // Injected here to ensure IPC listeners register at app launch, not just when
+  // the Dashboard route is first visited.
+  private readonly schedulerService = inject(SchedulerService);
 
   /** Electron version string shown in the nav bar meta badge. */
   protected readonly info = isElectron

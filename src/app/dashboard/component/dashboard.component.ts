@@ -5,14 +5,17 @@
  */
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthStore } from '../../auth';
-import { LicenceStore } from '../../core';
+import { LicenceStore, SchedulerService } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
 import { GuidePanelComponent, GuidesStore } from '../../guides';
 import {
+  gateKey,
   worstVerdict,
   type CampaignDashboardRow,
   type FunnelLevel,
+  type Gate,
+  type GateSlackStatus,
   type GateType,
   type Verdict,
 } from '../model/dashboard.model';
@@ -75,11 +78,12 @@ const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
-  protected readonly store          = inject(DashboardStore);
-  protected readonly authStore      = inject(AuthStore);
-  protected readonly licenceStore   = inject(LicenceStore);
-  protected readonly workspaceStore = inject(WorkspaceStore);
-  protected readonly guidesStore    = inject(GuidesStore);
+  protected readonly store            = inject(DashboardStore);
+  protected readonly authStore        = inject(AuthStore);
+  protected readonly licenceStore     = inject(LicenceStore);
+  protected readonly workspaceStore   = inject(WorkspaceStore);
+  protected readonly guidesStore      = inject(GuidesStore);
+  protected readonly schedulerService = inject(SchedulerService);
 
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
 
@@ -222,11 +226,53 @@ export class DashboardComponent {
   }
 
   /**
-   * Triggers a full data sync from all Insights API endpoints.
+   * Loads synthetic test data and resets the known-gates set so that all gates
+   * are treated as newly breached on the next Update, enabling Slack testing.
+   */
+  protected seedTestData(): void {
+    this.store.seedTestData();
+    this.schedulerService.clearKnownGates();
+  }
+
+  /**
+   * Triggers an immediate sync via the SchedulerService (notifies main process
+   * and runs the full sync + Slack diff pipeline).
    * @returns Promise that resolves once the sync completes.
    */
-  protected async sync(): Promise<void> {
-    await this.store.sync();
+  protected async syncNow(): Promise<void> {
+    await this.schedulerService.syncNow();
+  }
+
+  /**
+   * Returns the display text for a Slack delivery status badge.
+   * @param status - The current delivery status.
+   * @returns A short label string.
+   */
+  protected slackBadgeText(status: GateSlackStatus): string {
+    switch (status) {
+      case 'sending': return '↗ Slack';
+      case 'sent':    return '✓ Slack';
+      case 'error':   return '✗ Slack';
+    }
+  }
+
+  /**
+   * Formats a Date as HH:MM in the user's local time zone.
+   * @param date - The date to format.
+   * @returns A string like "14:35".
+   */
+  protected fmtTime(date: Date): string {
+    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /**
+   * Returns the deduplication key for a gate (delegates to the model helper).
+   * Exposed as a protected method so the template can call it.
+   * @param gate - The gate to key.
+   * @returns The gate's stable string key.
+   */
+  protected gateKeyOf(gate: Gate): string {
+    return gateKey(gate);
   }
 
   /**

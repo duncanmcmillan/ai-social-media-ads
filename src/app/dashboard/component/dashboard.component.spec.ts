@@ -59,7 +59,7 @@ describe('DashboardComponent', () => {
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    const syncBtn = compiled.querySelector<HTMLButtonElement>('button[aria-label="Sync dashboard data"]');
+    const syncBtn = compiled.querySelector<HTMLButtonElement>('button[aria-label="Sync dashboard data now"]');
     expect(syncBtn).not.toBeNull();
   });
 

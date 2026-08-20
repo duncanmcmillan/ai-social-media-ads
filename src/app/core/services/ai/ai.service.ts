@@ -68,7 +68,7 @@ export interface GeneratedCopy {
 
 declare global {
   interface Window {
-    ai: {
+    claudeAi: {
       saveApiKey(key: string): Promise<void>;
       loadApiKey(): Promise<boolean>;
       generateDraft(prompt: string): Promise<GeneratedDraft>;
@@ -82,22 +82,22 @@ declare global {
 export class AiService {
   /** Saves the Anthropic API key to encrypted Electron storage. */
   saveApiKey(key: string): Promise<void> {
-    return window.ai.saveApiKey(key);
+    return window.claudeAi.saveApiKey(key);
   }
 
   /** Returns true if an API key is already stored. */
   loadApiKey(): Promise<boolean> {
-    return window.ai.loadApiKey();
+    return window.claudeAi.loadApiKey();
   }
 
   /** Generates a campaign draft from a natural-language description. */
   generateDraft(prompt: string): Promise<GeneratedDraft> {
-    return window.ai.generateDraft(prompt);
+    return window.claudeAi.generateDraft(prompt);
   }
 
   /** Generates ad copy for the active creative. */
   generateCopy(context: CopyContext): Promise<GeneratedCopy> {
-    return window.ai.generateCopy(context);
+    return window.claudeAi.generateCopy(context);
   }
 
   /**
@@ -106,6 +106,6 @@ export class AiService {
    * @returns A promise resolving to the four-section guide content.
    */
   generateGuide(ctx: GuideContext): Promise<GuideContent> {
-    return window.ai.generateGuide(ctx);
+    return window.claudeAi.generateGuide(ctx);
   }
 }

@@ -15,19 +15,26 @@
     <span class="free-hint">Upgrade to Pro for more date ranges</span>
   }
 
-  <button
-    class="btn btn-primary"
-    type="button"
-    [disabled]="store.isLoading() || !authStore.isAuthenticated()"
-    (click)="sync()"
-    aria-label="Sync dashboard data"
-  >
-    @if (store.isLoading()) {
-      <span class="spinner" aria-hidden="true"></span> Syncing...
-    } @else {
-      &#8635; Sync
+  <div class="scheduler-info">
+    @if (schedulerService.nextSyncAt()) {
+      <span class="next-sync-label" aria-live="polite">
+        Next sync: {{ fmtTime(schedulerService.nextSyncAt()!) }}
+      </span>
     }
-  </button>
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="store.isLoading()"
+      (click)="syncNow()"
+      aria-label="Sync dashboard data now"
+    >
+      @if (store.isLoading()) {
+        <span class="spinner" aria-hidden="true"></span> Syncing…
+      } @else {
+        &#8635; Update now
+      }
+    </button>
+  </div>
 
   @if (!authStore.isAuthenticated()) {
     <span class="auth-hint">Connect Meta account in Workspace to sync data.</span>
@@ -39,8 +46,8 @@
   <div class="error-banner" role="alert">{{ store.error() }}</div>
 }
 
-<!-- Loading -->
-@if (store.isLoading()) {
+<!-- Loading (full-screen spinner only when no existing data to show) -->
+@if (store.isLoading() && !hasCampaigns()) {
   <div class="loading-state" aria-live="polite" aria-label="Loading dashboard data">
     <div class="loading-spinner" aria-hidden="true"></div>
     <span>Loading dashboard data…</span>
@@ -56,7 +63,7 @@
       Select a date range and click Sync to load your campaign data,
       or load sample data to explore the dashboard.
     </div>
-    <button class="btn btn--outline btn-sm seed-btn" type="button" (click)="store.seedTestData()">
+    <button class="btn btn--outline btn-sm seed-btn" type="button" (click)="seedTestData()">
       Load test data
     </button>
   </div>
@@ -256,6 +263,13 @@
               <div class="gate-header">
                 <span class="gate-icon" aria-hidden="true">{{ gateIcon(gate.type) }}</span>
                 <span class="gate-label">{{ gate.label }}</span>
+                @if (store.gateSlackStatuses()[gateKeyOf(gate)]; as slackStatus) {
+                  <span
+                    class="slack-badge slack-badge--{{ slackStatus }}"
+                    [title]="'Slack: ' + slackStatus"
+                    [attr.aria-label]="'Slack alert ' + slackStatus"
+                  >{{ slackBadgeText(slackStatus) }}</span>
+                }
               </div>
               <span class="gate-detail">{{ gate.detail }}</span>
               <div class="severity-bar-track" aria-hidden="true">

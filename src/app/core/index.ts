@@ -14,3 +14,5 @@ export type { AdPreview, PreviewFormat } from './services/facebook/ad-preview-ap
 export { extractFacebookError, parseFacebookError } from './utils/facebook-error.utils';
 export type { ParsedFacebookError } from './utils/facebook-error.utils';
 export type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload } from './models/index';
+export { SchedulerService } from './services/scheduler/scheduler.service';
+export { SlackService } from './services/slack/slack.service';

@@ -112,11 +112,14 @@ export interface WorkspaceState {
   learningRules: WorkspaceLearningRules;
   /** Type of app being advertised — personalises AI-generated guides. */
   appType: AppType;
+  /** Slack incoming webhook URL for gate alert notifications. Empty string when not configured. */
+  slackWebhookUrl: string;
 }
 
 /** Default workspace settings applied to a fresh install. */
 export const DEFAULT_WORKSPACE_STATE: WorkspaceState = {
   appType: 'desktop-app',
+  slackWebhookUrl: '',
   metaDefaults: {
     facebookPageId: '',
     usePageForInstagram: true,

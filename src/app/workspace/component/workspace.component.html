@@ -778,6 +778,70 @@
       </div>
     </section>
 
+    <!-- Integrations -->
+    <section class="ws-section" id="ws-integrations">
+      <div class="ws-section-header" (click)="toggle('ws-integrations')">
+        <h2 class="ws-section-title">Integrations</h2>
+        <div class="ws-section-actions">
+          <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-integrations')"
+            (click)="$event.stopPropagation(); openVideo('ws-integrations')"
+            [title]="hasVideo('ws-integrations') ? 'Watch help video' : 'Help video coming soon'">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.25"/>
+              <polygon points="10,8.5 16.5,12 10,15.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="ws-chevron-btn" type="button"
+            [class.ws-chevron-btn--open]="!isCollapsed('ws-integrations')"
+            [attr.aria-expanded]="!isCollapsed('ws-integrations')"
+            aria-label="Toggle Integrations">&#8250;</button>
+        </div>
+      </div>
+      <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-integrations')">
+        <div class="ws-section-body-inner">
+          <p class="ws-section-sub">
+            Connect a Slack incoming webhook to receive gate alert notifications
+            automatically when performance thresholds are breached.
+          </p>
+          <div class="ws-card">
+            <div class="ws-field ws-field--last">
+              <label class="ws-label" for="ws-slack-webhook">Slack Webhook URL</label>
+              <input
+                id="ws-slack-webhook"
+                class="ws-input"
+                type="url"
+                placeholder="https://hooks.slack.com/services/…"
+                [value]="slackWebhookDraft()"
+                (input)="slackWebhookDraft.set($any($event.target).value)"
+                autocomplete="off"
+              />
+              <p class="ws-field-hint">Create a webhook at api.slack.com/apps — only gate alerts are sent.</p>
+            </div>
+            <div class="ws-card-footer">
+              <button
+                class="btn btn-primary btn-sm"
+                type="button"
+                [disabled]="!slackWebhookDraft().trim()"
+                (click)="saveSlackWebhook()"
+              >Save</button>
+              <button
+                class="btn btn-outline btn-sm"
+                type="button"
+                [disabled]="!slackWebhookDraft().trim() || slackTestStatus() === 'sending'"
+                (click)="testSlackWebhook()"
+                aria-label="Send a test Slack message to verify the webhook URL"
+              >
+                @if (slackTestStatus() === 'sending') { Sending… }
+                @else if (slackTestStatus() === 'ok') { ✓ Sent }
+                @else if (slackTestStatus() === 'error') { ✗ Error }
+                @else { Test }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div><!-- /ws-main -->
 
   <!-- ── Sticky section nav ────────────────────────────────────────────── -->

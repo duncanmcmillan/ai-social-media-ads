@@ -18,6 +18,7 @@ import {
   type FunnelLevel,
   type FunnelMetrics,
   type Gate,
+  type GateSlackStatus,
   type Recommendation,
 } from '../model/dashboard.model';
 
@@ -66,6 +67,8 @@ interface DashboardState {
   selectedCampaignId: string | null;
   /** Funnel level filter applied to gates, recommendations, and funnel metrics. */
   selectedFunnelLevel: FunnelLevel;
+  /** Slack delivery status keyed by gate key. Cleared at the start of each sync. */
+  gateSlackStatuses: Record<string, GateSlackStatus>;
 }
 
 const initialState: DashboardState = {
@@ -77,6 +80,7 @@ const initialState: DashboardState = {
   ads: [],
   selectedCampaignId: null,
   selectedFunnelLevel: 'all',
+  gateSlackStatuses: {},
 };
 
 /**
@@ -378,7 +382,13 @@ export const DashboardStore = signalStore(
      * @throws Never — errors are caught and stored in `error`.
      */
     async sync(): Promise<void> {
-      patchState(store, { isLoading: true, error: null, summary: null, campaigns: [], ads: [] });
+      // Keep existing campaigns/ads/summary visible while loading so the grid
+      // does not blank during a refresh. They are replaced on success or left
+      // intact on failure (so test data survives a failed real-API sync).
+      // gateSlackStatuses is NOT cleared here — it is owned by notifyNewGates()
+      // and must persist across concurrent sync() calls to avoid wiping 'sending'
+      // dots before the Slack POST resolves and sets 'sent'.
+      patchState(store, { isLoading: true, error: null });
       try {
         const preset = store.selectedPreset();
         const [accountData, campaignData, adData, marketingCampaigns] = await Promise.all([
@@ -437,10 +447,13 @@ export const DashboardStore = signalStore(
           ads:          ads.filter(a => a.campaignId === c.campaignId),
         }));
 
+        // Only replace campaign/ad data when the API returns results.
+        // Preserves test data (and any previously loaded data) when the
+        // selected date range has no activity in the connected account.
+        const hasResults = campaigns.length > 0 || ads.length > 0;
         patchState(store, {
           summary:   accountData[0] ?? null,
-          campaigns,
-          ads,
+          ...(hasResults ? { campaigns, ads } : {}),
           isLoading: false,
         });
       } catch (e: unknown) {
@@ -449,6 +462,15 @@ export const DashboardStore = signalStore(
           isLoading: false,
         });
       }
+    },
+
+    /**
+     * Updates the Slack delivery status for a single gate key.
+     * @param key - The gate deduplication key (from `gateKey(gate)`).
+     * @param status - The new delivery status.
+     */
+    setGateSlackStatus(key: string, status: GateSlackStatus): void {
+      patchState(store, { gateSlackStatuses: { ...store.gateSlackStatuses(), [key]: status } });
     },
 
     /**
@@ -532,6 +554,7 @@ export const DashboardStore = signalStore(
       patchState(store, {
         isLoading: false,
         error: null,
+        gateSlackStatuses: {},
         summary: {
           impressions: '132530', clicks: '2354', ctr: '1.78', cpc: '0.36', cpm: '6.50',
           spend: '868.70', reach: '89420', dateStart, dateStop,

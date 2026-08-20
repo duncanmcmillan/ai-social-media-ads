@@ -5,13 +5,15 @@ const os   = require('node:os');
 const { URL } = require('node:url');
 
 // ── Paths ──────────────────────────────────────────────────────────────────
-const TOKEN_PATH   = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
-const CONFIG_PATH  = () => path.join(app.getPath('userData'), 'fb-config.enc');
-const AI_KEY_PATH  = () => path.join(app.getPath('userData'), 'ai-key.enc');
-const CONSENT_PATH = () => path.join(app.getPath('userData'), 'gdpr-consent.json');
+const TOKEN_PATH     = () => path.join(app.getPath('userData'), 'fb-tokens.enc');
+const CONFIG_PATH    = () => path.join(app.getPath('userData'), 'fb-config.enc');
+const AI_KEY_PATH    = () => path.join(app.getPath('userData'), 'ai-key.enc');
+const CONSENT_PATH   = () => path.join(app.getPath('userData'), 'gdpr-consent.json');
 // NOTE: licence.enc is intentionally NOT deleted by gdpr:delete-all-data.
 // It is a purchase record, not personal tracking data.
-const LICENCE_PATH = () => path.join(app.getPath('userData'), 'licence.enc');
+const LICENCE_PATH   = () => path.join(app.getPath('userData'), 'licence.enc');
+// NOTE: scheduler.json stores only timestamps — no personal data, no GDPR deletion required.
+const SCHEDULER_PATH = () => path.join(app.getPath('userData'), 'scheduler.json');
 
 // ── Single-instance lock (focus existing window if re-launched) ────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -62,9 +64,82 @@ function safeDelete(filePath) {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 }
 
+// ── Scheduler ──────────────────────────────────────────────────────────────
+
+const SYNC_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
+const STARTUP_DELAY_MS = 30_000;               // allow renderer to initialise
+
+let schedulerTimer = null;
+let lastSyncAt     = null;
+let nextSyncAt     = null;
+let mainWindow     = null;
+
+/** Reads persisted sync timestamps from scheduler.json. */
+function readSchedulerTimestamps() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(SCHEDULER_PATH(), 'utf8'));
+    lastSyncAt = raw.lastSyncAt ? new Date(raw.lastSyncAt) : null;
+    nextSyncAt = raw.nextSyncAt ? new Date(raw.nextSyncAt) : null;
+  } catch { /* first run or corrupt — leave as null */ }
+}
+
+/** Writes current sync timestamps to scheduler.json. */
+function writeSchedulerTimestamps() {
+  fs.writeFileSync(SCHEDULER_PATH(), JSON.stringify({
+    lastSyncAt: lastSyncAt?.toISOString() ?? null,
+    nextSyncAt: nextSyncAt?.toISOString() ?? null,
+  }));
+}
+
+/** Pushes current timestamps to the renderer via IPC. */
+function pushTimestamps() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('scheduler:timestamps-updated', {
+      lastSyncAt: lastSyncAt?.toISOString() ?? null,
+      nextSyncAt: nextSyncAt?.toISOString() ?? null,
+    });
+  }
+}
+
+/** Arms the next setTimeout for a sync trigger. */
+function scheduleNextSync(delayMs) {
+  if (schedulerTimer) clearTimeout(schedulerTimer);
+  schedulerTimer = setTimeout(triggerSync, delayMs);
+}
+
+/** Fires a sync event to the renderer and schedules the next one. */
+function triggerSync() {
+  lastSyncAt = new Date();
+  nextSyncAt = new Date(Date.now() + SYNC_INTERVAL_MS);
+  writeSchedulerTimestamps();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('scheduler:sync-due');
+  }
+  pushTimestamps();
+  scheduleNextSync(SYNC_INTERVAL_MS);
+}
+
+/**
+ * Reads persisted timestamps, determines whether a sync is overdue,
+ * and arms the first timer. Must be called after mainWindow is created.
+ */
+function startScheduler() {
+  readSchedulerTimestamps();
+  const now     = Date.now();
+  const overdue = !nextSyncAt || nextSyncAt.getTime() <= now;
+  if (overdue) {
+    nextSyncAt = new Date(now + STARTUP_DELAY_MS);
+    writeSchedulerTimestamps();
+    scheduleNextSync(STARTUP_DELAY_MS);
+  } else {
+    scheduleNextSync(nextSyncAt.getTime() - now);
+  }
+  pushTimestamps();
+}
+
 // ── Window ─────────────────────────────────────────────────────────────────
 const createWindow = () => {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     webPreferences: {
@@ -74,8 +149,8 @@ const createWindow = () => {
     }
   });
 
-  win.loadFile('dist/ai-social-media-ads/browser/index.html');
-  win.webContents.openDevTools();
+  mainWindow.loadFile('dist/ai-social-media-ads/browser/index.html');
+  mainWindow.webContents.openDevTools();
 };
 
 // ── IPC Handlers ───────────────────────────────────────────────────────────
@@ -523,7 +598,37 @@ Required shape:
     safeDelete(CONSENT_PATH());
   });
 
+  // ── Scheduler: query timestamps ───────────────────────────────────────
+  ipcMain.handle('scheduler:get-timestamps', () => ({
+    lastSyncAt: lastSyncAt?.toISOString() ?? null,
+    nextSyncAt: nextSyncAt?.toISOString() ?? null,
+  }));
+
+  // ── Scheduler: trigger an immediate sync (fires sync-due to renderer) ─
+  ipcMain.handle('scheduler:sync-now', () => {
+    triggerSync();
+    return {
+      lastSyncAt: lastSyncAt.toISOString(),
+      nextSyncAt: nextSyncAt.toISOString(),
+    };
+  });
+
+  // ── Scheduler: reset the timer + timestamps WITHOUT firing sync-due ───
+  // Used by the "Update now" button so the renderer drives the sync itself
+  // without triggering a second sync via the onSyncDue IPC listener.
+  ipcMain.handle('scheduler:reset-timer', () => {
+    lastSyncAt = new Date();
+    nextSyncAt = new Date(Date.now() + SYNC_INTERVAL_MS);
+    writeSchedulerTimestamps();
+    scheduleNextSync(SYNC_INTERVAL_MS);
+    return {
+      lastSyncAt: lastSyncAt.toISOString(),
+      nextSyncAt: nextSyncAt.toISOString(),
+    };
+  });
+
   createWindow();
+  startScheduler();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
