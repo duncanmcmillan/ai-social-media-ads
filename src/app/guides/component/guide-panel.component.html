@@ -1,0 +1,216 @@
+<div class="panel" role="complementary" aria-label="Marketing Guide">
+
+  <!-- Panel header -->
+  <div class="panel-header">
+    <span class="panel-title">Marketing Guide</span>
+    <div class="panel-header-actions">
+      <button
+        type="button"
+        class="fullscreen-btn"
+        (click)="fullscreen.set(!fullscreen())"
+        [attr.aria-label]="fullscreen() ? 'Exit full screen' : 'Expand to full screen'"
+        [attr.aria-pressed]="fullscreen()"
+        [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
+      >@if (fullscreen()) { &#x29C5; } @else { &#x29C4; }</button>
+      <button
+        type="button"
+        class="close-btn"
+        (click)="closed.emit()"
+        aria-label="Close guide panel"
+      >&#10005;</button>
+    </div>
+  </div>
+
+  <!-- Selectors -->
+  <div class="panel-selectors">
+    <div class="selector-group">
+      <label class="selector-label" for="gp-app-type">App Type</label>
+      <select
+        id="gp-app-type"
+        class="panel-select"
+        [value]="store.selectedAppType()"
+        (change)="store.setAppType($any($event.target).value)"
+        aria-label="App type"
+      >
+        @for (opt of appTypeOptions; track opt.key) {
+          <option [value]="opt.key">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="selector-group">
+      <label class="selector-label" for="gp-objective">Objective</label>
+      <select
+        id="gp-objective"
+        class="panel-select"
+        [value]="store.selectedObjective()"
+        (change)="store.setObjective($any($event.target).value)"
+        aria-label="Campaign objective"
+      >
+        @for (opt of objectiveOptions; track opt.key) {
+          <option [value]="opt.key">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Generate / upgrade -->
+  @if (licenceStore.tier() === 'pro') {
+    <button
+      class="btn btn-primary generate-btn"
+      type="button"
+      [disabled]="store.isGenerating()"
+      (click)="generate()"
+      aria-label="Generate marketing guide"
+    >
+      @if (store.isGenerating()) {
+        <span class="btn-spinner" aria-hidden="true"></span>
+        Generating&#8230;
+      } @else {
+        &#10022; Generate Guide
+      }
+    </button>
+  } @else {
+    <div class="upgrade-nudge" role="status">
+      AI guide generation requires <strong>Pro</strong>.
+    </div>
+  }
+
+  <!-- History strip -->
+  @if (store.sortedGuides().length > 0) {
+    <div class="history-strip" role="list" aria-label="Saved guides">
+      @for (g of store.sortedGuides(); track g.id) {
+        <button
+          class="history-chip"
+          [class.history-chip--active]="store.activeGuideId() === g.id"
+          type="button"
+          role="listitem"
+          [attr.aria-pressed]="store.activeGuideId() === g.id"
+          [attr.aria-label]="appTypeLabel(g.appType) + ' · ' + objectiveLabel(g.objective) + ', generated ' + fmtDate(g.generatedAt)"
+          (click)="store.selectGuide(g.id)"
+        >
+          <span class="chip-label">{{ appTypeLabel(g.appType) }} · {{ objectiveLabel(g.objective) }}</span>
+          <span class="history-date">{{ fmtDate(g.generatedAt) }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Error banner -->
+  @if (store.error()) {
+    <div class="error-banner" role="alert">{{ store.error() }}</div>
+  }
+
+  <!-- Panel body -->
+  <div class="panel-body" #panelBody>
+    @if (store.isGenerating()) {
+      <div class="loading-state" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <span>Generating your guide&#8230;</span>
+      </div>
+    } @else if (store.activeGuide(); as guide) {
+      <div class="guide-content">
+
+        <!-- Guide metadata row -->
+        <div class="guide-meta">
+          <span class="guide-badge">{{ appTypeLabel(guide.appType) }}</span>
+          <span class="guide-badge">{{ objectiveLabel(guide.objective) }}</span>
+          <button
+            class="delete-btn"
+            type="button"
+            (click)="store.deleteGuide(guide.id)"
+            aria-label="Delete this guide"
+          >&#10005;</button>
+        </div>
+
+        <!-- Context chip -->
+        @if (guide.contextSnapshot.gates.length > 0) {
+          <div class="context-chip" aria-label="Context used to generate this guide">
+            Generated with alerts: {{ guide.contextSnapshot.gates.join(', ') }}
+          </div>
+        }
+
+        <!-- Table of contents -->
+        <nav class="guide-toc" aria-label="Guide sections">
+          <button class="toc-link" type="button" (click)="scrollToSection('gs-objective')">Campaign Objective</button>
+          <button class="toc-link" type="button" (click)="scrollToSection('gs-monitoring')">Monitoring Techniques</button>
+          <button class="toc-link" type="button" (click)="scrollToSection('gs-funnel')">Funnel Metrics</button>
+          <button class="toc-link" type="button" (click)="scrollToSection('gs-creative')">Creative &amp; Optimisation</button>
+          <button class="toc-link" type="button" (click)="scrollToSection('gs-takeaways')">Key Takeaways</button>
+        </nav>
+
+        <!-- Summary -->
+        <p class="guide-summary">{{ guide.content.summary }}</p>
+
+        <!-- Section 1: Campaign Objective -->
+        <section class="guide-section" aria-labelledby="gs-objective">
+          <div class="section-heading-row">
+            <h3 id="gs-objective" class="section-heading">Campaign Objective</h3>
+            <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+          </div>
+          <p class="guide-text">{{ guide.content.campaignObjectiveDetails }}</p>
+        </section>
+
+        <!-- Section 2: Monitoring -->
+        <section class="guide-section" aria-labelledby="gs-monitoring">
+          <div class="section-heading-row">
+            <h3 id="gs-monitoring" class="section-heading">Monitoring Techniques</h3>
+            <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+          </div>
+          <p class="guide-text">{{ guide.content.monitoringTechniques }}</p>
+        </section>
+
+        <!-- Section 3: Funnel Metrics -->
+        <section class="guide-section" aria-labelledby="gs-funnel">
+          <div class="section-heading-row">
+            <h3 id="gs-funnel" class="section-heading">Funnel Metrics</h3>
+            <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+          </div>
+          <p class="guide-text">{{ guide.content.funnelMetrics }}</p>
+        </section>
+
+        <!-- Section 4: Creative & Optimisation -->
+        <section class="guide-section" aria-labelledby="gs-creative">
+          <div class="section-heading-row">
+            <h3 id="gs-creative" class="section-heading">Creative Types &amp; Optimisation</h3>
+            <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+          </div>
+          <p class="guide-text">{{ guide.content.creativeTypesAndOptimisation }}</p>
+        </section>
+
+        <!-- Key Takeaways -->
+        <div class="key-takeaways" id="gs-takeaways">
+          <div class="section-heading-row">
+            <h3 class="section-heading">Key Takeaways</h3>
+            <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+          </div>
+          <ul class="takeaway-list">
+            @for (t of guide.content.keyTakeaways; track t) {
+              <li class="takeaway-item">{{ t }}</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Bottom back-to-top -->
+        <button class="back-to-top-bottom" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Back to top</button>
+
+      </div>
+    } @else {
+      <!-- Empty state -->
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">&#128203;</div>
+        <p class="empty-text">
+          Select an app type and objective, then click <strong>Generate Guide</strong>.
+        </p>
+        <button
+          class="btn btn--outline btn-sm seed-btn"
+          type="button"
+          (click)="store.seedTestData()"
+        >
+          Load test data
+        </button>
+      </div>
+    }
+  </div>
+
+</div>

@@ -6,6 +6,8 @@
   gap: 20px;
   height: 100%;
   min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 /* ── Main wizard column ──────────────────────────────────────────────── */
@@ -274,6 +276,46 @@
     white-space: nowrap;
     min-width: 0;
   }
+}
+
+/* ── Marketing guide button ──────────────────────────────────────────── */
+.ncp-guide-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-600);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  justify-content: center;
+
+  &:hover { background: var(--neutral-50); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+  &--active { background: var(--neutral-100); border-color: var(--neutral-400); }
+  &--generating { opacity: 0.8; cursor: default; }
+}
+
+.ncp-guide-spinner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--neutral-400);
+  border-top-color: var(--neutral-700);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.ncp-guide-hint {
+  font-size: 11px;
+  color: var(--neutral-400);
+  margin: 6px 0 0;
+  line-height: 1.4;
+  font-style: italic;
 }
 
 /* ── How it works ────────────────────────────────────────────────────── */

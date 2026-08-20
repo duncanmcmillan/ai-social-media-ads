@@ -4,6 +4,17 @@
  * when creating campaigns and ad sets.
  */
 
+/** The type of app being advertised — used to personalise AI-generated guides. */
+export type AppType =
+  | 'desktop-app'
+  | 'mobile-app'
+  | 'ecommerce'
+  | 'saas'
+  | 'lead-gen'
+  | 'local-business'
+  | 'content-media'
+  | 'other';
+
 /** Meta Defaults — applied to all campaigns unless overridden. */
 export interface WorkspaceMetaDefaults {
   /** Facebook Page ID used for ad identity. */
@@ -99,10 +110,13 @@ export interface WorkspaceState {
   targeting: WorkspaceTargeting;
   enhancements: WorkspaceEnhancements;
   learningRules: WorkspaceLearningRules;
+  /** Type of app being advertised — personalises AI-generated guides. */
+  appType: AppType;
 }
 
 /** Default workspace settings applied to a fresh install. */
 export const DEFAULT_WORKSPACE_STATE: WorkspaceState = {
+  appType: 'desktop-app',
   metaDefaults: {
     facebookPageId: '',
     usePageForInstagram: true,

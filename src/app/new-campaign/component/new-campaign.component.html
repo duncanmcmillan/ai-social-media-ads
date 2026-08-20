@@ -153,6 +153,36 @@
       </dl>
     </div>
 
+    <!-- Marketing guide -->
+    <div class="ncp-section ncp-section--guide">
+      <div class="ncp-section-label">Marketing Guide</div>
+      <button
+        type="button"
+        class="ncp-guide-btn"
+        [class.ncp-guide-btn--active]="guidePanelOpen() || !!guidesStore.activeGuide()"
+        [class.ncp-guide-btn--generating]="guidesStore.isGenerating()"
+        [attr.aria-label]="guidesStore.isGenerating() ? 'Generating marketing guide…' : 'Open Marketing Guide panel'"
+        (click)="guidePanelOpen.set(true)"
+      >
+        @if (guidesStore.isGenerating()) {
+          <span class="ncp-guide-spinner" aria-hidden="true"></span> Guide&#8230;
+        } @else if (guidesStore.activeGuide()) {
+          &#128214; Guide &#10003;
+        } @else {
+          &#128214; Open Guide
+        }
+      </button>
+      @if (!guidesStore.activeGuide() && !guidesStore.isGenerating()) {
+        <p class="ncp-guide-hint">
+          @if (store.campaign().objective) {
+            Guide will generate in the background once launched.
+          } @else {
+            Set your campaign objective to generate a tailored guide.
+          }
+        </p>
+      }
+    </div>
+
     <!-- How it works -->
     <div class="ncp-section ncp-section--howto">
       <div class="ncp-section-label">How it works</div>
@@ -175,5 +205,9 @@
     </div>
 
   </aside><!-- /nc-panel -->
+
+  @if (guidePanelOpen()) {
+    <app-guide-panel (closed)="guidePanelOpen.set(false)" />
+  }
 
 </div><!-- /nc-layout -->

@@ -95,6 +95,10 @@ contextBridge.exposeInMainWorld('ai', {
   /** Generate ad copy (primaryText, headline, description) for a creative. */
   generateCopy: (context) =>
     ipcRenderer.invoke('ai:generate-copy', { context }),
+
+  /** Generate a full marketing guide (four sections + key takeaways) for an app type and objective. */
+  generateGuide: (ctx) =>
+    ipcRenderer.invoke('ai:generate-guide', { ctx }),
 });
 
 // ── Licence bridge ───────────────────────────────────────────────────────────

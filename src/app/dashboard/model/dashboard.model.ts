@@ -66,6 +66,8 @@ export interface CampaignDashboardRow {
   campaignId: string;
   /** Campaign display name. */
   campaignName: string;
+  /** Facebook campaign objective (e.g. 'OUTCOME_SALES'). Empty string when not yet fetched. */
+  objective: string;
   /** Total spend across all ads in account currency. */
   spend: number;
   /** Total impressions across all ads. */

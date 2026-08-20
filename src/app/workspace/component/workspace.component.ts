@@ -201,6 +201,12 @@ export class WorkspaceComponent implements AfterViewInit {
     });
   }
 
+  // ── App Type ───────────────────────────────────────────────────────────────
+
+  protected setAppType(value: string): void {
+    this.workspaceStore.setAppType(value as import('../model/workspace.model').AppType);
+  }
+
   // ── Meta Defaults ──────────────────────────────────────────────────────────
 
   protected setPageId(value: string): void {

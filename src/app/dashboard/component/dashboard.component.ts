@@ -8,6 +8,7 @@ import { AuthStore } from '../../auth';
 import { LicenceStore } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
+import { GuidePanelComponent, GuidesStore } from '../../guides';
 import {
   worstVerdict,
   type CampaignDashboardRow,
@@ -68,7 +69,7 @@ const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [GuidePanelComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,8 +79,12 @@ export class DashboardComponent {
   protected readonly authStore      = inject(AuthStore);
   protected readonly licenceStore   = inject(LicenceStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
+  protected readonly guidesStore    = inject(GuidesStore);
 
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
+
+  /** Controls visibility of the Marketing Guide slide-over panel. */
+  protected readonly guidePanelOpen = signal(false);
 
   /** Currently selected gate index for gate→recommendation linking. */
   protected readonly selectedGateIndex = signal<number | null>(null);
@@ -101,6 +106,33 @@ export class DashboardComponent {
       this.store.selectedCampaignId();
       this.store.selectedFunnelLevel();
       untracked(() => this.selectedGateIndex.set(null));
+    });
+
+    // Background guide generation: triggers whenever App Type (Workspace) or
+    // primary campaign Objective changes, provided we are Pro and not already generating.
+    effect(() => {
+      const appType   = this.workspaceStore.appType();
+      const objective = this.store.primaryObjective();
+      untracked(() => {
+        if (appType && objective && this.licenceStore.tier() === 'pro' && !this.guidesStore.isGenerating()) {
+          void this.generateGuide(appType, objective);
+        }
+      });
+    });
+  }
+
+  /**
+   * Triggers background guide generation with the current dashboard context.
+   * @param appType - Workspace app type setting.
+   * @param objective - Primary campaign objective.
+   */
+  private async generateGuide(appType: string, objective: string): Promise<void> {
+    await this.guidesStore.generate({
+      appType:       appType as Parameters<typeof this.guidesStore.generate>[0]['appType'],
+      objective:     objective as Parameters<typeof this.guidesStore.generate>[0]['objective'],
+      gates:         this.store.gates().map(g => g.label),
+      totalSpend:    this.store.funnelMetrics().totalSpend,
+      campaignCount: this.store.campaigns().length,
     });
   }
 

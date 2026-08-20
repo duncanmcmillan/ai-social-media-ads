@@ -19,6 +19,36 @@ export interface GeneratedAdSet {
   billingEvent: string;
 }
 
+/** Context sent to ai:generate-guide. */
+export interface GuideContext {
+  /** App type being advertised. */
+  appType: string;
+  /** Facebook campaign objective. */
+  objective: string;
+  /** Labels of active dashboard gate alerts. */
+  gates: string[];
+  /** Total spend in the current date range. */
+  totalSpend: number;
+  /** Number of active campaigns. */
+  campaignCount: number;
+}
+
+/** Content shape returned by ai:generate-guide. */
+export interface GuideContent {
+  /** 2-3 sentence executive summary. */
+  summary: string;
+  /** How to use the objective for this app type. */
+  campaignObjectiveDetails: string;
+  /** Monitoring techniques and signals to watch. */
+  monitoringTechniques: string;
+  /** TOFU / MOFU / BOFU metrics and target ranges. */
+  funnelMetrics: string;
+  /** Best creative formats and the optimisation process. */
+  creativeTypesAndOptimisation: string;
+  /** 4-6 actionable bullet-point takeaways. */
+  keyTakeaways: string[];
+}
+
 /** Context sent to ai:generate-copy. */
 export interface CopyContext {
   campaignName: string;
@@ -43,6 +73,7 @@ declare global {
       loadApiKey(): Promise<boolean>;
       generateDraft(prompt: string): Promise<GeneratedDraft>;
       generateCopy(context: CopyContext): Promise<GeneratedCopy>;
+      generateGuide(ctx: GuideContext): Promise<GuideContent>;
     };
   }
 }
@@ -67,5 +98,14 @@ export class AiService {
   /** Generates ad copy for the active creative. */
   generateCopy(context: CopyContext): Promise<GeneratedCopy> {
     return window.ai.generateCopy(context);
+  }
+
+  /**
+   * Generates a full marketing guide via Claude Opus 4.6.
+   * @param ctx - Dashboard context used to tailor the guide.
+   * @returns A promise resolving to the four-section guide content.
+   */
+  generateGuide(ctx: GuideContext): Promise<GuideContent> {
+    return window.ai.generateGuide(ctx);
   }
 }

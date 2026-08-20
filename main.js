@@ -336,6 +336,65 @@ The JSON must match this exact shape:
     return JSON.parse(stripCodeFences(text));
   });
 
+  // ── AI: generate marketing guide for an app type and objective ────────
+  ipcMain.handle('ai:generate-guide', async (_event, { ctx }) => {
+    const raw = safeRead(AI_KEY_PATH());
+    if (!raw) throw new Error('No Claude API key configured. Add it in Workspace → AI Settings.');
+
+    const { default: Anthropic } = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: raw });
+
+    // Label maps duplicated here — main process cannot access renderer modules.
+    const APP_LABELS = {
+      'desktop-app':    'Desktop App',
+      'mobile-app':     'Mobile App',
+      'ecommerce':      'E-commerce',
+      'saas':           'SaaS',
+      'lead-gen':       'Lead Generation',
+      'local-business': 'Local Business',
+      'content-media':  'Content / Media',
+      'other':          'Other',
+    };
+    const OBJ_LABELS = {
+      'OUTCOME_SALES':         'Sales',
+      'OUTCOME_LEADS':         'Lead Generation',
+      'OUTCOME_TRAFFIC':       'Traffic',
+      'OUTCOME_AWARENESS':     'Brand Awareness',
+      'OUTCOME_ENGAGEMENT':    'Engagement',
+      'OUTCOME_APP_PROMOTION': 'App Promotion',
+    };
+
+    const system = `You are a Facebook Ads expert. Generate a comprehensive marketing playbook as a JSON object — no markdown fences, pure JSON only.
+
+Required shape:
+{
+  "summary": "2-3 sentence executive summary",
+  "campaignObjectiveDetails": "3-5 paragraphs on using this objective for this app type",
+  "monitoringTechniques": "3-5 paragraphs on daily/weekly monitoring techniques and signals to watch",
+  "funnelMetrics": "3-5 paragraphs covering TOFU, MOFU, and BOFU metrics and target ranges",
+  "creativeTypesAndOptimisation": "3-5 paragraphs on best creative formats and the optimisation process",
+  "keyTakeaways": ["actionable takeaway", "actionable takeaway", "actionable takeaway", "actionable takeaway", "actionable takeaway"]
+}`;
+
+    const userMsg = [
+      `App Type: ${APP_LABELS[ctx.appType] ?? ctx.appType}`,
+      `Campaign Objective: ${OBJ_LABELS[ctx.objective] ?? ctx.objective}`,
+      `Active campaigns: ${ctx.campaignCount}`,
+      `Total spend this period: £${Number(ctx.totalSpend).toFixed(2)}`,
+      `Current alerts: ${ctx.gates && ctx.gates.length ? ctx.gates.join(', ') : 'none'}`,
+    ].join('\n');
+
+    const msg = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 4096,
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+
+    const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
+    return JSON.parse(stripCodeFences(text));
+  });
+
   // ── Licence: activate a LemonSqueezy licence key on this machine ─────
   ipcMain.handle('licence:activate', async (_event, { key }) => {
     // Owner bypass — skips LemonSqueezy entirely, stores locally.

@@ -202,7 +202,30 @@
             </div>
           }
 
-          <!-- ④ TikTok — coming soon -->
+          <!-- ⑤ App Type -->
+          <div class="ws-card">
+            <div class="ws-field ws-field--last">
+              <label class="ws-label" for="ws-app-type">App Type</label>
+              <p class="ws-field-hint">Used to personalise AI-generated marketing guides.</p>
+              <select
+                id="ws-app-type"
+                class="ws-select ws-select--full"
+                [value]="workspaceStore.appType()"
+                (change)="setAppType($any($event.target).value)"
+              >
+                <option value="desktop-app">Desktop App</option>
+                <option value="mobile-app">Mobile App</option>
+                <option value="ecommerce">E-commerce</option>
+                <option value="saas">SaaS</option>
+                <option value="lead-gen">Lead Generation</option>
+                <option value="local-business">Local Business</option>
+                <option value="content-media">Content / Media</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ⑥ TikTok — coming soon -->
           <div class="ws-card">
             <div class="platform-card platform-card--coming-soon">
               <div class="platform-icon platform-icon--tiktok">T</div>

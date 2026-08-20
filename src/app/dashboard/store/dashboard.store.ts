@@ -7,7 +7,7 @@ import { computed, inject } from '@angular/core';
 import { signalStore, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
 import { InsightsApiService, type InsightMetrics, type DatePreset } from '../../core/services/facebook/insights-api/insights-api.service';
 import { AuthStore } from '../../auth';
-import { LicenceStore, extractFacebookError } from '../../core';
+import { LicenceStore, MarketingApiService, extractFacebookError } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import {
   evaluateAd,
@@ -117,6 +117,32 @@ export const DashboardStore = signalStore(
       orderedCampaigns: computed((): CampaignDashboardRow[] =>
         [...store.campaigns()].sort((a, b) => scoreCampaign(a) - scoreCampaign(b))
       ),
+
+      /**
+       * The campaign objective to use for guide generation.
+       * Returns the selected campaign's objective when one is selected,
+       * otherwise the most common objective across all loaded campaigns.
+       * Returns an empty string when no campaign data is available.
+       */
+      primaryObjective: computed((): string => {
+        const campaigns = store.campaigns();
+        if (campaigns.length === 0) return '';
+        const sid = store.selectedCampaignId();
+        if (sid !== null) {
+          return campaigns.find(c => c.campaignId === sid)?.objective ?? '';
+        }
+        // Most common objective across all campaigns.
+        const freq = new Map<string, number>();
+        for (const c of campaigns) {
+          if (c.objective) freq.set(c.objective, (freq.get(c.objective) ?? 0) + 1);
+        }
+        let best = '';
+        let bestCount = 0;
+        for (const [obj, count] of freq) {
+          if (count > bestCount) { best = obj; bestCount = count; }
+        }
+        return best;
+      }),
     };
   }),
 
@@ -318,6 +344,7 @@ export const DashboardStore = signalStore(
 
   withMethods((store,
     insightsApi    = inject(InsightsApiService),
+    marketingApi   = inject(MarketingApiService),
     authStore      = inject(AuthStore),
     workspaceStore = inject(WorkspaceStore),
   ) => ({
@@ -354,11 +381,17 @@ export const DashboardStore = signalStore(
       patchState(store, { isLoading: true, error: null, summary: null, campaigns: [], ads: [] });
       try {
         const preset = store.selectedPreset();
-        const [accountData, campaignData, adData] = await Promise.all([
+        const [accountData, campaignData, adData, marketingCampaigns] = await Promise.all([
           insightsApi.getAccountInsights(preset),
           insightsApi.getCampaignLevelInsights(preset),
           insightsApi.getAdLevelInsights(preset),
+          marketingApi.getCampaigns().catch(() => []),
         ]);
+
+        // Build a lookup map of campaign ID → objective from Marketing API data.
+        const objectiveMap = new Map<string, string>(
+          marketingCampaigns.map(c => [c.id, c.objective as string])
+        );
 
         const currency = authStore.selectedAccount()?.currency ?? 'GBP';
         const rules = workspaceStore.learningRules();
@@ -393,6 +426,7 @@ export const DashboardStore = signalStore(
         const campaigns: CampaignDashboardRow[] = campaignData.map(c => ({
           campaignId:   c.campaignId,
           campaignName: c.campaignName,
+          objective:    objectiveMap.get(c.campaignId) ?? '',
           spend:        parseFloat(c.spend)           || 0,
           impressions:  parseInt(c.impressions, 10)    || 0,
           clicks:       parseInt(c.clicks, 10)         || 0,
@@ -481,12 +515,14 @@ export const DashboardStore = signalStore(
       const campaigns: CampaignDashboardRow[] = [
         {
           campaignId: 'seed-c-1', campaignName: 'Summer Sale — Retargeting',
+          objective: 'OUTCOME_SALES',
           spend: 607.70, impressions: 98500, clicks: 1781, ctr: 1.81, cpc: 0.34, frequency: 1.8,
           reach: 72300,
           ads: ads.filter(a => a.campaignId === 'seed-c-1'),
         },
         {
           campaignId: 'seed-c-2', campaignName: 'Prospecting — UK',
+          objective: 'OUTCOME_LEADS',
           spend: 261.00, impressions: 34030, clicks: 573, ctr: 1.68, cpc: 0.46, frequency: 4.2,
           reach: 25800,
           ads: ads.filter(a => a.campaignId === 'seed-c-2'),

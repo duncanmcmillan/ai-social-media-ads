@@ -109,6 +109,47 @@
 
 .seed-btn { margin-top: 12px; opacity: 0.55; }
 
+/* ── Grid wrapper (positions guide panel absolutely) ────────────────── */
+.grid-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Guide open button (Col 4 header) ───────────────────────────────── */
+.guide-open-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-600);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.1s;
+
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+  &:hover { background: var(--neutral-100); }
+  &.guide-open-btn--active { background: var(--neutral-100); border-color: var(--neutral-400); }
+  &.guide-open-btn--generating { opacity: 0.8; cursor: default; }
+}
+
+.guide-btn-spinner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--neutral-400);
+  border-top-color: var(--neutral-700);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
 /* ── 4-column dashboard grid ─────────────────────────────────────────── */
 .dashboard-grid {
   display: grid;

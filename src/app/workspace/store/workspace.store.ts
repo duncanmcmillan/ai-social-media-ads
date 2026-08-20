@@ -5,6 +5,7 @@
 import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
 import { computed } from '@angular/core';
 import type {
+  AppType,
   WorkspaceState,
   WorkspaceMetaDefaults,
   WorkspacePlacements,
@@ -58,6 +59,7 @@ export const WorkspaceStore = signalStore(
   withMethods((store) => {
     /** Reads all current signals into a plain state object for persistence. */
     const snapshot = (): WorkspaceState => ({
+      appType: store.appType(),
       metaDefaults: store.metaDefaults(),
       placements: store.placements(),
       targeting: store.targeting(),
@@ -66,6 +68,15 @@ export const WorkspaceStore = signalStore(
     });
 
     return {
+      /**
+       * Sets the app type and persists.
+       * @param type - The app type to set.
+       */
+      setAppType(type: AppType): void {
+        patchState(store, { appType: type });
+        persist(snapshot());
+      },
+
       /**
        * Updates Meta Defaults and persists.
        * @param patch - Partial meta defaults to merge.
