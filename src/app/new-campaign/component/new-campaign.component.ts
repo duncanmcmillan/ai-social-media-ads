@@ -1,7 +1,7 @@
 /**
  * @fileoverview New Campaign shell component.
- * Renders the step navigator (Campaign → Ad Sets → Creatives), a right-hand
- * summary panel, and a child router outlet for the active step.
+ * Renders the step navigator (Campaign → Ad Sets → Creatives → Review & Launch),
+ * a right-hand summary panel, and a child router outlet for the active step.
  */
 import { ChangeDetectionStrategy, Component, effect, inject, signal, untracked } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
@@ -11,9 +11,10 @@ import { LicenceStore } from '../../core';
 import { GuidePanelComponent, GuidesStore } from '../../guides';
 
 const STEPS = [
-  { label: 'Campaign',  path: '/new-campaign/campaign'  },
-  { label: 'Ad Sets',   path: '/new-campaign/ad-sets'   },
-  { label: 'Creatives', path: '/new-campaign/creatives' },
+  { label: 'Campaign',        path: '/new-campaign/campaign'  },
+  { label: 'Ad Sets',         path: '/new-campaign/ad-sets'   },
+  { label: 'Creatives',       path: '/new-campaign/creatives' },
+  { label: 'Review & Launch', path: '/new-campaign/review'    },
 ] as const;
 
 /** Maps CampaignObjective enum values to human-readable labels. */
@@ -26,7 +27,7 @@ const OBJECTIVE_LABELS: Record<string, string> = {
   OUTCOME_SALES:          'Sales',
 };
 
-/** Shell component that wraps all three New Campaign wizard steps. */
+/** Shell component that wraps all four New Campaign wizard steps. */
 @Component({
   selector: 'app-new-campaign',
   imports: [RouterOutlet, RouterLink, GuidePanelComponent],
@@ -80,6 +81,7 @@ export class NewCampaignComponent {
   /** Returns the 0-based index of the current step from the URL. */
   protected get currentStepIndex(): number {
     const url = this.router.url;
+    if (url.includes('/review'))    return 3;
     if (url.includes('/creatives')) return 2;
     if (url.includes('/ad-sets'))   return 1;
     return 0;
@@ -107,8 +109,4 @@ export class NewCampaignComponent {
     await this.router.navigateByUrl('/new-campaign/campaign');
   }
 
-  /** Publishes the current wizard draft to the Facebook Marketing API. */
-  protected async launch(): Promise<void> {
-    await this.store.publishCampaign();
-  }
 }

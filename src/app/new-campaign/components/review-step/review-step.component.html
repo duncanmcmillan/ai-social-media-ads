@@ -1,0 +1,328 @@
+<div class="review-layout">
+
+  <!-- ── Left column ──────────────────────────────────────────────────── -->
+  <div class="review-main">
+
+    <!-- ── Creatives section (primary) ────────────────────────────────── -->
+    <section class="review-section" aria-labelledby="creatives-heading">
+      <div class="review-section-header">
+        <div class="review-section-title-row">
+          <h2 class="review-section-title" id="creatives-heading">Creatives</h2>
+          @if (store.hasCreatives()) {
+            <span
+              class="review-progress"
+              [class.review-progress--done]="allReviewed()"
+              role="status"
+              aria-live="polite"
+            >
+              {{ reviewedCount() }}&thinsp;/&thinsp;{{ store.creatives().length }} reviewed
+            </span>
+          }
+        </div>
+        <a
+          class="review-edit-link"
+          routerLink="../creatives"
+          aria-label="Edit creatives"
+        >Edit</a>
+      </div>
+
+      @if (store.hasCreatives()) {
+        <div class="review-creatives-grid">
+          @for (creative of store.creatives(); track creative.id) {
+            <div
+              class="mini-fb-card"
+              [class.mini-fb-card--reviewed]="reviewedIds().has(creative.id)"
+            >
+              <!-- Identity row -->
+              <div class="mini-fb-id">
+                <div class="mini-fb-avatar" aria-hidden="true"><span>f</span></div>
+                <div class="mini-fb-meta">
+                  <div class="mini-fb-page">{{ pageName() }}</div>
+                  <div class="mini-fb-sponsored">Sponsored</div>
+                </div>
+                <span
+                  class="mini-status-chip"
+                  [class.mini-status-chip--active]="creative.launchStatus === 'active'"
+                >
+                  {{ creative.launchStatus === 'active' ? 'Active' : 'Paused' }}
+                </span>
+              </div>
+
+              <!-- Primary text -->
+              @if (creative.primaryText) {
+                <p class="mini-fb-body">{{ truncate(creative.primaryText, 100) }}</p>
+              } @else {
+                <p class="mini-fb-body mini-fb-body--placeholder">Add primary text…</p>
+              }
+
+              <!-- Image / Video -->
+              <div class="mini-fb-image-wrap">
+                @if (creative.fileType === 'image') {
+                  <img
+                    [src]="creative.objectUrl"
+                    [alt]="creative.fileName"
+                    class="mini-fb-image"
+                  />
+                } @else {
+                  <div
+                    class="mini-fb-video-placeholder"
+                    [attr.aria-label]="'Video: ' + creative.fileName"
+                  >
+                    <span aria-hidden="true">&#9654;</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Link card -->
+              <div class="mini-fb-link-card">
+                <div class="mini-fb-link-copy">
+                  <div class="mini-fb-domain">{{ previewDomain() }}</div>
+                  <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
+                </div>
+                <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
+              </div>
+
+              <!-- Review toggle -->
+              <button
+                type="button"
+                class="mini-fb-review-btn"
+                [class.mini-fb-review-btn--done]="reviewedIds().has(creative.id)"
+                (click)="toggleReviewed(creative.id)"
+                [attr.aria-pressed]="reviewedIds().has(creative.id)"
+                [attr.aria-label]="(reviewedIds().has(creative.id) ? 'Unmark' : 'Mark') + ' ' + creative.fileName + ' as reviewed'"
+              >
+                @if (reviewedIds().has(creative.id)) {
+                  &#10003; Reviewed
+                } @else {
+                  Mark reviewed
+                }
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (!allReviewed()) {
+          <p class="review-reminder">
+            &#9432; Review each creative before launching.
+          </p>
+        }
+      } @else {
+        <p class="review-empty">No creatives — upload images or videos in the Creatives step.</p>
+      }
+    </section>
+
+    <!-- ── Campaign & Ad Sets accordion ───────────────────────────────── -->
+    <section class="review-accordion">
+      <button
+        type="button"
+        class="review-accordion-toggle"
+        (click)="summaryOpen.set(!summaryOpen())"
+        [attr.aria-expanded]="summaryOpen()"
+        aria-controls="review-summary-panel"
+      >
+        <div class="review-accordion-title-row">
+          <span>Campaign &amp; Ad Sets</span>
+          <div class="review-accordion-badges">
+            @if (campaignReviewed()) {
+              <span class="accordion-badge accordion-badge--done">Campaign ✓</span>
+            } @else {
+              <span class="accordion-badge">Campaign</span>
+            }
+            @if (adSetsReviewed()) {
+              <span class="accordion-badge accordion-badge--done">Ad Sets ✓</span>
+            } @else {
+              <span class="accordion-badge">Ad Sets</span>
+            }
+          </div>
+        </div>
+        <span class="review-accordion-chevron" [class.review-accordion-chevron--open]="summaryOpen()">
+          &#8250;
+        </span>
+      </button>
+
+      @if (summaryOpen()) {
+        <div class="review-summary-panel" id="review-summary-panel">
+
+          <!-- Campaign mini-summary -->
+          <div class="review-summary-col">
+            <div class="review-summary-col-header">
+              <span class="review-summary-label">Campaign</span>
+              <a class="review-edit-link" routerLink="../campaign" aria-label="Edit campaign">Edit</a>
+            </div>
+            @if (store.campaign().name) {
+              <dl class="review-dl">
+                <dt>Name</dt>
+                <dd>{{ store.campaign().name }}</dd>
+
+                <dt>Objective</dt>
+                <dd>{{ objectiveLabel() }}</dd>
+
+                <dt>Budget</dt>
+                <dd>
+                  @if (store.campaign().budgetType === 'campaign') {
+                    {{ fmtCurrency(store.campaign().budgetAmount) }}
+                    / {{ store.campaign().budgetPeriod === 'daily' ? 'day' : 'lifetime' }}
+                  } @else {
+                    Per ad set
+                  }
+                </dd>
+
+                <dt>Status</dt>
+                <dd>{{ store.campaign().activateImmediately ? 'Active immediately' : 'Starts paused' }}</dd>
+
+                @if (store.campaign().utmParameters) {
+                  <dt>UTM</dt>
+                  <dd class="review-dl-mono">{{ store.campaign().utmParameters }}</dd>
+                }
+              </dl>
+            } @else {
+              <p class="review-empty">No campaign details.</p>
+            }
+            <button
+              type="button"
+              class="summary-review-btn"
+              [class.summary-review-btn--done]="campaignReviewed()"
+              (click)="campaignReviewed.set(!campaignReviewed())"
+              [attr.aria-pressed]="campaignReviewed()"
+              aria-label="Mark campaign as reviewed"
+            >
+              @if (campaignReviewed()) { &#10003; Campaign reviewed } @else { Mark campaign reviewed }
+            </button>
+          </div>
+
+          <!-- Ad Sets mini-summary -->
+          <div class="review-summary-col">
+            <div class="review-summary-col-header">
+              <span class="review-summary-label">Ad Sets</span>
+              <a class="review-edit-link" routerLink="../ad-sets" aria-label="Edit ad sets">Edit</a>
+            </div>
+            @if (store.hasAdSets()) {
+              <ul class="review-adsets-list" aria-label="Ad sets summary">
+                @for (adSet of store.adSets(); track adSet.id) {
+                  <li class="review-adset-item">
+                    <div class="review-adset-name">{{ adSet.name }}</div>
+                    <dl class="review-dl review-dl--tight">
+                      <dt>Countries</dt>
+                      <dd>{{ adSet.targeting.countries.join(', ') || '—' }}</dd>
+
+                      <dt>Age</dt>
+                      <dd>{{ adSet.targeting.minAge }}–{{ adSet.targeting.maxAge }}</dd>
+
+                      <dt>Placement</dt>
+                      <dd>{{ adSet.placementMode === 'advantage' ? 'Advantage+' : 'Manual' }}</dd>
+
+                      <dt>Schedule</dt>
+                      <dd>{{ scheduleLabel(adSet) }}</dd>
+
+                      @if (store.campaign().budgetType === 'adset' && adSet.budgetAmount !== null) {
+                        <dt>Budget</dt>
+                        <dd>{{ fmtCurrency(adSet.budgetAmount) }} / {{ adSet.budgetPeriod === 'daily' ? 'day' : 'lifetime' }}</dd>
+                      }
+                    </dl>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="review-empty">No ad sets.</p>
+            }
+            <button
+              type="button"
+              class="summary-review-btn"
+              [class.summary-review-btn--done]="adSetsReviewed()"
+              (click)="adSetsReviewed.set(!adSetsReviewed())"
+              [attr.aria-pressed]="adSetsReviewed()"
+              aria-label="Mark ad sets as reviewed"
+            >
+              @if (adSetsReviewed()) { &#10003; Ad sets reviewed } @else { Mark ad sets reviewed }
+            </button>
+          </div>
+
+        </div>
+      }
+    </section>
+
+  </div><!-- /review-main -->
+
+  <!-- ── Right sidebar ─────────────────────────────────────────────────── -->
+  <aside class="review-sidebar" aria-label="Budget and launch">
+
+    <!-- Budget gate card -->
+    <div class="review-card review-card--gate">
+      <div class="review-gate-amount" aria-label="Campaign budget">
+        @if (store.campaign().budgetType === 'campaign') {
+          {{ fmtCurrency(store.campaign().budgetAmount) }}
+          <span class="review-gate-period">
+            / {{ store.campaign().budgetPeriod === 'daily' ? 'day' : 'lifetime' }}
+          </span>
+        } @else if (adSetBudgetTotal() !== null) {
+          {{ fmtCurrency(adSetBudgetTotal()) }}
+          <span class="review-gate-period">/ day total</span>
+        } @else {
+          <span class="review-gate-period">Per ad set</span>
+        }
+      </div>
+      <div class="review-gate-sub">
+        @if (store.campaign().budgetType === 'campaign') {
+          Campaign-level budget
+        } @else {
+          Across {{ store.adSets().length }} ad set{{ store.adSets().length === 1 ? '' : 's' }}
+        }
+      </div>
+
+      <hr class="review-divider" />
+
+      <div class="review-gate-stat">
+        <span class="review-gate-stat-num">{{ store.totalAdsToCreate() }}</span>
+        ad{{ store.totalAdsToCreate() === 1 ? '' : 's' }} to create
+      </div>
+
+      <div
+        class="review-gate-badge"
+        [class.review-gate-badge--active]="store.campaign().activateImmediately"
+      >
+        @if (store.campaign().activateImmediately) {
+          &#9654; Goes live immediately
+        } @else {
+          &#9646;&#9646; Starts paused
+        }
+      </div>
+    </div>
+
+    <!-- Pre-flight checklist card -->
+    <div class="review-card">
+      <div class="review-card-title review-card-title--sub">Pre-flight</div>
+      <ul class="preflight-list" aria-label="Pre-flight checklist">
+        @for (item of preflightItems(); track item.label) {
+          <li class="preflight-item" [class.preflight-item--ok]="item.ok">
+            <span class="preflight-icon" aria-hidden="true">{{ item.ok ? '✓' : '✗' }}</span>
+            {{ item.label }}
+          </li>
+        }
+      </ul>
+      @if (!preflightOk()) {
+        <p class="preflight-hint">
+          Some items need attention.
+          <a routerLink="/workspace" class="preflight-link">Configure Workspace →</a>
+        </p>
+      }
+    </div>
+
+    <!-- Launch button -->
+    <button
+      type="button"
+      class="btn btn-primary review-launch-btn"
+      [disabled]="launchDisabled()"
+      (click)="launch()"
+      [attr.aria-label]="store.isPublishing() ? 'Creating campaign…' : 'Launch ads'"
+      aria-live="polite"
+    >
+      @if (store.isPublishing()) {
+        <span class="spinner" aria-hidden="true"></span> Creating…
+      } @else {
+        Launch Ads
+      }
+    </button>
+
+  </aside><!-- /review-sidebar -->
+
+</div><!-- /review-layout -->

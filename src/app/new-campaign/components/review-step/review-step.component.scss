@@ -1,0 +1,601 @@
+/* ── Two-column layout ───────────────────────────────────────────────── */
+/* nc-body handles scrolling — do not constrain height here */
+.review-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* ── Left column ─────────────────────────────────────────────────────── */
+.review-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Section wrapper ─────────────────────────────────────────────────── */
+.review-section {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.review-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.review-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-section-title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--neutral-600);
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+/* ── Review progress pill ────────────────────────────────────────────── */
+.review-progress {
+  font-size: 11px;
+  color: var(--neutral-400);
+  background: var(--neutral-100);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+
+  &--done {
+    background: #dcfce7;
+    color: #166534;
+  }
+}
+
+.review-edit-link {
+  font-size: 11px;
+  color: var(--orange-600);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+  &:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.review-empty {
+  font-size: 12px;
+  color: var(--neutral-400);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Creatives grid ──────────────────────────────────────────────────── */
+.review-creatives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* ── Mini Facebook card ──────────────────────────────────────────────── */
+.mini-fb-card {
+  border: 1px solid #ced0d4;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  transition: box-shadow 0.15s ease;
+
+  &--reviewed {
+    border-color: #86efac;
+    box-shadow: 0 0 0 1px #86efac;
+  }
+}
+
+.mini-fb-id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px 4px;
+}
+
+.mini-fb-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1877f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  span {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+}
+
+.mini-fb-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-fb-page {
+  font-size: 11px;
+  font-weight: 600;
+  color: #050505;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-fb-sponsored {
+  font-size: 10px;
+  color: #65676b;
+}
+
+/* Mini status chip in identity row */
+.mini-status-chip {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+
+  &--active { background: #dcfce7; color: #166534; }
+}
+
+.mini-fb-body {
+  padding: 4px 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #050505;
+  margin: 0;
+  word-break: break-word;
+
+  &--placeholder { color: #bcc0c4; font-style: italic; }
+}
+
+.mini-fb-image-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: var(--neutral-100);
+  overflow: hidden;
+}
+
+.mini-fb-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mini-fb-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-200);
+  color: var(--neutral-500);
+  font-size: 20px;
+}
+
+.mini-fb-link-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #f0f2f5;
+  border-top: 1px solid #ced0d4;
+}
+
+.mini-fb-link-copy { flex: 1; min-width: 0; }
+
+.mini-fb-domain {
+  font-size: 9px;
+  color: #65676b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mini-fb-headline {
+  font-size: 10px;
+  font-weight: 600;
+  color: #050505;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-fb-cta {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  background: #e4e6eb;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #050505;
+  white-space: nowrap;
+}
+
+/* ── Review toggle button ────────────────────────────────────────────── */
+.mini-fb-review-btn {
+  display: block;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-top: 1px solid #ced0d4;
+  background: var(--neutral-50);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: -2px; }
+
+  &--done {
+    background: #f0fdf4;
+    color: #166534;
+    font-weight: 500;
+
+    &:hover { background: #dcfce7; }
+  }
+}
+
+/* ── Review reminder ─────────────────────────────────────────────────── */
+.review-reminder {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--neutral-400);
+  font-style: italic;
+}
+
+/* ── Accordion ───────────────────────────────────────────────────────── */
+.review-accordion {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.review-accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-600);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+
+  &:hover { background: var(--neutral-50); }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: -2px; }
+}
+
+.review-accordion-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-accordion-badges {
+  display: flex;
+  gap: 4px;
+}
+
+.accordion-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--neutral-100);
+  color: var(--neutral-400);
+
+  &--done {
+    background: #dcfce7;
+    color: #166534;
+  }
+}
+
+.review-accordion-chevron {
+  font-size: 16px;
+  color: var(--neutral-400);
+  transition: transform 0.2s ease;
+  line-height: 1;
+
+  &--open { transform: rotate(90deg); }
+}
+
+/* ── Summary panel (2-column inside accordion) ───────────────────────── */
+.review-summary-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--neutral-150);
+}
+
+.review-summary-col {
+  padding: 14px 16px;
+
+  & + & { border-left: 1px solid var(--neutral-150); }
+}
+
+.review-summary-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.review-summary-label {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neutral-400);
+}
+
+/* ── Definition list ─────────────────────────────────────────────────── */
+.review-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0;
+  margin: 0;
+  font-size: 11px;
+
+  dt {
+    color: var(--neutral-400);
+    padding: 2px 10px 2px 0;
+    white-space: nowrap;
+  }
+
+  dd {
+    color: var(--neutral-700);
+    margin: 0;
+    padding: 2px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &--tight { font-size: 10px; }
+}
+
+.review-dl-mono { font-family: monospace; font-size: 9px; }
+
+/* ── Ad Sets list ────────────────────────────────────────────────────── */
+.review-adsets-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-adset-item {
+  padding: 8px 10px;
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-150);
+  border-radius: 4px;
+}
+
+.review-adset-name {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--neutral-700);
+  margin-bottom: 4px;
+}
+
+/* ── Summary column review button ────────────────────────────────────── */
+.summary-review-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 7px 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  background: var(--neutral-50);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: 1px; }
+
+  &--done {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+
+    &:hover { background: #dcfce7; }
+  }
+}
+
+/* ── Right sidebar ───────────────────────────────────────────────────── */
+.review-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.review-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  padding: 16px;
+
+  &--gate { text-align: center; }
+}
+
+.review-card-title {
+  &--sub {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--neutral-400);
+    margin-bottom: 10px;
+  }
+}
+
+/* ── Budget gate ─────────────────────────────────────────────────────── */
+.review-gate-amount {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--neutral-800);
+  line-height: 1.2;
+}
+
+.review-gate-period {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--neutral-400);
+}
+
+.review-gate-sub {
+  font-size: 11px;
+  color: var(--neutral-400);
+  margin-top: 2px;
+}
+
+.review-divider {
+  border: none;
+  border-top: 1px solid var(--neutral-150);
+  margin: 12px 0;
+}
+
+.review-gate-stat {
+  font-size: 13px;
+  color: var(--neutral-600);
+  margin-bottom: 8px;
+}
+
+.review-gate-stat-num {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--neutral-800);
+  display: block;
+}
+
+.review-gate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+
+  &--active { background: #dcfce7; color: #166534; }
+}
+
+/* ── Pre-flight checklist ────────────────────────────────────────────── */
+.preflight-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preflight-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--neutral-500);
+
+  &--ok {
+    color: var(--neutral-700);
+    .preflight-icon { color: #16a34a; }
+  }
+}
+
+.preflight-icon {
+  font-size: 12px;
+  color: var(--color-error, #ef4444);
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.preflight-hint {
+  font-size: 11px;
+  color: var(--neutral-400);
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+.preflight-link {
+  color: var(--orange-600);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+  &:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* ── Launch button ───────────────────────────────────────────────────── */
+.review-launch-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

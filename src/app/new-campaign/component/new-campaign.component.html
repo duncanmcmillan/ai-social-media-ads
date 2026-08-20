@@ -70,20 +70,8 @@
         <button class="btn btn-primary" (click)="nextStep()" type="button">
           Next: {{ steps[currentStepIndex + 1].label }}
         </button>
-      } @else {
-        <button
-          class="btn btn-primary"
-          type="button"
-          [disabled]="store.isPublishing() || !workspaceStore.isConfigured()"
-          (click)="launch()"
-        >
-          @if (store.isPublishing()) {
-            <span class="spinner"></span> Creating...
-          } @else {
-            Launch Ads
-          }
-        </button>
       }
+      <!-- Launch Ads button is inside the Review & Launch step -->
     </div>
 
   </div><!-- /nc-main -->
@@ -196,6 +184,9 @@
         <li>
           <strong>Creatives</strong> — Upload images or videos and write ad copy.
           AI can generate copy for you.
+        </li>
+        <li>
+          <strong>Review &amp; Launch</strong> — Check all previews, confirm the budget, then launch.
         </li>
       </ol>
       <p class="ncp-howto-note">
