@@ -338,6 +338,12 @@ The JSON must match this exact shape:
 
   // ── Licence: activate a LemonSqueezy licence key on this machine ─────
   ipcMain.handle('licence:activate', async (_event, { key }) => {
+    // Owner bypass — skips LemonSqueezy entirely, stores locally.
+    if (key === 'OWNER') {
+      safeWrite(LICENCE_PATH(), { key: 'OWNER', instanceId: 'owner', tier: 'pro', validatedAt: new Date().toISOString(), expiresAt: null });
+      return { tier: 'pro', expiresAt: null };
+    }
+
     const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/activate', {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
@@ -366,6 +372,11 @@ The JSON must match this exact shape:
 
     let cached;
     try { cached = JSON.parse(json); } catch { return { tier: 'free', expiresAt: null }; }
+
+    // Owner bypass — always pro, no network call needed.
+    if (cached.key === 'OWNER') {
+      return { tier: 'pro', expiresAt: null };
+    }
 
     try {
       const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
