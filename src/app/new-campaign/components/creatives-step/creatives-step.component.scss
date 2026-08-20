@@ -1,4 +1,4 @@
-/* ── Step panel header ───────────────────────────────────────────────── */
+/* Step panel header */
 .step-panel-header {
   display: flex;
   align-items: center;
@@ -48,7 +48,7 @@
   align-items: flex-start;
 }
 
-/* ── Upload Panel ────────────────────────────────────────────────────── */
+/* Upload Panel */
 .upload-panel {
   width: 240px;
   flex-shrink: 0;
@@ -178,13 +178,14 @@
   color: var(--neutral-400);
 }
 
+.file-name,
+.fb-link-headline,
+.fb-link-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .file-name {
   flex: 1;
   font-size: 11px;
   color: var(--neutral-600);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .file-remove {
@@ -197,7 +198,7 @@
   &:hover { color: var(--color-error); }
 }
 
-/* ── Copy Editor ─────────────────────────────────────────────────────── */
+/* Copy Editor */
 .copy-editor {
   flex: 1;
   background: var(--neutral-0);
@@ -213,12 +214,17 @@
   font-size: 13px;
 }
 
+.copy-preview,
+.chip-group,
+.copy-field,
+.copy-meta-row,
+.ad-mode-row { border-bottom: 1px solid var(--neutral-150); }
+
 .copy-preview {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-150);
 }
 
 .copy-preview-img {
@@ -237,7 +243,6 @@
 /* Chips */
 .chip-group {
   padding: 10px 16px;
-  border-bottom: 1px solid var(--neutral-150);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -277,7 +282,6 @@
 /* Copy fields */
 .copy-field {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-150);
 }
 
 .copy-field-label {
@@ -287,25 +291,9 @@
   margin-bottom: 6px;
 }
 
-.copy-textarea {
-  width: 100%;
-  resize: vertical;
-  padding: 8px 10px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--neutral-700);
-  background: var(--neutral-50);
-  border: 1px solid var(--neutral-200);
-  border-radius: 4px;
-  line-height: 1.6;
-
-  &:focus { outline: none; border-color: var(--orange-400); background: var(--neutral-0); }
-  &::placeholder { color: var(--neutral-300); }
-}
-
+.copy-textarea,
 .copy-input {
   width: 100%;
-  padding: 7px 10px;
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--neutral-700);
@@ -316,12 +304,14 @@
   &:focus { outline: none; border-color: var(--orange-400); background: var(--neutral-0); }
   &::placeholder { color: var(--neutral-300); }
 }
+
+.copy-textarea { resize: vertical; padding: 8px 10px; line-height: 1.6; }
+.copy-input    { padding: 7px 10px; }
 
 .copy-meta-row {
   display: flex;
   gap: 16px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-150);
   flex-wrap: wrap;
 }
 
@@ -350,7 +340,6 @@
   display: flex;
   gap: 10px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-150);
 }
 
 .ad-mode-btn {
@@ -431,7 +420,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Facebook Ad Preview Overlay ────────────────────────────────────────── */
+/* Facebook Ad Preview Overlay */
 .fb-backdrop {
   position: fixed;
   inset: 0;
@@ -522,7 +511,6 @@
   &:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
 }
 
-/* Body */
 .fb-dialog-body {
   padding: 20px 16px 24px;
   overflow-y: auto;
@@ -533,7 +521,7 @@
   gap: 12px;
 }
 
-/* ── Phone frame ──────────────────────────────────────────────────────── */
+/* Phone frame */
 .phone-frame {
   width: 320px;
   background: #1c1c1e;
@@ -550,7 +538,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 680px; /* explicit height so flex children get definite size */
+  height: 680px;
 }
 
 /* Status bar */
@@ -626,7 +614,7 @@
 /* Scrollable phone content */
 .phone-content {
   flex: 1;
-  min-height: 0; /* required for overflow-y to work inside a flex child */
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
 
@@ -649,7 +637,7 @@
   border-radius: 3px;
 }
 
-/* ── Facebook card (inside phone) ─────────────────────────────────────── */
+/* Facebook card */
 .fb-card {
   background: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -728,7 +716,6 @@
   cursor: pointer;
 }
 
-/* Media */
 .fb-media-wrap {
   width: 100%;
   aspect-ratio: 4 / 5;
@@ -772,17 +759,11 @@
   font-size: 15px;
   font-weight: 600;
   color: #050505;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fb-link-desc {
   font-size: 13px;
   color: #65676b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fb-cta-btn {
@@ -833,7 +814,7 @@
   &:hover { background: #f2f3f5; }
 }
 
-/* ── Below-phone elements ──────────────────────────────────────────────── */
+/* Below-phone elements */
 .fb-preview-filename {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
