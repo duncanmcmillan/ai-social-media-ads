@@ -11,6 +11,22 @@ import { AuthStore } from '../../../../auth';
 /** Base URL for the Facebook Graph API. */
 const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
 
+/** A raw action/conversion event as returned by the Insights API (snake_case). */
+interface RawAction {
+  /** Facebook action type identifier (e.g. 'purchase', 'lead'). */
+  action_type: string;
+  /** Numeric value as a string. */
+  value: string;
+}
+
+/** A parsed conversion event with a numeric value. */
+export interface ActionEntry {
+  /** Facebook action type identifier (e.g. 'purchase', 'lead'). */
+  actionType: string;
+  /** Event count or monetary value. */
+  value: number;
+}
+
 /** Performance metric fields returned by the Insights API. */
 export interface InsightMetrics {
   /** Total ad impressions. */
@@ -31,6 +47,8 @@ export interface InsightMetrics {
   dateStart: string;
   /** Date range end (YYYY-MM-DD). */
   dateStop: string;
+  /** Conversion events broken down by action type, if requested. */
+  actions?: ActionEntry[];
 }
 
 /** Campaign-level insight row (one entry per campaign in the date range). */
@@ -39,6 +57,8 @@ export interface CampaignInsightRow extends InsightMetrics {
   campaignId: string;
   /** Campaign display name. */
   campaignName: string;
+  /** Average number of times each person saw the campaign's ads. */
+  frequency?: string;
 }
 
 /** Ad-level insight row (one entry per ad in the date range). */
@@ -51,12 +71,32 @@ export interface AdInsightRow extends InsightMetrics {
   adSetId: string;
   /** Display name of the ad set this ad belongs to. */
   adSetName: string;
+  /** ID of the parent campaign. */
+  campaignId?: string;
+  /** Average number of times each person saw this ad. */
+  frequency?: string;
+  /** Purchase ROAS (return on ad spend), or null when no purchase events are tracked. */
+  purchaseRoas?: number | null;
 }
 
 /** Wraps a Graph API insights list response. */
 interface InsightsResponse {
   /** Array of insight metric objects. */
   data: InsightMetrics[];
+}
+
+/** Raw account-level row from the Graph API (snake_case). */
+interface RawAccountInsightRow {
+  impressions: string;
+  clicks: string;
+  ctr: string;
+  cpc: string;
+  cpm: string;
+  spend: string;
+  reach: string;
+  date_start: string;
+  date_stop: string;
+  actions?: RawAction[];
 }
 
 /** Raw campaign-level row from the Graph API (snake_case). */
@@ -72,6 +112,8 @@ interface RawCampaignInsightRow {
   reach: string;
   date_start: string;
   date_stop: string;
+  frequency?: string;
+  actions?: RawAction[];
 }
 
 /** Raw ad-level row from the Graph API (snake_case). */
@@ -80,6 +122,7 @@ interface RawAdInsightRow {
   ad_name: string;
   adset_id: string;
   adset_name: string;
+  campaign_id?: string;
   impressions: string;
   clicks: string;
   ctr: string;
@@ -89,6 +132,9 @@ interface RawAdInsightRow {
   reach: string;
   date_start: string;
   date_stop: string;
+  frequency?: string;
+  actions?: RawAction[];
+  purchase_roas?: RawAction[];
 }
 
 /** Date preset options for insights queries. */
@@ -146,13 +192,35 @@ export class InsightsApiService {
 
   /**
    * Fetches account-level insights for the connected ad account.
+   * Includes conversion action events broken down by type.
    * @param datePreset - The relative date range.
    * @returns Promise resolving to an array of insight metric snapshots.
    * @throws When not authenticated or the API call fails.
    */
   async getAccountInsights(datePreset: DatePreset = 'last_30d'): Promise<InsightMetrics[]> {
     const adAccountId = this.requireAdAccountId();
-    return this.getInsights(adAccountId, datePreset);
+    const params = this.authParams()
+      .set('fields', 'impressions,clicks,ctr,cpc,cpm,spend,reach,actions,date_start,date_stop')
+      .set('date_preset', datePreset);
+
+    const result = await firstValueFrom(
+      this.http.get<{ data: RawAccountInsightRow[] }>(
+        `${GRAPH_API_BASE}/${adAccountId}/insights`, { params }
+      )
+    );
+
+    return (result.data ?? []).map(r => ({
+      impressions: r.impressions,
+      clicks:      r.clicks,
+      ctr:         r.ctr,
+      cpc:         r.cpc,
+      cpm:         r.cpm,
+      spend:       r.spend,
+      reach:       r.reach,
+      dateStart:   r.date_start,
+      dateStop:    r.date_stop,
+      actions:     r.actions?.map(a => ({ actionType: a.action_type, value: parseFloat(a.value) || 0 })),
+    }));
   }
 
   /**
@@ -165,7 +233,7 @@ export class InsightsApiService {
     const adAccountId = this.requireAdAccountId();
     const params = this.authParams()
       .set('level', 'campaign')
-      .set('fields', 'campaign_id,campaign_name,impressions,clicks,ctr,cpc,cpm,spend,reach,date_start,date_stop')
+      .set('fields', 'campaign_id,campaign_name,impressions,clicks,ctr,cpc,cpm,spend,reach,frequency,actions,date_start,date_stop')
       .set('date_preset', datePreset)
       .set('limit', '200');
 
@@ -186,6 +254,8 @@ export class InsightsApiService {
         cpm:          r.cpm,
         spend:        r.spend,
         reach:        r.reach,
+        frequency:    r.frequency,
+        actions:      r.actions?.map(a => ({ actionType: a.action_type, value: parseFloat(a.value) || 0 })),
         dateStart:    r.date_start,
         dateStop:     r.date_stop,
       }))
@@ -202,7 +272,7 @@ export class InsightsApiService {
     const adAccountId = this.requireAdAccountId();
     const params = this.authParams()
       .set('level', 'ad')
-      .set('fields', 'ad_id,ad_name,adset_id,adset_name,impressions,clicks,ctr,cpc,cpm,spend,reach,date_start,date_stop')
+      .set('fields', 'ad_id,ad_name,adset_id,adset_name,campaign_id,impressions,clicks,ctr,cpc,cpm,spend,reach,frequency,actions,purchase_roas,date_start,date_stop')
       .set('date_preset', datePreset)
       .set('limit', '500');
 
@@ -213,21 +283,29 @@ export class InsightsApiService {
     );
 
     return (result.data ?? [])
-      .map(r => ({
-        adId:        r.ad_id,
-        adName:      r.ad_name,
-        adSetId:     r.adset_id,
-        adSetName:   r.adset_name,
-        impressions: r.impressions,
-        clicks:      r.clicks,
-        ctr:         r.ctr,
-        cpc:         r.cpc,
-        cpm:         r.cpm,
-        spend:       r.spend,
-        reach:       r.reach,
-        dateStart:   r.date_start,
-        dateStop:    r.date_stop,
-      }))
+      .map(r => {
+        const roasEntry = r.purchase_roas?.find(p => p.action_type === 'omni_purchase') ?? r.purchase_roas?.[0];
+        const purchaseRoas = roasEntry ? (parseFloat(roasEntry.value) || null) : null;
+        return {
+          adId:         r.ad_id,
+          adName:       r.ad_name,
+          adSetId:      r.adset_id,
+          adSetName:    r.adset_name,
+          campaignId:   r.campaign_id,
+          impressions:  r.impressions,
+          clicks:       r.clicks,
+          ctr:          r.ctr,
+          cpc:          r.cpc,
+          cpm:          r.cpm,
+          spend:        r.spend,
+          reach:        r.reach,
+          frequency:    r.frequency,
+          actions:      r.actions?.map(a => ({ actionType: a.action_type, value: parseFloat(a.value) || 0 })),
+          purchaseRoas,
+          dateStart:    r.date_start,
+          dateStop:     r.date_stop,
+        };
+      })
       .sort((a, b) => parseFloat(b.spend) - parseFloat(a.spend));
   }
 }

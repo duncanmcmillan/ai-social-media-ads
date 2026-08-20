@@ -1,0 +1,223 @@
+<!-- Toolbar -->
+<div class="toolbar">
+  <select
+    class="preset-select"
+    [value]="store.selectedPreset()"
+    (change)="onPresetChange($any($event.target).value)"
+    aria-label="Date range"
+  >
+    @for (p of store.availablePresets(); track p) {
+      <option [value]="p">{{ datePresetLabels[p] }}</option>
+    }
+  </select>
+
+  @if (licenceStore.tier() === 'free') {
+    <span class="free-hint">Upgrade to Pro for more date ranges</span>
+  }
+
+  <button
+    class="btn btn-primary"
+    type="button"
+    [disabled]="store.isLoading() || !authStore.isAuthenticated()"
+    (click)="sync()"
+    aria-label="Sync dashboard data"
+  >
+    @if (store.isLoading()) {
+      <span class="spinner" aria-hidden="true"></span> Syncing...
+    } @else {
+      &#8635; Sync
+    }
+  </button>
+
+  @if (!authStore.isAuthenticated()) {
+    <span class="auth-hint">Connect Meta account in Workspace to sync data.</span>
+  }
+</div>
+
+<!-- Error -->
+@if (store.error()) {
+  <div class="error-banner" role="alert">{{ store.error() }}</div>
+}
+
+<!-- Loading -->
+@if (store.isLoading()) {
+  <div class="loading-state" aria-live="polite" aria-label="Loading dashboard data">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <span>Loading dashboard data…</span>
+  </div>
+}
+
+<!-- Empty state -->
+@if (!store.isLoading() && !hasCampaigns() && !store.error()) {
+  <div class="empty-state">
+    <div class="empty-icon" aria-hidden="true">&#128202;</div>
+    <div class="empty-title">No data loaded</div>
+    <div class="empty-sub">
+      Select a date range and click Sync to load your campaign data,
+      or load sample data to explore the dashboard.
+    </div>
+    <button class="btn btn--outline btn-sm seed-btn" type="button" (click)="store.seedTestData()">
+      Load test data
+    </button>
+  </div>
+}
+
+<!-- Dashboard content -->
+@if (hasCampaigns()) {
+
+  <!-- ── Launched Campaigns & Ads ─────────────────────────────── -->
+  <section class="section" aria-labelledby="section-campaigns">
+    <h2 class="section-title" id="section-campaigns">Launched Campaigns &amp; Ads</h2>
+    <div class="campaign-grid">
+      @for (campaign of store.campaigns(); track campaign.campaignId) {
+        <div class="campaign-card">
+          <div class="campaign-header">
+            <span class="campaign-name">{{ campaign.campaignName }}</span>
+            <div class="campaign-kpis" aria-label="Campaign metrics">
+              <span class="kpi">
+                <span class="kpi-value">{{ fmtCurrency(campaign.spend) }}</span>
+                <span class="kpi-label">Spend</span>
+              </span>
+              <span class="kpi">
+                <span class="kpi-value">{{ fmtNumber(campaign.impressions) }}</span>
+                <span class="kpi-label">Impr</span>
+              </span>
+              <span class="kpi">
+                <span class="kpi-value">{{ fmtCtr(campaign.ctr) }}</span>
+                <span class="kpi-label">CTR</span>
+              </span>
+              <span class="kpi">
+                <span class="kpi-value">{{ campaign.frequency.toFixed(1) }}</span>
+                <span class="kpi-label">Freq</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="ads-list" aria-label="Ads in this campaign">
+            @for (ad of campaign.ads; track ad.adId) {
+              <div class="ad-row">
+                <span class="ad-name" [title]="ad.reason">{{ ad.adName }}</span>
+                <span
+                  class="verdict-badge"
+                  [class]="verdictClass(ad.verdict)"
+                  [attr.title]="ad.reason"
+                  role="img"
+                  [attr.aria-label]="verdictLabel(ad.verdict) + ': ' + ad.reason"
+                >{{ verdictLabel(ad.verdict) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Metrics row: Conversions / Other Metrics / Volume ──── -->
+  <div class="metrics-row">
+
+    <!-- Conversions -->
+    <section class="metrics-section" aria-labelledby="section-conversions">
+      <h2 class="section-title" id="section-conversions">Conversions</h2>
+      @if (store.events().length === 0) {
+        <p class="no-events">No Pixel events tracked in this period.</p>
+      } @else {
+        <div class="event-chips">
+          @for (event of store.events(); track event.actionType) {
+            <div class="event-chip">
+              <span class="chip-value">{{ fmtNumber(event.value) }}</span>
+              <span class="chip-label">{{ formatActionType(event.actionType) }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Other Metrics -->
+    <section class="metrics-section" aria-labelledby="section-other-metrics">
+      <h2 class="section-title" id="section-other-metrics">Other Metrics</h2>
+      @if (store.summary(); as s) {
+        <div class="metric-cards">
+          <div class="metric-card">
+            <span class="metric-value">{{ fmtCurrency(+s.cpm) }}</span>
+            <span class="metric-label">
+              CPM
+              <span class="info-icon" aria-hidden="true" data-tooltip="Cost per 1,000 impressions">i</span>
+            </span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">{{ fmtCtr(+s.ctr) }}</span>
+            <span class="metric-label">
+              CTR
+              <span class="info-icon" aria-hidden="true" data-tooltip="Click-through rate: clicks ÷ impressions">i</span>
+            </span>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Volume -->
+    <section class="metrics-section" aria-labelledby="section-volume">
+      <h2 class="section-title" id="section-volume">Volume</h2>
+      @if (store.summary(); as s) {
+        <div class="metric-cards">
+          <div class="metric-card">
+            <span class="metric-value">{{ fmtNumber(+s.impressions) }}</span>
+            <span class="metric-label">Impressions</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">{{ fmtNumber(+s.reach) }}</span>
+            <span class="metric-label">Reach</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-value">{{ fmtCurrency(+s.cpc) }}</span>
+            <span class="metric-label">
+              CPC
+              <span class="info-icon" aria-hidden="true" data-tooltip="Cost per click">i</span>
+            </span>
+          </div>
+        </div>
+      }
+    </section>
+
+  </div>
+
+  <!-- ── Gates ──────────────────────────────────────────────── -->
+  @if (store.gates().length > 0) {
+    <section class="section" aria-labelledby="section-gates">
+      <h2 class="section-title" id="section-gates">Gates</h2>
+      <div class="gate-grid" role="list" aria-label="Performance gate alerts">
+        @for (gate of store.gates(); track gate.type + gate.detail) {
+          <div class="gate-card gate-card--{{ gate.type }}" role="listitem">
+            <span class="gate-icon" aria-hidden="true">
+              @switch (gate.type) {
+                @case ('fatigue') { &#9888; }
+                @case ('low-roas') { &#128197; }
+                @case ('learning-phase') { &#9203; }
+              }
+            </span>
+            <div class="gate-body">
+              <span class="gate-label">{{ gate.label }}</span>
+              <span class="gate-detail">{{ gate.detail }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ── Recommended Changes ────────────────────────────────── -->
+  @if (store.recommendations().length > 0) {
+    <section class="section" aria-labelledby="section-recs">
+      <h2 class="section-title" id="section-recs">Recommended Changes</h2>
+      <div class="rec-grid" role="list" aria-label="Recommended actions">
+        @for (rec of store.recommendations(); track rec.label + rec.detail) {
+          <div class="rec-card" role="listitem">
+            <span class="rec-label">{{ rec.label }}</span>
+            <span class="rec-detail">{{ rec.detail }}</span>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+}

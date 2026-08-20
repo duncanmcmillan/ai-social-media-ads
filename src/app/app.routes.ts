@@ -21,15 +21,12 @@ export const routes: Routes = [
       import('./campaign-manager/campaign-manager.routes').then(m => m.CAMPAIGN_MANAGER_ROUTES),
   },
   {
-    path: 'optimisation',
+    path: 'dashboard',
     loadChildren: () =>
-      import('./optimisation/optimisation.routes').then(m => m.OPTIMISATION_ROUTES),
+      import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES),
   },
-  {
-    path: 'monitoring',
-    loadChildren: () =>
-      import('./monitoring/monitoring.routes').then(m => m.MONITORING_ROUTES),
-  },
+  { path: 'optimisation', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: 'monitoring',   redirectTo: 'dashboard', pathMatch: 'full' },
   {
     path: 'meta-setup',
     loadChildren: () =>

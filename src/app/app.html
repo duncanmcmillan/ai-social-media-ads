@@ -25,18 +25,11 @@
   >Campaign &amp; Ad Manager</a>
   <a
     class="nav-item"
-    routerLink="/optimisation"
+    routerLink="/dashboard"
     routerLinkActive="active"
-    #rlaOpt="routerLinkActive"
-    [attr.aria-current]="rlaOpt.isActive ? 'page' : null"
-  >Optimisation</a>
-  <a
-    class="nav-item"
-    routerLink="/monitoring"
-    routerLinkActive="active"
-    #rlaMon="routerLinkActive"
-    [attr.aria-current]="rlaMon.isActive ? 'page' : null"
-  >Monitoring &amp; Tools</a>
+    #rlaDash="routerLinkActive"
+    [attr.aria-current]="rlaDash.isActive ? 'page' : null"
+  >Dashboard</a>
   <a
     class="nav-item"
     routerLink="/meta-setup"

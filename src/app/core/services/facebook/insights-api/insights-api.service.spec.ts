@@ -120,10 +120,23 @@ describe('InsightsApiService', () => {
       r.params.get('date_preset') === 'this_month'
     );
     expect(req.request.method).toBe('GET');
-    req.flush({ data: [mockMetrics] });
+    expect(req.request.params.get('fields')).toContain('actions');
+
+    // API response uses snake_case; the service maps it to camelCase.
+    req.flush({
+      data: [{
+        impressions: '1000', clicks: '50', ctr: '5.00', cpc: '0.20',
+        cpm: '10.00', spend: '10.00', reach: '900',
+        date_start: '2024-01-01', date_stop: '2024-01-31',
+      }],
+    });
 
     const result = await promise;
-    expect(result).toEqual([mockMetrics]);
+    expect(result[0]).toMatchObject({
+      impressions: '1000', clicks: '50', ctr: '5.00', cpc: '0.20',
+      cpm: '10.00', spend: '10.00', reach: '900',
+      dateStart: '2024-01-01', dateStop: '2024-01-31',
+    });
   });
 
   it('getAccountInsights() should throw when no ad account is selected', async () => {
