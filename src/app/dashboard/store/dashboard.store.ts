@@ -11,9 +11,12 @@ import { LicenceStore, extractFacebookError } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import {
   evaluateAd,
+  scoreCampaign,
   type AdDashboardRow,
   type CampaignDashboardRow,
   type EventAction,
+  type FunnelLevel,
+  type FunnelMetrics,
   type Gate,
   type Recommendation,
 } from '../model/dashboard.model';
@@ -26,6 +29,24 @@ const ALL_PRESETS: DatePreset[] = [
   'today', 'yesterday', 'last_7d', 'last_14d', 'last_28d',
   'last_30d', 'last_month', 'this_month', 'this_year',
 ];
+
+/** Purchase and lead action types used for learning-phase and BOFU metrics. */
+const CONVERSION_ACTIONS = new Set([
+  'purchase', 'omni_purchase', 'offsite_conversion.fb_pixel_purchase',
+  'lead', 'offsite_conversion.fb_pixel_lead',
+  'complete_registration', 'submit_application',
+]);
+
+/** Purchase action types used for spend-weighted ROAS calculation. */
+const PURCHASE_ACTIONS = new Set([
+  'purchase', 'omni_purchase', 'offsite_conversion.fb_pixel_purchase',
+]);
+
+/** Lead action types used for BOFU lead count. */
+const LEAD_ACTIONS = new Set([
+  'lead', 'offsite_conversion.fb_pixel_lead',
+  'complete_registration', 'submit_application',
+]);
 
 /** Shape of the dashboard store state. */
 interface DashboardState {
@@ -41,6 +62,10 @@ interface DashboardState {
   campaigns: CampaignDashboardRow[];
   /** Flat list of all ad rows (used for events, gates, recommendations). */
   ads: AdDashboardRow[];
+  /** Campaign ID to filter all columns by, or null to show all campaigns. */
+  selectedCampaignId: string | null;
+  /** Funnel level filter applied to gates, recommendations, and funnel metrics. */
+  selectedFunnelLevel: FunnelLevel;
 }
 
 const initialState: DashboardState = {
@@ -50,6 +75,8 @@ const initialState: DashboardState = {
   summary: null,
   campaigns: [],
   ads: [],
+  selectedCampaignId: null,
+  selectedFunnelLevel: 'all',
 };
 
 /**
@@ -61,19 +88,49 @@ export const DashboardStore = signalStore(
   { providedIn: 'root' },
   withState<DashboardState>(initialState),
 
-  // First computed pass: events, gates, and available presets
+  // ── Pass 1: depends only on raw state ────────────────────────────────────
   withComputed((store) => {
-    const workspaceStore = inject(WorkspaceStore);
-    const licenceStore   = inject(LicenceStore);
+    const licenceStore = inject(LicenceStore);
 
     return {
       /**
-       * Conversion events aggregated across all ads, de-duplicated by action type.
-       * Used to populate the Conversions section.
+       * Date presets available to the current licence tier.
+       * Free users are limited to the three shortest ranges.
+       */
+      availablePresets: computed((): DatePreset[] =>
+        licenceStore.tier() === 'pro' ? ALL_PRESETS : FREE_PRESETS
+      ),
+
+      /**
+       * Ads filtered to the selected campaign, or all ads when no campaign is selected.
+       */
+      filteredAds: computed((): AdDashboardRow[] => {
+        const sid = store.selectedCampaignId();
+        if (sid === null) return store.ads();
+        return store.ads().filter(a => a.campaignId === sid);
+      }),
+
+      /**
+       * Campaigns sorted ascending by score (worst campaign first).
+       * Score is the sum of spend-weighted verdict weights across all ads.
+       */
+      orderedCampaigns: computed((): CampaignDashboardRow[] =>
+        [...store.campaigns()].sort((a, b) => scoreCampaign(a) - scoreCampaign(b))
+      ),
+    };
+  }),
+
+  // ── Pass 2: depends on filteredAds / orderedCampaigns from pass 1 ────────
+  withComputed((store) => {
+    const workspaceStore = inject(WorkspaceStore);
+
+    return {
+      /**
+       * Conversion events aggregated across filtered ads, de-duplicated by action type.
        */
       events: computed((): EventAction[] => {
         const totals = new Map<string, number>();
-        for (const ad of store.ads()) {
+        for (const ad of store.filteredAds()) {
           for (const action of ad.actions) {
             totals.set(action.actionType, (totals.get(action.actionType) ?? 0) + action.value);
           }
@@ -82,108 +139,175 @@ export const DashboardStore = signalStore(
       }),
 
       /**
-       * Gate alerts derived from campaign/ad metrics versus workspace thresholds.
+       * Gate alerts derived from filtered campaign/ad metrics versus workspace thresholds.
+       * Each gate has a severity score; gates are sorted descending (most urgent first).
        */
       gates: computed((): Gate[] => {
         const rules = workspaceStore.learningRules();
-        const ads = store.ads();
-        const campaigns = store.campaigns();
+        const ads = store.filteredAds();
+        const sid = store.selectedCampaignId();
+        const filteredCampaigns = store.orderedCampaigns().filter(c =>
+          sid === null || c.campaignId === sid
+        );
+        const level = store.selectedFunnelLevel();
         const result: Gate[] = [];
 
-        // Learning phase: total purchase/lead conversion events across all ads < 50.
-        // Only bottom-of-funnel event types count; mid-funnel signals (view_content etc.) are excluded.
-        const CONVERSION_ACTIONS = new Set([
-          'purchase', 'omni_purchase', 'offsite_conversion.fb_pixel_purchase',
-          'lead', 'offsite_conversion.fb_pixel_lead',
-          'complete_registration', 'submit_application',
-        ]);
+        // Learning phase: total purchase/lead conversion events < 50.
         const totalConversions = ads.reduce((sum, ad) =>
           sum + ad.actions
             .filter(a => CONVERSION_ACTIONS.has(a.actionType))
             .reduce((s, a) => s + a.value, 0), 0);
+
         if (ads.length > 0 && totalConversions < 50) {
-          result.push({
-            type: 'learning-phase',
-            label: 'Learning Phase',
-            detail: `${Math.round(totalConversions)} / 50 conversions — generate more events to exit the learning phase.`,
-          });
+          const severity = 1 - totalConversions / 50;
+          if (level === 'all' || level === 'mofu' || level === 'bofu') {
+            result.push({
+              type: 'learning-phase',
+              label: 'Learning Phase',
+              detail: `${Math.round(totalConversions)} / 50 conversions — generate more events to exit the learning phase.`,
+              severity,
+            });
+          }
         }
 
-        // Fatigue: campaign frequency above prospecting threshold
-        for (const campaign of campaigns) {
-          if (campaign.frequency > rules.prospectingFrequencyMax) {
+        // Fatigue: campaign frequency approaching or exceeding prospecting threshold.
+        for (const campaign of filteredCampaigns) {
+          const severity = campaign.frequency / rules.prospectingFrequencyMax;
+          if (severity >= 0.70 && (level === 'all' || level === 'tofu' || level === 'mofu')) {
             result.push({
               type: 'fatigue',
-              label: 'Ad Fatigue',
+              label: severity > 1.0 ? 'Ad Fatigue' : 'Approaching Fatigue',
               detail: `${campaign.campaignName} (Frequency: ${campaign.frequency.toFixed(1)})`,
+              severity,
             });
           }
         }
 
-        // Low ROAS: ad purchase ROAS below the winner floor
+        // Low ROAS: ad purchase ROAS below the winner floor.
         for (const ad of ads) {
           if (ad.purchaseRoas !== null && ad.purchaseRoas > 0 && ad.purchaseRoas < rules.winnerMinRoas) {
-            result.push({
-              type: 'low-roas',
-              label: 'Low ROAS',
-              detail: `${ad.adName} (ROAS: ${ad.purchaseRoas.toFixed(2)})`,
-            });
+            const severity = 1 - ad.purchaseRoas / rules.winnerMinRoas;
+            if (level === 'all' || level === 'bofu') {
+              result.push({
+                type: 'low-roas',
+                label: 'Low ROAS',
+                detail: `${ad.adName} (ROAS: ${ad.purchaseRoas.toFixed(2)})`,
+                severity,
+              });
+            }
           }
         }
 
-        return result;
+        // Sort descending by severity (most urgent / predicted to trigger soonest first).
+        return result.sort((a, b) => b.severity - a.severity);
       }),
 
       /**
-       * Date presets available to the current licence tier.
-       * Free users are limited to the three shortest ranges.
+       * Aggregated funnel metrics for the filtered campaign/ad set.
        */
-      availablePresets: computed((): DatePreset[] =>
-        licenceStore.tier() === 'pro' ? ALL_PRESETS : FREE_PRESETS
-      ),
+      funnelMetrics: computed((): FunnelMetrics => {
+        const ads = store.filteredAds();
+        const sid = store.selectedCampaignId();
+        const filteredCampaigns = store.orderedCampaigns().filter(c =>
+          sid === null || c.campaignId === sid
+        );
+
+        // TOFU: impression and reach totals from campaign-level data.
+        const tofuImpressions = filteredCampaigns.reduce((s, c) => s + c.impressions, 0);
+        const tofuReach = filteredCampaigns.reduce((s, c) => s + c.reach, 0);
+
+        // MOFU: engagement metrics derived from ad-level data.
+        const totalSpend = ads.reduce((s, a) => s + a.spend, 0);
+        const totalImpressions = ads.reduce((s, a) => s + a.impressions, 0);
+        const totalClicks = ads.reduce((s, a) => s + a.clicks, 0);
+        const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+        const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+        const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+        const frequency = ads.length > 0
+          ? ads.reduce((s, a) => s + a.frequency, 0) / ads.length
+          : 0;
+
+        // BOFU: conversion aggregates.
+        let purchases = 0;
+        let leads = 0;
+        let roasWeightedSum = 0;
+        let roasWeightSpend = 0;
+
+        for (const ad of ads) {
+          for (const action of ad.actions) {
+            if (PURCHASE_ACTIONS.has(action.actionType)) purchases += action.value;
+            if (LEAD_ACTIONS.has(action.actionType)) leads += action.value;
+          }
+          if (ad.purchaseRoas !== null && ad.purchaseRoas > 0) {
+            roasWeightedSum += ad.purchaseRoas * ad.spend;
+            roasWeightSpend += ad.spend;
+          }
+        }
+
+        const totalConversions = purchases + leads;
+        const cvr = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : null;
+        const cac = totalConversions > 0 ? totalSpend / totalConversions : null;
+        const roas = roasWeightSpend > 0 ? roasWeightedSum / roasWeightSpend : null;
+
+        return {
+          tofu: { impressions: tofuImpressions, reach: tofuReach },
+          mofu: { cpm, ctr, cpc, frequency },
+          bofu: { purchases, leads, cvr, cac, roas },
+          totalSpend,
+        };
+      }),
     };
   }),
 
-  // Second computed pass: recommendations depend on gates from the first pass
+  // ── Pass 3: depends on gates from pass 2 ─────────────────────────────────
   withComputed((store) => ({
     /**
      * Rule-based action cards derived from ad verdicts and gate alerts.
+     * Each recommendation carries a sourceType for gate→recommendation linking.
      */
     recommendations: computed((): Recommendation[] => {
       const recs: Recommendation[] = [];
+      const level = store.selectedFunnelLevel();
 
-      for (const ad of store.ads()) {
-        if (ad.verdict === 'low-ctr') {
+      // Verdict-derived recommendations (filtered by funnel level).
+      for (const ad of store.filteredAds()) {
+        if (ad.verdict === 'low-ctr' && (level === 'all' || level === 'mofu')) {
           recs.push({
             label: `Refresh creative on ${ad.adName}`,
             detail: `CTR: ${ad.ctr.toFixed(2)}%`,
+            sourceType: 'low-ctr',
           });
         }
-        if (ad.verdict === 'high-cpc') {
+        if (ad.verdict === 'high-cpc' && (level === 'all' || level === 'mofu')) {
           recs.push({
             label: `Narrow audience targeting for ${ad.adName}`,
             detail: `CPC: ${ad.cpc.toFixed(2)}`,
+            sourceType: 'high-cpc',
           });
         }
       }
 
+      // Gate-derived recommendations (gates are already filtered by funnel level).
       for (const gate of store.gates()) {
         if (gate.type === 'fatigue') {
           recs.push({
             label: 'Rotate creatives or expand audience',
             detail: gate.detail,
+            sourceType: 'fatigue',
           });
         }
         if (gate.type === 'low-roas') {
           recs.push({
             label: 'Review objective or targeting',
             detail: gate.detail,
+            sourceType: 'low-roas',
           });
         }
         if (gate.type === 'learning-phase') {
           recs.push({
             label: 'Generate more conversions to exit learning phase',
             detail: gate.detail,
+            sourceType: 'learning-phase',
           });
         }
       }
@@ -206,6 +330,22 @@ export const DashboardStore = signalStore(
     },
 
     /**
+     * Filters all columns to the specified campaign, or shows all when null.
+     * @param id - The campaign ID to select, or null to show all campaigns.
+     */
+    selectCampaign(id: string | null): void {
+      patchState(store, { selectedCampaignId: id });
+    },
+
+    /**
+     * Applies the funnel level filter to gates, recommendations, and funnel metrics.
+     * @param level - The funnel level to filter by.
+     */
+    selectFunnelLevel(level: FunnelLevel): void {
+      patchState(store, { selectedFunnelLevel: level });
+    },
+
+    /**
      * Fetches account, campaign, and ad-level insights in parallel.
      * Evaluates ad verdicts against workspace learning rules and patches state.
      * @throws Never — errors are caught and stored in `error`.
@@ -224,10 +364,10 @@ export const DashboardStore = signalStore(
         const rules = workspaceStore.learningRules();
 
         const ads: AdDashboardRow[] = adData.map(r => {
-          const spend       = parseFloat(r.spend)         || 0;
-          const impressions = parseInt(r.impressions, 10)  || 0;
-          const ctr         = parseFloat(r.ctr)            || 0;
-          const cpc         = parseFloat(r.cpc)            || 0;
+          const spend       = parseFloat(r.spend)           || 0;
+          const impressions = parseInt(r.impressions, 10)    || 0;
+          const ctr         = parseFloat(r.ctr)              || 0;
+          const cpc         = parseFloat(r.cpc)              || 0;
           const frequency   = parseFloat(r.frequency ?? '0') || 0;
           const { verdict, reason } = evaluateAd({ spend, impressions, ctr, cpc }, rules, currency);
 
@@ -253,12 +393,13 @@ export const DashboardStore = signalStore(
         const campaigns: CampaignDashboardRow[] = campaignData.map(c => ({
           campaignId:   c.campaignId,
           campaignName: c.campaignName,
-          spend:        parseFloat(c.spend)         || 0,
-          impressions:  parseInt(c.impressions, 10)  || 0,
-          clicks:       parseInt(c.clicks, 10)       || 0,
-          ctr:          parseFloat(c.ctr)            || 0,
-          cpc:          parseFloat(c.cpc)            || 0,
+          spend:        parseFloat(c.spend)           || 0,
+          impressions:  parseInt(c.impressions, 10)    || 0,
+          clicks:       parseInt(c.clicks, 10)         || 0,
+          ctr:          parseFloat(c.ctr)              || 0,
+          cpc:          parseFloat(c.cpc)              || 0,
           frequency:    parseFloat(c.frequency ?? '0') || 0,
+          reach:        parseInt(c.reach ?? '0', 10)   || 0,
           ads:          ads.filter(a => a.campaignId === c.campaignId),
         }));
 
@@ -341,11 +482,13 @@ export const DashboardStore = signalStore(
         {
           campaignId: 'seed-c-1', campaignName: 'Summer Sale — Retargeting',
           spend: 607.70, impressions: 98500, clicks: 1781, ctr: 1.81, cpc: 0.34, frequency: 1.8,
+          reach: 72300,
           ads: ads.filter(a => a.campaignId === 'seed-c-1'),
         },
         {
           campaignId: 'seed-c-2', campaignName: 'Prospecting — UK',
           spend: 261.00, impressions: 34030, clicks: 573, ctr: 1.68, cpc: 0.46, frequency: 4.2,
+          reach: 25800,
           ads: ads.filter(a => a.campaignId === 'seed-c-2'),
         },
       ];

@@ -62,22 +62,40 @@
   </div>
 }
 
-<!-- Dashboard content -->
+<!-- Dashboard 4-column grid -->
 @if (hasCampaigns()) {
+  <div class="dashboard-grid">
 
-  <!-- ── Launched Campaigns & Ads ─────────────────────────────── -->
-  <section class="section" aria-labelledby="section-campaigns">
-    <h2 class="section-title" id="section-campaigns">Launched Campaigns &amp; Ads</h2>
-    <div class="campaign-grid">
-      @for (campaign of store.campaigns(); track campaign.campaignId) {
-        <div class="campaign-card">
-          <div class="campaign-header">
-            <span class="campaign-name">{{ campaign.campaignName }}</span>
+    <!-- ── Column 1: Campaigns & Ads ──────────────────────────────────── -->
+    <div class="col col--campaigns">
+      <div class="col-header">
+        <span class="col-title">Campaigns &amp; Ads</span>
+        <button
+          class="chip"
+          [class.chip--active]="store.selectedCampaignId() === null"
+          type="button"
+          (click)="store.selectCampaign(null)"
+          aria-label="Show all campaigns"
+        >ALL</button>
+      </div>
+
+      <div class="campaign-list" role="list" aria-label="Campaigns">
+        @for (campaign of store.orderedCampaigns(); track campaign.campaignId) {
+          <div
+            class="campaign-card"
+            [class.campaign-card--active]="store.selectedCampaignId() === campaign.campaignId"
+            [style.border-left-color]="campaignBorderColor(campaign)"
+            role="listitem"
+            (click)="store.selectCampaign(campaign.campaignId)"
+            [attr.aria-pressed]="store.selectedCampaignId() === campaign.campaignId"
+            [attr.aria-label]="campaign.campaignName + ' campaign'"
+          >
+            <div class="campaign-header">
+              <span class="campaign-name" [title]="campaign.campaignName">{{ campaign.campaignName }}</span>
+              <span class="spend-chip">{{ fmtCurrency(campaign.spend) }}</span>
+            </div>
+
             <div class="campaign-kpis" aria-label="Campaign metrics">
-              <span class="kpi">
-                <span class="kpi-value">{{ fmtCurrency(campaign.spend) }}</span>
-                <span class="kpi-label">Spend</span>
-              </span>
               <span class="kpi">
                 <span class="kpi-value">{{ fmtNumber(campaign.impressions) }}</span>
                 <span class="kpi-label">Impr</span>
@@ -87,137 +105,193 @@
                 <span class="kpi-label">CTR</span>
               </span>
               <span class="kpi">
-                <span class="kpi-value">{{ campaign.frequency.toFixed(1) }}</span>
+                <span class="kpi-value" [class]="freqClass(campaign.frequency)">{{ campaign.frequency.toFixed(1) }}</span>
                 <span class="kpi-label">Freq</span>
               </span>
             </div>
-          </div>
 
-          <div class="ads-list" aria-label="Ads in this campaign">
-            @for (ad of campaign.ads; track ad.adId) {
-              <div class="ad-row">
-                <span class="ad-name" [title]="ad.reason">{{ ad.adName }}</span>
-                <span
-                  class="verdict-badge"
-                  [class]="verdictClass(ad.verdict)"
-                  [attr.title]="ad.reason"
-                  role="img"
-                  [attr.aria-label]="verdictLabel(ad.verdict) + ': ' + ad.reason"
-                >{{ verdictLabel(ad.verdict) }}</span>
+            <div class="ads-list" aria-label="Ads in this campaign">
+              @for (ad of campaign.ads; track ad.adId) {
+                <div class="ad-row">
+                  <span class="ad-name" [title]="ad.reason">{{ ad.adName }}</span>
+                  <span
+                    class="verdict-badge"
+                    [class]="verdictClass(ad.verdict)"
+                    [attr.title]="ad.reason"
+                    role="img"
+                    [attr.aria-label]="verdictLabel(ad.verdict) + ': ' + ad.reason"
+                  >{{ verdictLabel(ad.verdict) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Column 2: Funnel Metrics ────────────────────────────────────── -->
+    <div class="col col--funnel">
+      <div class="col-header">
+        <span class="col-title">Funnel</span>
+      </div>
+
+      <nav class="funnel-tabs" aria-label="Funnel level filter" role="tablist">
+        @for (level of funnelLevels; track level.key) {
+          <button
+            class="funnel-tab"
+            [class.funnel-tab--active]="store.selectedFunnelLevel() === level.key"
+            type="button"
+            role="tab"
+            [attr.aria-selected]="store.selectedFunnelLevel() === level.key"
+            (click)="store.selectFunnelLevel(level.key)"
+          >{{ level.label }}</button>
+        }
+      </nav>
+
+      <div class="funnel-metrics" aria-live="polite">
+
+        @if (store.selectedFunnelLevel() === 'all' || store.selectedFunnelLevel() === 'tofu') {
+          <div class="metric-group">
+            <div class="metric-group-label">TOFU</div>
+            <div class="metric-row">
+              <span class="metric-name">Impressions</span>
+              <span class="metric-val">{{ fmtNumber(store.funnelMetrics().tofu.impressions) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-name">Reach</span>
+              <span class="metric-val">{{ fmtNumber(store.funnelMetrics().tofu.reach) }}</span>
+            </div>
+          </div>
+        }
+
+        @if (store.selectedFunnelLevel() === 'all' || store.selectedFunnelLevel() === 'mofu') {
+          <div class="metric-group">
+            <div class="metric-group-label">MOFU</div>
+            <div class="metric-row">
+              <span class="metric-name">CPM</span>
+              <span class="metric-val">{{ fmtCurrency(store.funnelMetrics().mofu.cpm) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-name">CTR</span>
+              <span class="metric-val">{{ fmtCtr(store.funnelMetrics().mofu.ctr) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-name">CPC</span>
+              <span class="metric-val">{{ fmtCurrency(store.funnelMetrics().mofu.cpc) }}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-name">Avg Freq</span>
+              <span class="metric-val">{{ store.funnelMetrics().mofu.frequency.toFixed(1) }}</span>
+            </div>
+          </div>
+        }
+
+        @if (store.selectedFunnelLevel() === 'all' || store.selectedFunnelLevel() === 'bofu') {
+          <div class="metric-group">
+            <div class="metric-group-label">BOFU</div>
+            @if (store.funnelMetrics().bofu.purchases > 0) {
+              <div class="metric-row">
+                <span class="metric-name">Purchases</span>
+                <span class="metric-val">{{ fmtNumber(store.funnelMetrics().bofu.purchases) }}</span>
+              </div>
+            }
+            @if (store.funnelMetrics().bofu.leads > 0) {
+              <div class="metric-row">
+                <span class="metric-name">Leads</span>
+                <span class="metric-val">{{ fmtNumber(store.funnelMetrics().bofu.leads) }}</span>
+              </div>
+            }
+            @if (store.funnelMetrics().bofu.cvr !== null) {
+              <div class="metric-row">
+                <span class="metric-name">CVR</span>
+                <span class="metric-val">{{ fmtPercent(store.funnelMetrics().bofu.cvr) }}</span>
+              </div>
+            }
+            @if (store.funnelMetrics().bofu.cac !== null) {
+              <div class="metric-row">
+                <span class="metric-name">CAC</span>
+                <span class="metric-val">{{ fmtCurrency(store.funnelMetrics().bofu.cac!) }}</span>
+              </div>
+            }
+            @if (store.funnelMetrics().bofu.roas !== null) {
+              <div class="metric-row">
+                <span class="metric-name">ROAS</span>
+                <span class="metric-val">{{ store.funnelMetrics().bofu.roas!.toFixed(2) }}x</span>
               </div>
             }
           </div>
+        }
+
+        <div class="metric-group metric-group--total">
+          <div class="metric-row metric-row--total">
+            <span class="metric-name">Total Spend</span>
+            <span class="metric-val">{{ fmtCurrency(store.funnelMetrics().totalSpend) }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Column 3: Gates ──────────────────────────────────────────────── -->
+    <div class="col col--gates">
+      <div class="col-header">
+        <span class="col-title">Gates</span>
+      </div>
+
+      @if (store.gates().length === 0) {
+        <div class="col-empty">No gates triggered for the current filter.</div>
+      } @else {
+        <div class="gate-list" role="list" aria-label="Performance gate alerts">
+          @for (gate of store.gates(); track gate.type + gate.detail; let i = $index) {
+            <button
+              class="gate-card gate-card--{{ gate.type }}"
+              [class.gate-card--active]="selectedGateIndex() === i"
+              type="button"
+              role="listitem"
+              [attr.aria-pressed]="selectedGateIndex() === i"
+              [attr.aria-label]="gate.label + ': ' + gate.detail"
+              (click)="toggleGate(i)"
+            >
+              <div class="gate-header">
+                <span class="gate-icon" aria-hidden="true">{{ gateIcon(gate.type) }}</span>
+                <span class="gate-label">{{ gate.label }}</span>
+              </div>
+              <span class="gate-detail">{{ gate.detail }}</span>
+              <div class="severity-bar-track" aria-hidden="true">
+                <div
+                  class="severity-bar-fill severity-bar-fill--{{ gate.type }}"
+                  [style.width.%]="severityWidth(gate.severity)"
+                ></div>
+              </div>
+            </button>
+          }
         </div>
       }
     </div>
-  </section>
 
-  <!-- ── Metrics row: Conversions / Other Metrics / Volume ──── -->
-  <div class="metrics-row">
+    <!-- ── Column 4: Recommended Changes ───────────────────────────────── -->
+    <div class="col col--recs">
+      <div class="col-header">
+        <span class="col-title">Recommended Changes</span>
+      </div>
 
-    <!-- Conversions -->
-    <section class="metrics-section" aria-labelledby="section-conversions">
-      <h2 class="section-title" id="section-conversions">Conversions</h2>
-      @if (store.events().length === 0) {
-        <p class="no-events">No Pixel events tracked in this period.</p>
+      @if (store.recommendations().length === 0) {
+        <div class="col-empty">No recommendations for the current filter.</div>
       } @else {
-        <div class="event-chips">
-          @for (event of store.events(); track event.actionType) {
-            <div class="event-chip">
-              <span class="chip-value">{{ fmtNumber(event.value) }}</span>
-              <span class="chip-label">{{ formatActionType(event.actionType) }}</span>
+        <div class="rec-list" role="list" aria-label="Recommended actions">
+          @for (rec of store.recommendations(); track rec.label + rec.detail) {
+            <div
+              class="rec-card rec-card--{{ rec.sourceType }}"
+              [class.rec-card--highlighted]="isRecHighlighted(rec.sourceType)"
+              role="listitem"
+            >
+              <span class="rec-label">{{ rec.label }}</span>
+              <span class="rec-detail">{{ rec.detail }}</span>
             </div>
           }
         </div>
       }
-    </section>
-
-    <!-- Other Metrics -->
-    <section class="metrics-section" aria-labelledby="section-other-metrics">
-      <h2 class="section-title" id="section-other-metrics">Other Metrics</h2>
-      @if (store.summary(); as s) {
-        <div class="metric-cards">
-          <div class="metric-card">
-            <span class="metric-value">{{ fmtCurrency(+s.cpm) }}</span>
-            <span class="metric-label">
-              CPM
-              <span class="info-icon" aria-hidden="true" data-tooltip="Cost per 1,000 impressions">i</span>
-            </span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-value">{{ fmtCtr(+s.ctr) }}</span>
-            <span class="metric-label">
-              CTR
-              <span class="info-icon" aria-hidden="true" data-tooltip="Click-through rate: clicks ÷ impressions">i</span>
-            </span>
-          </div>
-        </div>
-      }
-    </section>
-
-    <!-- Volume -->
-    <section class="metrics-section" aria-labelledby="section-volume">
-      <h2 class="section-title" id="section-volume">Volume</h2>
-      @if (store.summary(); as s) {
-        <div class="metric-cards">
-          <div class="metric-card">
-            <span class="metric-value">{{ fmtNumber(+s.impressions) }}</span>
-            <span class="metric-label">Impressions</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-value">{{ fmtNumber(+s.reach) }}</span>
-            <span class="metric-label">Reach</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-value">{{ fmtCurrency(+s.cpc) }}</span>
-            <span class="metric-label">
-              CPC
-              <span class="info-icon" aria-hidden="true" data-tooltip="Cost per click">i</span>
-            </span>
-          </div>
-        </div>
-      }
-    </section>
+    </div>
 
   </div>
-
-  <!-- ── Gates ──────────────────────────────────────────────── -->
-  @if (store.gates().length > 0) {
-    <section class="section" aria-labelledby="section-gates">
-      <h2 class="section-title" id="section-gates">Gates</h2>
-      <div class="gate-grid" role="list" aria-label="Performance gate alerts">
-        @for (gate of store.gates(); track gate.type + gate.detail) {
-          <div class="gate-card gate-card--{{ gate.type }}" role="listitem">
-            <span class="gate-icon" aria-hidden="true">
-              @switch (gate.type) {
-                @case ('fatigue') { &#9888; }
-                @case ('low-roas') { &#128197; }
-                @case ('learning-phase') { &#9203; }
-              }
-            </span>
-            <div class="gate-body">
-              <span class="gate-label">{{ gate.label }}</span>
-              <span class="gate-detail">{{ gate.detail }}</span>
-            </div>
-          </div>
-        }
-      </div>
-    </section>
-  }
-
-  <!-- ── Recommended Changes ────────────────────────────────── -->
-  @if (store.recommendations().length > 0) {
-    <section class="section" aria-labelledby="section-recs">
-      <h2 class="section-title" id="section-recs">Recommended Changes</h2>
-      <div class="rec-grid" role="list" aria-label="Recommended actions">
-        @for (rec of store.recommendations(); track rec.label + rec.detail) {
-          <div class="rec-card" role="listitem">
-            <span class="rec-label">{{ rec.label }}</span>
-            <span class="rec-detail">{{ rec.detail }}</span>
-          </div>
-        }
-      </div>
-    </section>
-  }
-
 }

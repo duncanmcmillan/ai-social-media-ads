@@ -1,14 +1,20 @@
 /**
  * @fileoverview Dashboard component — the primary operational view.
- * Displays a card-based layout covering launched campaigns and ads,
- * conversion events, mid-funnel metrics, volume, gate alerts, and
- * rule-based recommendations.
+ * Displays a 4-column layout covering launched campaigns and ads,
+ * funnel metrics, gate alerts, and rule-based recommendations.
  */
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AuthStore } from '../../auth';
 import { LicenceStore } from '../../core';
+import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
-import type { Verdict } from '../model/dashboard.model';
+import {
+  worstVerdict,
+  type CampaignDashboardRow,
+  type FunnelLevel,
+  type GateType,
+  type Verdict,
+} from '../model/dashboard.model';
 
 /** Human-readable labels for each date preset. */
 const DATE_PRESET_LABELS: Record<string, string> = {
@@ -47,10 +53,18 @@ const VERDICT_LABELS: Record<Verdict, string> = {
   ok:           'On Track',
 };
 
+/** CSS colour token for each verdict (maps to :host CSS custom properties). */
+const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
+  winner:    'var(--col-winner)',
+  ok:        'var(--col-ok)',
+  'low-ctr': 'var(--col-low-ctr)',
+  'high-cpc': 'var(--col-high-cpc)',
+};
+
 /**
  * Dashboard component providing a high-level at-a-glance operational view
- * of all launched campaigns, ads, conversion events, performance metrics,
- * gate alerts, and actionable recommendations.
+ * of all launched campaigns and ads, funnel metrics, performance gate alerts,
+ * and actionable recommendations in a 4-column operational layout.
  */
 @Component({
   selector: 'app-dashboard',
@@ -63,11 +77,32 @@ export class DashboardComponent {
   protected readonly store          = inject(DashboardStore);
   protected readonly authStore      = inject(AuthStore);
   protected readonly licenceStore   = inject(LicenceStore);
+  protected readonly workspaceStore = inject(WorkspaceStore);
 
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
 
+  /** Currently selected gate index for gate→recommendation linking. */
+  protected readonly selectedGateIndex = signal<number | null>(null);
+
   /** True when campaign data is loaded and ready to display. */
   protected readonly hasCampaigns = computed(() => this.store.campaigns().length > 0);
+
+  /** Funnel level options for the column 2 toggle. */
+  protected readonly funnelLevels: { key: FunnelLevel; label: string }[] = [
+    { key: 'all',  label: 'All'  },
+    { key: 'tofu', label: 'TOFU' },
+    { key: 'mofu', label: 'MOFU' },
+    { key: 'bofu', label: 'BOFU' },
+  ];
+
+  constructor() {
+    // Reset selected gate when campaign or funnel filter changes.
+    effect(() => {
+      this.store.selectedCampaignId();
+      this.store.selectedFunnelLevel();
+      untracked(() => this.selectedGateIndex.set(null));
+    });
+  }
 
   /** Account currency used for number formatting. */
   private get currency(): string {
@@ -105,6 +140,16 @@ export class DashboardComponent {
    */
   protected fmtCtr(value: number): string {
     return isNaN(value) ? '—' : `${value.toFixed(2)}%`;
+  }
+
+  /**
+   * Formats a nullable decimal value as a percentage string.
+   * @param value - Decimal percentage or null.
+   * @returns A formatted string, or '—' for null/NaN.
+   */
+  protected fmtPercent(value: number | null): string {
+    if (value === null || isNaN(value)) return '—';
+    return `${value.toFixed(2)}%`;
   }
 
   /**
@@ -150,5 +195,73 @@ export class DashboardComponent {
    */
   protected async sync(): Promise<void> {
     await this.store.sync();
+  }
+
+  /**
+   * Returns the inline left-border CSS colour for a campaign card based on its worst ad verdict.
+   * @param campaign - The campaign row to colour.
+   * @returns A CSS colour string.
+   */
+  protected campaignBorderColor(campaign: CampaignDashboardRow): string {
+    const verdict = worstVerdict(campaign);
+    if (!verdict) return 'var(--neutral-300)';
+    return VERDICT_COLORS[verdict] ?? 'var(--neutral-300)';
+  }
+
+  /**
+   * Returns the CSS class for a frequency KPI chip based on proximity to the fatigue threshold.
+   * @param freq - The campaign frequency value.
+   * @returns A modifier class name, or empty string when below 70% of threshold.
+   */
+  protected freqClass(freq: number): string {
+    const max = this.workspaceStore.learningRules().prospectingFrequencyMax;
+    if (freq >= max) return 'kpi-freq--red';
+    if (freq >= max * 0.7) return 'kpi-freq--amber';
+    return '';
+  }
+
+  /**
+   * Toggles the selected gate index for gate→recommendation highlighting.
+   * Deselects the gate if it is already selected.
+   * @param index - The gate list index to toggle.
+   */
+  protected toggleGate(index: number): void {
+    this.selectedGateIndex.update(current => current === index ? null : index);
+  }
+
+  /**
+   * Returns true when the given source type matches the currently selected gate.
+   * @param sourceType - The recommendation source type to check.
+   * @returns True when the recommendation should be highlighted.
+   */
+  protected isRecHighlighted(sourceType: GateType | 'low-ctr' | 'high-cpc'): boolean {
+    const idx = this.selectedGateIndex();
+    if (idx === null) return false;
+    const gates = this.store.gates();
+    const gate = gates[idx];
+    return gate?.type === sourceType;
+  }
+
+  /**
+   * Returns the Unicode icon glyph for a gate type.
+   * @param type - The gate type.
+   * @returns A single Unicode character.
+   */
+  protected gateIcon(type: GateType): string {
+    switch (type) {
+      case 'fatigue':        return '⚠';
+      case 'low-roas':       return '📉';
+      case 'learning-phase': return '⏳';
+    }
+  }
+
+  /**
+   * Converts a gate severity value to a fill width percentage for the severity bar.
+   * Clamps to 100% maximum.
+   * @param severity - The gate severity value (>=0).
+   * @returns A number between 0 and 100.
+   */
+  protected severityWidth(severity: number): number {
+    return Math.min(severity * 100, 100);
   }
 }

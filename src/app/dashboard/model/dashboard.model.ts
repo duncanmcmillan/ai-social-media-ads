@@ -15,6 +15,9 @@ export type Verdict =
   | 'paused'
   | 'ok';
 
+/** Campaign funnel level filter. */
+export type FunnelLevel = 'all' | 'tofu' | 'mofu' | 'bofu';
+
 /** A single conversion event aggregated from the Facebook Insights API. */
 export interface EventAction {
   /** Facebook action type identifier (e.g. 'purchase', 'lead'). */
@@ -75,6 +78,8 @@ export interface CampaignDashboardRow {
   cpc: number;
   /** Average frequency for this campaign. */
   frequency: number;
+  /** Unique reach (people) for this campaign. */
+  reach: number;
   /** Ad rows belonging to this campaign. */
   ads: AdDashboardRow[];
 }
@@ -90,6 +95,12 @@ export interface Gate {
   label: string;
   /** Supporting detail with relevant metrics. */
   detail: string;
+  /**
+   * How far past (or approaching) the threshold this gate is.
+   * 1.0 = threshold exactly met; >1.0 = exceeded; <1.0 = approaching (fatigue only).
+   * For learning-phase: 1 − conversions/50. For low-roas: 1 − roas/minRoas.
+   */
+  severity: number;
 }
 
 /** An action card derived from gate alerts and ad verdicts. */
@@ -98,6 +109,45 @@ export interface Recommendation {
   label: string;
   /** Supporting detail with relevant metrics. */
   detail: string;
+  /** Gate type or verdict type that generated this recommendation. */
+  sourceType: GateType | 'low-ctr' | 'high-cpc';
+}
+
+/** Aggregated funnel metrics computed from the filtered campaign/ad data. */
+export interface FunnelMetrics {
+  /** Top-of-funnel volume metrics. */
+  tofu: {
+    /** Total impressions across filtered campaigns. */
+    impressions: number;
+    /** Unique reach across filtered campaigns. */
+    reach: number;
+  };
+  /** Mid-funnel engagement metrics. */
+  mofu: {
+    /** Cost per thousand impressions. */
+    cpm: number;
+    /** Click-through rate as a decimal percentage. */
+    ctr: number;
+    /** Cost per click. */
+    cpc: number;
+    /** Average ad frequency. */
+    frequency: number;
+  };
+  /** Bottom-of-funnel conversion metrics. */
+  bofu: {
+    /** Total purchase conversion events. */
+    purchases: number;
+    /** Total lead conversion events. */
+    leads: number;
+    /** Conversions ÷ clicks as a percentage, or null if no clicks. */
+    cvr: number | null;
+    /** Spend ÷ conversions (cost per acquisition), or null if no conversions. */
+    cac: number | null;
+    /** Spend-weighted purchase ROAS, or null if no ROAS data. */
+    roas: number | null;
+  };
+  /** Total ad spend across all filtered ads. */
+  totalSpend: number;
 }
 
 /** Minimal numeric ad metrics required by {@link evaluateAd}. */
@@ -158,4 +208,39 @@ export function evaluateAd(
     verdict: 'ok',
     reason: `Spend ${fmt(ad.spend)}, CTR ${ad.ctr.toFixed(2)}% — within normal range.`,
   };
+}
+
+/** Verdict priority ordering from worst (index 0) to best (last index). */
+const VERDICT_PRIORITY: Verdict[] = ['high-cpc', 'low-ctr', 'low-volume', 'paused', 'needs-data', 'ok', 'winner'];
+
+/**
+ * Scores a campaign based on the spend-weighted verdicts of its ads.
+ * Lower scores indicate worse campaigns (used to sort worst-first).
+ *
+ * @param campaign - The campaign row to score.
+ * @returns A numeric score; lower = worse.
+ */
+export function scoreCampaign(campaign: CampaignDashboardRow): number {
+  const verdictWeights: Record<Verdict, number> = {
+    'winner':     3,
+    'ok':         1,
+    'needs-data': 0,
+    'low-ctr':   -2,
+    'high-cpc':  -2,
+    'low-volume': -1,
+    'paused':    -1,
+  };
+  return campaign.ads.reduce((score, ad) => score + (verdictWeights[ad.verdict] ?? 0) * ad.spend, 0);
+}
+
+/**
+ * Returns the worst verdict among all ads in a campaign (used for border colour).
+ *
+ * @param campaign - The campaign row to inspect.
+ * @returns The worst verdict, or null if the campaign has no ads.
+ */
+export function worstVerdict(campaign: CampaignDashboardRow): Verdict | null {
+  if (campaign.ads.length === 0) return null;
+  const adVerdicts = new Set(campaign.ads.map(a => a.verdict));
+  return VERDICT_PRIORITY.find(v => adVerdicts.has(v)) ?? null;
 }
