@@ -70,7 +70,10 @@ describe('ReviewStepComponent', () => {
     // Open accordion to reveal campaign summary
     fixture.componentInstance['summaryOpen'].set(true);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Summer Sale');
+    // Campaign name is now in an inline editable input, not a dd element.
+    const nameInput = fixture.nativeElement.querySelector('#rs-camp-name') as HTMLInputElement;
+    expect(nameInput).toBeTruthy();
+    expect(nameInput.value).toBe('Summer Sale');
   });
 
   it('should show "No ad sets" empty state when adSets is empty', () => {
@@ -167,16 +170,18 @@ describe('ReviewStepComponent', () => {
 
   it('campaignReviewed defaults to false', () => {
     const fixture = TestBed.createComponent(ReviewStepComponent);
-    const comp = fixture.componentInstance as unknown as { campaignReviewed: () => boolean };
+    const store = TestBed.inject(NewCampaignStore);
     fixture.detectChanges();
-    expect(comp.campaignReviewed()).toBe(false);
+    // campaignReviewed now delegates to the store signal.
+    expect(store.campaignReviewed()).toBe(false);
   });
 
   it('adSetsReviewed defaults to false', () => {
     const fixture = TestBed.createComponent(ReviewStepComponent);
-    const comp = fixture.componentInstance as unknown as { adSetsReviewed: () => boolean };
+    const store = TestBed.inject(NewCampaignStore);
     fixture.detectChanges();
-    expect(comp.adSetsReviewed()).toBe(false);
+    // adSetsReviewed now delegates to the store signal.
+    expect(store.adSetsReviewed()).toBe(false);
   });
 
   it('preflight includes Campaign reviewed and Ad sets reviewed items', () => {

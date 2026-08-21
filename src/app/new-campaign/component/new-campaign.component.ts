@@ -33,17 +33,22 @@ const OBJECTIVE_LABELS: Record<string, string> = {
   imports: [RouterOutlet, RouterLink, GuidePanelComponent],
   templateUrl: './new-campaign.component.html',
   styleUrl: './new-campaign.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.Default,
 })
 export class NewCampaignComponent {
-  protected readonly store         = inject(NewCampaignStore);
+  protected readonly store          = inject(NewCampaignStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
-  protected readonly guidesStore   = inject(GuidesStore);
-  protected readonly licenceStore  = inject(LicenceStore);
-  private readonly router          = inject(Router);
+  protected readonly guidesStore    = inject(GuidesStore);
+  protected readonly licenceStore   = inject(LicenceStore);
+  private readonly router           = inject(Router);
 
   protected readonly steps = STEPS;
   protected readonly objectiveLabels = OBJECTIVE_LABELS;
+
+  /** Whether the wizard is currently in Fast AI Mode (/new-campaign/fast). */
+  protected get isFastMode(): boolean {
+    return this.router.url.includes('/new-campaign/fast');
+  }
 
   /** Controls visibility of the Marketing Guide slide-over panel. */
   protected readonly guidePanelOpen = signal(false);

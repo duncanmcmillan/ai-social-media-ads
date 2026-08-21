@@ -87,11 +87,25 @@
 
       <!-- Preview thumbnail -->
       <div class="copy-preview">
-        @if (creative.fileType === 'image') {
+        @if (creative.objectUrl && creative.fileType === 'image') {
           <img [src]="creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
         }
         <span class="copy-preview-name">{{ creative.fileName }}</span>
       </div>
+
+      <!-- Re-upload prompt for template-loaded creatives with no file -->
+      @if (!creative.file) {
+        <label class="cs-reupload">
+          <input
+            type="file"
+            class="cs-reupload-input"
+            accept="image/*,video/*"
+            (change)="onReplaceFile(store.activeCreativeIndex(), $event)"
+          />
+          <span class="cs-reupload-btn" aria-hidden="true">Upload file</span>
+          <span class="cs-reupload-hint">Loaded from template — upload an image or video to enable launch</span>
+        </label>
+      }
 
       <!-- Tone chips -->
       <div class="chip-group">

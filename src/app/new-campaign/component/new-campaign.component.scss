@@ -109,6 +109,40 @@
   margin-left: auto;
 }
 
+/* ── Mode toggle pill ────────────────────────────────────────────────── */
+.nc-mode-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: 16px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.nc-mode-toggle__btn {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--neutral-500);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover { color: var(--neutral-700); background: var(--neutral-200); }
+
+  &:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+  }
+
+  &--active {
+    background: var(--neutral-0);
+    color: var(--neutral-800);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+}
+
 /* ── Warnings & Errors ───────────────────────────────────────────────── */
 .nc-setup-warning {
   display: flex;

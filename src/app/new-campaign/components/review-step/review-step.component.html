@@ -28,75 +28,124 @@
 
       @if (store.hasCreatives()) {
         <div class="review-creatives-grid">
-          @for (creative of store.creatives(); track creative.id) {
+          @for (creative of store.creatives(); track creative.id; let i = $index) {
             <div
-              class="mini-fb-card"
-              [class.mini-fb-card--reviewed]="reviewedIds().has(creative.id)"
+              class="review-creative-wrap"
+              [class.review-creative-wrap--reviewed]="reviewedIds().has(creative.id)"
             >
-              <!-- Identity row -->
-              <div class="mini-fb-id">
-                <div class="mini-fb-avatar" aria-hidden="true"><span>f</span></div>
-                <div class="mini-fb-meta">
-                  <div class="mini-fb-page">{{ pageName() }}</div>
-                  <div class="mini-fb-sponsored">Sponsored</div>
-                </div>
-                <span
-                  class="mini-status-chip"
-                  [class.mini-status-chip--active]="creative.launchStatus === 'active'"
-                >
-                  {{ creative.launchStatus === 'active' ? 'Active' : 'Paused' }}
-                </span>
-              </div>
-
-              <!-- Primary text -->
-              @if (creative.primaryText) {
-                <p class="mini-fb-body">{{ truncate(creative.primaryText, 100) }}</p>
-              } @else {
-                <p class="mini-fb-body mini-fb-body--placeholder">Add primary text…</p>
-              }
-
-              <!-- Image / Video -->
-              <div class="mini-fb-image-wrap">
-                @if (creative.fileType === 'image') {
-                  <img
-                    [src]="creative.objectUrl"
-                    [alt]="creative.fileName"
-                    class="mini-fb-image"
-                  />
-                } @else {
-                  <div
-                    class="mini-fb-video-placeholder"
-                    [attr.aria-label]="'Video: ' + creative.fileName"
-                  >
-                    <span aria-hidden="true">&#9654;</span>
-                  </div>
-                }
-              </div>
-
-              <!-- Link card -->
-              <div class="mini-fb-link-card">
-                <div class="mini-fb-link-copy">
-                  <div class="mini-fb-domain">{{ previewDomain() }}</div>
-                  <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
-                </div>
-                <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
-              </div>
-
-              <!-- Review toggle -->
-              <button
-                type="button"
-                class="mini-fb-review-btn"
-                [class.mini-fb-review-btn--done]="reviewedIds().has(creative.id)"
-                (click)="toggleReviewed(creative.id)"
-                [attr.aria-pressed]="reviewedIds().has(creative.id)"
-                [attr.aria-label]="(reviewedIds().has(creative.id) ? 'Unmark' : 'Mark') + ' ' + creative.fileName + ' as reviewed'"
+              <!-- Mini Facebook card (live preview) -->
+              <div
+                class="mini-fb-card"
+                [class.mini-fb-card--reviewed]="reviewedIds().has(creative.id)"
               >
-                @if (reviewedIds().has(creative.id)) {
-                  &#10003; Reviewed
+                <!-- Identity row -->
+                <div class="mini-fb-id">
+                  <div class="mini-fb-avatar" aria-hidden="true"><span>f</span></div>
+                  <div class="mini-fb-meta">
+                    <div class="mini-fb-page">{{ pageName() }}</div>
+                    <div class="mini-fb-sponsored">Sponsored</div>
+                  </div>
+                  <span
+                    class="mini-status-chip"
+                    [class.mini-status-chip--active]="creative.launchStatus === 'active'"
+                  >
+                    {{ creative.launchStatus === 'active' ? 'Active' : 'Paused' }}
+                  </span>
+                </div>
+
+                <!-- Primary text -->
+                @if (creative.primaryText) {
+                  <p class="mini-fb-body">{{ truncate(creative.primaryText, 100) }}</p>
                 } @else {
-                  Mark reviewed
+                  <p class="mini-fb-body mini-fb-body--placeholder">Add primary text…</p>
                 }
-              </button>
+
+                <!-- Image / Video -->
+                <div class="mini-fb-image-wrap">
+                  @if (creative.objectUrl) {
+                    @if (creative.fileType === 'image') {
+                      <img
+                        [src]="creative.objectUrl"
+                        [alt]="creative.fileName"
+                        class="mini-fb-image"
+                      />
+                    } @else {
+                      <div
+                        class="mini-fb-video-placeholder"
+                        [attr.aria-label]="'Video: ' + creative.fileName"
+                      >
+                        <span aria-hidden="true">&#9654;</span>
+                      </div>
+                    }
+                  } @else {
+                    <div class="mini-fb-no-preview" aria-label="No preview — re-upload file to launch">
+                      <span aria-hidden="true">&#128444;</span>
+                      <span class="mini-fb-no-preview-text">Re-upload to preview</span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Link card -->
+                <div class="mini-fb-link-card">
+                  <div class="mini-fb-link-copy">
+                    <div class="mini-fb-domain">{{ previewDomain() }}</div>
+                    <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
+                  </div>
+                  <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
+                </div>
+
+                <!-- Review toggle -->
+                <button
+                  type="button"
+                  class="mini-fb-review-btn"
+                  [class.mini-fb-review-btn--done]="reviewedIds().has(creative.id)"
+                  (click)="toggleReviewed(creative.id)"
+                  [attr.aria-pressed]="reviewedIds().has(creative.id)"
+                  [attr.aria-label]="(reviewedIds().has(creative.id) ? 'Unmark' : 'Mark') + ' ' + creative.fileName + ' as reviewed'"
+                >
+                  @if (reviewedIds().has(creative.id)) {
+                    &#10003; Reviewed
+                  } @else {
+                    Mark reviewed
+                  }
+                </button>
+              </div>
+
+              <!-- Inline edit fields -->
+              <div class="rs-creative-edit">
+                <textarea
+                  class="rs-edit-textarea"
+                  rows="3"
+                  [value]="creative.primaryText"
+                  (input)="updateCreative(i, 'primaryText', $any($event.target).value)"
+                  aria-label="Primary text"
+                  placeholder="Primary text…"
+                ></textarea>
+                <input
+                  class="rs-edit-input"
+                  [value]="creative.headline"
+                  (input)="updateCreative(i, 'headline', $any($event.target).value)"
+                  aria-label="Headline"
+                  placeholder="Headline…"
+                />
+                <input
+                  class="rs-edit-input"
+                  [value]="creative.description"
+                  (input)="updateCreative(i, 'description', $any($event.target).value)"
+                  aria-label="Description"
+                  placeholder="Description…"
+                />
+                <select
+                  class="rs-edit-select"
+                  [value]="creative.cta"
+                  (change)="updateCreative(i, 'cta', $any($event.target).value)"
+                  aria-label="Call to action"
+                >
+                  @for (opt of ctaOptions; track opt) {
+                    <option [value]="opt">{{ ctaLabel(opt) }}</option>
+                  }
+                </select>
+              </div>
             </div>
           }
         </div>
@@ -150,10 +199,18 @@
               <a class="review-edit-link" routerLink="../campaign" aria-label="Edit campaign">Edit</a>
             </div>
             @if (store.campaign().name) {
+              <!-- Inline editable name -->
+              <div class="rs-inline-field">
+                <label class="rs-inline-label" [for]="'rs-camp-name'">Name</label>
+                <input
+                  id="rs-camp-name"
+                  class="rs-edit-input"
+                  [value]="store.campaign().name"
+                  (input)="store.updateCampaign({ name: $any($event.target).value })"
+                  aria-label="Campaign name"
+                />
+              </div>
               <dl class="review-dl">
-                <dt>Name</dt>
-                <dd>{{ store.campaign().name }}</dd>
-
                 <dt>Objective</dt>
                 <dd>{{ objectiveLabel() }}</dd>
 
@@ -175,6 +232,21 @@
                   <dd class="review-dl-mono">{{ store.campaign().utmParameters }}</dd>
                 }
               </dl>
+              <!-- Inline editable budget -->
+              @if (store.campaign().budgetType === 'campaign') {
+                <div class="rs-inline-field rs-inline-field--mt">
+                  <label class="rs-inline-label" [for]="'rs-camp-budget'">Budget ({{ store.campaign().budgetPeriod === 'daily' ? 'daily' : 'lifetime' }})</label>
+                  <input
+                    id="rs-camp-budget"
+                    type="number"
+                    class="rs-edit-input"
+                    [value]="store.campaign().budgetAmount"
+                    (input)="store.updateCampaign({ budgetAmount: +$any($event.target).value })"
+                    aria-label="Campaign budget amount"
+                    min="1"
+                  />
+                </div>
+              }
             } @else {
               <p class="review-empty">No campaign details.</p>
             }
@@ -182,7 +254,7 @@
               type="button"
               class="summary-review-btn"
               [class.summary-review-btn--done]="campaignReviewed()"
-              (click)="campaignReviewed.set(!campaignReviewed())"
+              (click)="store.updateCampaignReviewed(!campaignReviewed())"
               [attr.aria-pressed]="campaignReviewed()"
               aria-label="Mark campaign as reviewed"
             >
@@ -229,7 +301,7 @@
               type="button"
               class="summary-review-btn"
               [class.summary-review-btn--done]="adSetsReviewed()"
-              (click)="adSetsReviewed.set(!adSetsReviewed())"
+              (click)="store.updateAdSetsReviewed(!adSetsReviewed())"
               [attr.aria-pressed]="adSetsReviewed()"
               aria-label="Mark ad sets as reviewed"
             >
@@ -306,6 +378,34 @@
         </p>
       }
     </div>
+
+    <!-- Save as Template -->
+    @if (!savingTemplate()) {
+      <button
+        type="button"
+        class="review-template-btn"
+        (click)="startSaveTemplate()"
+        aria-label="Save campaign as a reusable template"
+      >
+        &#128190; Save as Template
+      </button>
+    } @else {
+      <div class="review-template-save">
+        <input
+          class="rs-edit-input"
+          [value]="templateName()"
+          (input)="templateName.set($any($event.target).value)"
+          placeholder="Template name…"
+          aria-label="Template name"
+          (keydown.enter)="confirmSaveTemplate()"
+          (keydown.escape)="cancelSaveTemplate()"
+        />
+        <div class="review-template-save-actions">
+          <button type="button" class="btn btn-primary review-template-save-btn" (click)="confirmSaveTemplate()">Save</button>
+          <button type="button" class="btn btn-outline review-template-save-btn" (click)="cancelSaveTemplate()">Cancel</button>
+        </div>
+      </div>
+    }
 
     <!-- Launch button -->
     <button

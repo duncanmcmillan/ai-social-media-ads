@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
 import { NewCampaignStore } from '../../store/new-campaign.store';
 import { WorkspaceStore } from '../../../workspace';
 import { AuthStore } from '../../../auth';
+import { TemplateStore } from '../../../templates';
 import type { DraftAdSet } from '../../model/draft.model';
 
 /** Maps CampaignObjective enum values to human-readable labels. */
@@ -20,6 +21,12 @@ const OBJECTIVE_LABELS: Record<string, string> = {
   OUTCOME_APP_PROMOTION: 'App Promotion',
   OUTCOME_SALES:         'Sales',
 };
+
+/** Facebook API enum values for call-to-action type. */
+const CTA_OPTIONS = [
+  'LEARN_MORE', 'SHOP_NOW', 'SIGN_UP', 'GET_OFFER', 'BOOK_NOW',
+  'CONTACT_US', 'SUBSCRIBE', 'WATCH_MORE', 'APPLY_NOW', 'DOWNLOAD',
+] as const;
 
 /** Human-readable labels for each CTA enum value. */
 const CTA_LABELS: Record<string, string> = {
@@ -52,24 +59,42 @@ export interface PreflightItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewStepComponent {
-  protected readonly store = inject(NewCampaignStore);
+  protected readonly store         = inject(NewCampaignStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
-  protected readonly authStore = inject(AuthStore);
+  protected readonly authStore     = inject(AuthStore);
+  protected readonly templateStore = inject(TemplateStore);
+
+  /** Available CTA options for the inline select. */
+  protected readonly ctaOptions = CTA_OPTIONS;
+
+  /** Whether the "Save as Template" inline name input is visible. */
+  protected readonly savingTemplate = signal(false);
+
+  /** Template name typed by the user in the save input. */
+  protected readonly templateName = signal('');
 
   /**
-   * Set of creative IDs that the user has explicitly marked as reviewed.
-   * Component-scoped only — not persisted to the store or to disk.
+   * Set view of reviewed creative IDs — wraps the store's string array for
+   * backwards-compatible `.has()` calls in the template and specs.
    */
-  protected readonly reviewedIds = signal<ReadonlySet<string>>(new Set());
+  protected readonly reviewedIds = computed<ReadonlySet<string>>(() =>
+    new Set(this.store.reviewedCreativeIds())
+  );
 
   /** Whether the Campaign & Ad Sets accordion is expanded. */
   protected readonly summaryOpen = signal(false);
 
-  /** Whether the user has explicitly marked the Campaign summary as reviewed. */
-  protected readonly campaignReviewed = signal(false);
+  /**
+   * Whether the user has marked the Campaign summary as reviewed.
+   * Delegates to the store so state survives navigation away and back.
+   */
+  protected readonly campaignReviewed = this.store.campaignReviewed;
 
-  /** Whether the user has explicitly marked the Ad Sets summary as reviewed. */
-  protected readonly adSetsReviewed = signal(false);
+  /**
+   * Whether the user has marked the Ad Sets summary as reviewed.
+   * Delegates to the store so state survives navigation away and back.
+   */
+  protected readonly adSetsReviewed = this.store.adSetsReviewed;
 
   /** Number of creatives the user has reviewed. */
   protected readonly reviewedCount = computed(() =>
@@ -96,6 +121,12 @@ export class ReviewStepComponent {
   protected readonly creativesHaveCopy = computed(() =>
     this.store.creatives().length > 0 &&
     this.store.creatives().every(c => c.primaryText.trim().length > 0)
+  );
+
+  /** Whether all creatives have actual file objects attached (not just template placeholders). */
+  protected readonly hasFilesAttached = computed(() =>
+    this.store.creatives().length > 0 &&
+    this.store.creatives().every(c => !!c.file)
   );
 
   /** Sum of all ad-set budgets when budgetType is 'adset'. Returns null when not applicable. */
@@ -146,7 +177,7 @@ export class ReviewStepComponent {
     }
     items.push(
       { label: 'Ad sets configured',       ok: this.store.hasAdSets() },
-      { label: 'Creatives uploaded',       ok: this.store.hasCreatives() },
+      { label: 'Creatives uploaded',       ok: this.hasFilesAttached() },
       { label: 'Copy written',             ok: this.creativesHaveCopy() },
       { label: 'Campaign reviewed',        ok: this.campaignReviewed() },
       { label: 'Ad sets reviewed',         ok: this.adSetsReviewed() },
@@ -165,7 +196,7 @@ export class ReviewStepComponent {
     this.store.isPublishing() ||
     !this.workspaceStore.isConfigured() ||
     !this.store.hasAdSets() ||
-    !this.store.hasCreatives() ||
+    !this.hasFilesAttached() ||
     !this.campaignReviewed() ||
     !this.adSetsReviewed() ||
     !this.allReviewed()
@@ -173,17 +204,11 @@ export class ReviewStepComponent {
 
   /**
    * Toggles the reviewed state for a single creative by ID.
-   * Creates a new Set each time to ensure signal reactivity.
+   * Delegates to the store so reviewed state persists across navigation.
    * @param id - The creative's client-side ID.
    */
   protected toggleReviewed(id: string): void {
-    const next = new Set(this.reviewedIds());
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    this.reviewedIds.set(next);
+    this.store.toggleReviewedCreative(id);
   }
 
   /**
@@ -240,6 +265,44 @@ export class ReviewStepComponent {
     } catch {
       return iso;
     }
+  }
+
+  /**
+   * Updates a creative field by index via the store.
+   * Used by inline edit inputs in the Review step.
+   * @param index - Creative index.
+   * @param field - Field key.
+   * @param value - New value.
+   */
+  protected updateCreative(index: number, field: string, value: string): void {
+    this.store.updateCreative(index, { [field]: value } as never);
+  }
+
+  /** Shows the Save as Template name input. */
+  protected startSaveTemplate(): void {
+    this.templateName.set('');
+    this.savingTemplate.set(true);
+  }
+
+  /** Cancels the save template flow. */
+  protected cancelSaveTemplate(): void {
+    this.savingTemplate.set(false);
+  }
+
+  /**
+   * Saves the current draft as a named template.
+   * Omits File objects so the template is JSON-serialisable.
+   */
+  protected confirmSaveTemplate(): void {
+    const name = this.templateName().trim();
+    if (!name) return;
+
+    this.templateStore.save(name, {
+      campaign:  this.store.campaign(),
+      adSets:    this.store.adSets(),
+      creatives: this.store.creatives().map(({ file: _file, objectUrl: _url, ...rest }) => rest),
+    });
+    this.savingTemplate.set(false);
   }
 
   /** Publishes the current wizard draft to the Facebook Marketing API. */

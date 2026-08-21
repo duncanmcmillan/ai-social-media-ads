@@ -83,7 +83,7 @@
 /* ── Creatives grid ──────────────────────────────────────────────────── */
 .review-creatives-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -196,6 +196,26 @@
   background: var(--neutral-200);
   color: var(--neutral-500);
   font-size: 20px;
+}
+
+.mini-fb-no-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--neutral-100);
+  border: 1px dashed var(--neutral-300);
+  color: var(--neutral-400);
+  font-size: 18px;
+}
+
+.mini-fb-no-preview-text {
+  font-size: 10px;
+  text-align: center;
+  color: var(--neutral-400);
 }
 
 .mini-fb-link-card {
@@ -599,3 +619,153 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Creative wrapper (card + inline edit side-by-side) ──────────────── */
+.review-creative-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--neutral-0);
+  transition: border-color 0.15s ease;
+
+  &--reviewed { border-color: #86efac; }
+
+  .mini-fb-card {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--neutral-150);
+  }
+}
+
+/* ── Inline creative edit fields ─────────────────────────────────────── */
+.rs-creative-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--neutral-50);
+}
+
+.rs-edit-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--neutral-800);
+  background: var(--neutral-0);
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+    border-color: var(--orange-400);
+  }
+
+  &::placeholder { color: var(--neutral-400); }
+}
+
+.rs-edit-input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--neutral-800);
+  background: var(--neutral-0);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+    border-color: var(--orange-400);
+  }
+
+  &::placeholder { color: var(--neutral-400); }
+}
+
+.rs-edit-select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--neutral-800);
+  background: var(--neutral-0);
+  box-sizing: border-box;
+
+  &:focus {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+  }
+}
+
+/* ── Campaign inline field ───────────────────────────────────────────── */
+.rs-inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+
+  &--mt { margin-top: 8px; }
+
+  .rs-edit-input { font-size: 12px; }
+}
+
+.rs-inline-label {
+  font-size: 10px;
+  color: var(--neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Save as Template ────────────────────────────────────────────────── */
+.review-template-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px dashed var(--neutral-300);
+  border-radius: 4px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-500);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover { border-color: var(--orange-400); color: var(--orange-600); }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: 1px; }
+}
+
+.review-template-save {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  background: var(--neutral-50);
+
+  .rs-edit-input { font-size: 12px; }
+}
+
+.review-template-save-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.review-template-save-btn {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+}

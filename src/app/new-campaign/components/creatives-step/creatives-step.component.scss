@@ -1,4 +1,3 @@
-/* Step panel header */
 .step-panel-header {
   display: flex;
   align-items: center;
@@ -48,7 +47,6 @@
   align-items: flex-start;
 }
 
-/* Upload Panel */
 .upload-panel {
   width: 240px;
   flex-shrink: 0;
@@ -198,7 +196,6 @@
   &:hover { color: var(--color-error); }
 }
 
-/* Copy Editor */
 .copy-editor {
   flex: 1;
   background: var(--neutral-0);
@@ -240,7 +237,42 @@
   font-weight: 400;
 }
 
-/* Chips */
+.cs-reupload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #fefce8;
+  border-bottom: 1px solid #fef08a;
+  cursor: pointer;
+}
+
+.cs-reupload-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cs-reupload-btn {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  background: var(--orange-500);
+  border: 1px solid var(--orange-500);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-0);
+  white-space: nowrap;
+}
+
+.cs-reupload-hint {
+  font-size: 11px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
 .chip-group {
   padding: 10px 16px;
   display: flex;
@@ -279,7 +311,6 @@
   }
 }
 
-/* Copy fields */
 .copy-field {
   padding: 12px 16px;
 }
@@ -370,7 +401,6 @@
   line-height: 1.4;
 }
 
-/* Toolbar */
 .copy-toolbar {
   display: flex;
   gap: 8px;
@@ -420,7 +450,6 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Facebook Ad Preview Overlay */
 .fb-backdrop {
   position: fixed;
   inset: 0;
@@ -444,7 +473,6 @@
   flex-direction: column;
 }
 
-/* Header */
 .fb-dialog-header {
   display: flex;
   align-items: center;
@@ -461,7 +489,6 @@
   white-space: nowrap;
 }
 
-/* Platform tabs */
 .fb-platform-tabs {
   display: flex;
   gap: 6px;
@@ -521,7 +548,6 @@
   gap: 12px;
 }
 
-/* Phone frame */
 .phone-frame {
   width: 320px;
   background: #1c1c1e;
@@ -541,7 +567,6 @@
   height: 680px;
 }
 
-/* Status bar */
 .phone-status {
   display: flex;
   justify-content: space-between;
@@ -571,12 +596,9 @@
 
   span {
     width: 3px;
+    height: 8px;
     background: #050505;
     border-radius: 0.5px;
-    &:nth-child(1) { height: 3px; }
-    &:nth-child(2) { height: 5px; }
-    &:nth-child(3) { height: 7px; }
-    &:nth-child(4) { height: 10px; }
   }
 }
 
@@ -585,33 +607,8 @@
   height: 10px;
   border: 1.5px solid #050505;
   border-radius: 2px;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: -4px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2px;
-    height: 4px;
-    background: #050505;
-    border-radius: 0 1px 1px 0;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 1.5px;
-    left: 1.5px;
-    bottom: 1.5px;
-    width: 70%;
-    background: #050505;
-    border-radius: 0.5px;
-  }
 }
 
-/* Scrollable phone content */
 .phone-content {
   flex: 1;
   min-height: 0;
@@ -621,7 +618,6 @@
   &::-webkit-scrollbar { display: none; }
 }
 
-/* Home indicator */
 .phone-home {
   padding: 6px 0 10px;
   display: flex;
@@ -637,7 +633,6 @@
   border-radius: 3px;
 }
 
-/* Facebook card */
 .fb-card {
   background: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -697,7 +692,6 @@
   cursor: pointer;
 }
 
-/* Primary text */
 .fb-body-text {
   padding: 8px 12px;
   font-size: 14px;
@@ -730,7 +724,6 @@
   display: block;
 }
 
-/* Link card */
 .fb-link-card {
   display: flex;
   align-items: center;
@@ -782,7 +775,6 @@
   &:hover { background: #d8dadf; }
 }
 
-/* Reactions / engagement */
 .fb-reactions-row {
   display: flex;
   justify-content: space-between;
@@ -814,14 +806,12 @@
   &:hover { background: #f2f3f5; }
 }
 
-/* Below-phone elements */
 .fb-preview-filename {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
-/* Spec bar */
 .fb-spec-bar {
   display: flex;
   width: 100%;

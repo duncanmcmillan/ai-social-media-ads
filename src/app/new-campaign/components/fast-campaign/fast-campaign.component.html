@@ -1,0 +1,147 @@
+<div class="fc-container">
+
+  <!-- ── Campaign prompt ─────────────────────────────────────────────────── -->
+  <section class="fc-section">
+    <label class="fc-label" for="fc-prompt">Campaign prompt <span class="fc-label-hint">(optional)</span></label>
+    <textarea
+      id="fc-prompt"
+      class="fc-textarea"
+      rows="2"
+      placeholder="Describe your campaign or product…"
+      [value]="prompt()"
+      (input)="onPromptInput($event)"
+      [attr.aria-describedby]="'fc-prompt-hint'"
+    ></textarea>
+    <p id="fc-prompt-hint" class="fc-hint">AI will use this to name your campaign and generate ad sets.</p>
+  </section>
+
+  <!-- ── Objective pills ─────────────────────────────────────────────────── -->
+  <section class="fc-section">
+    <div class="fc-label">Objective <span class="fc-required" aria-hidden="true">*</span></div>
+    <div class="fc-pills" role="group" aria-label="Campaign objective">
+      @for (obj of objectives; track obj.value) {
+        <button
+          type="button"
+          class="fc-pill"
+          [class.fc-pill--active]="selectedObjective() === obj.value"
+          (click)="selectObjective(obj.value)"
+          [attr.aria-pressed]="selectedObjective() === obj.value"
+        >{{ obj.label }}</button>
+      }
+    </div>
+  </section>
+
+  <!-- ── Ad sets count ───────────────────────────────────────────────────── -->
+  <section class="fc-section">
+    <div class="fc-label">Ad sets</div>
+    <div class="fc-pills" role="group" aria-label="Number of ad sets">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <button
+          type="button"
+          class="fc-pill"
+          [class.fc-pill--active]="adSetCount() === n"
+          (click)="selectAdSetCount(n)"
+          [attr.aria-pressed]="adSetCount() === n"
+        >{{ n }}</button>
+      }
+    </div>
+  </section>
+
+  <!-- ── Copy options ────────────────────────────────────────────────────── -->
+  <section class="fc-section fc-copy-options">
+
+    <div class="fc-copy-group">
+      <div class="fc-label">Tone</div>
+      <div class="fc-pills" role="group" aria-label="Ad copy tone">
+        @for (tone of tones; track tone) {
+          <button
+            type="button"
+            class="fc-pill"
+            [class.fc-pill--active]="selectedTone() === tone"
+            (click)="selectedTone.set(tone)"
+            [attr.aria-pressed]="selectedTone() === tone"
+          >{{ tone }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="fc-copy-group">
+      <div class="fc-label">Hook</div>
+      <div class="fc-pills" role="group" aria-label="Ad copy hook">
+        @for (hook of hooks; track hook) {
+          <button
+            type="button"
+            class="fc-pill"
+            [class.fc-pill--active]="selectedHook() === hook"
+            (click)="selectedHook.set(hook)"
+            [attr.aria-pressed]="selectedHook() === hook"
+          >{{ hook }}</button>
+        }
+      </div>
+    </div>
+
+    <div class="fc-copy-group">
+      <div class="fc-label">Length</div>
+      <div class="fc-pills" role="group" aria-label="Ad copy length">
+        @for (len of lengths; track len) {
+          <button
+            type="button"
+            class="fc-pill"
+            [class.fc-pill--active]="selectedLength() === len"
+            (click)="selectedLength.set(len)"
+            [attr.aria-pressed]="selectedLength() === len"
+          >{{ len }}</button>
+        }
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── File drop zone ──────────────────────────────────────────────────── -->
+  <section class="fc-section">
+    <label
+      class="fc-dropzone"
+      [class.fc-dropzone--active]="isDragOver()"
+      [class.fc-dropzone--disabled]="!canDrop()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+      [attr.aria-disabled]="!canDrop()"
+    >
+      <input
+        type="file"
+        class="fc-file-input"
+        multiple
+        accept="image/*,video/*"
+        (change)="onFilesSelected($event)"
+        [disabled]="!canDrop()"
+        aria-label="Upload creative images or videos"
+      />
+      @if (!canDrop()) {
+        <span class="fc-drop-icon" aria-hidden="true">&#9940;</span>
+        <span class="fc-drop-text">Select an objective first</span>
+      } @else {
+        <span class="fc-drop-icon" aria-hidden="true">&#8659;</span>
+        <span class="fc-drop-text">Drop images or videos here</span>
+        <span class="fc-drop-hint">or click to browse — triggers AI generation</span>
+        <span class="fc-drop-formats">JPG, PNG, GIF, WebP &nbsp;|&nbsp; MP4, MOV, AVI, WebM</span>
+      }
+    </label>
+  </section>
+
+  <!-- ── Progress bar ────────────────────────────────────────────────────── -->
+  @if (isGenerating()) {
+    <div class="fc-progress-wrap" aria-live="polite" role="status">
+      <div class="fc-progress-bar">
+        <div class="fc-progress-fill"></div>
+      </div>
+      <span class="fc-progress-label">{{ progressLabel() }}</span>
+    </div>
+  }
+
+  <!-- ── Error banner ────────────────────────────────────────────────────── -->
+  @if (store.error()) {
+    <div class="fc-error" role="alert">{{ store.error() }}</div>
+  }
+
+</div>

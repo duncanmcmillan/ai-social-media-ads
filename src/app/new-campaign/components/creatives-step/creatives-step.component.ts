@@ -147,6 +147,26 @@ export class CreativesStepComponent {
     void this.store.generateCopy();
   }
 
+  /**
+   * Replaces the file on a template-loaded creative, preserving all copy fields.
+   * @param index - Index of the creative to update.
+   * @param event - File input change event.
+   */
+  protected onReplaceFile(index: number, event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const old = this.store.creatives()[index];
+    if (old?.objectUrl) URL.revokeObjectURL(old.objectUrl);
+    const objectUrl = URL.createObjectURL(file);
+    this.store.updateCreative(index, {
+      file,
+      objectUrl,
+      fileName: file.name,
+      fileType: file.type.startsWith('video') ? 'video' : 'image',
+    });
+    (event.target as HTMLInputElement).value = '';
+  }
+
   /** Duplicates the active creative with a fresh id and copies all copy fields. */
   protected duplicateCreative(): void {
     const source = this.store.activeCreative();

@@ -58,6 +58,12 @@ interface NewCampaignState {
   isPublishing: boolean;
   publishedCampaignId: string | null;
   error: string | null;
+  /** IDs of creatives the user has explicitly marked as reviewed. */
+  reviewedCreativeIds: string[];
+  /** Whether the user has marked the Campaign summary as reviewed. */
+  campaignReviewed: boolean;
+  /** Whether the user has marked the Ad Sets summary as reviewed. */
+  adSetsReviewed: boolean;
 }
 
 const DEFAULT_CAMPAIGN: DraftCampaign = {
@@ -82,6 +88,9 @@ const initialState: NewCampaignState = {
   isPublishing: false,
   publishedCampaignId: null,
   error: null,
+  reviewedCreativeIds: [],
+  campaignReviewed: false,
+  adSetsReviewed: false,
 };
 
 /**
@@ -237,6 +246,34 @@ export const NewCampaignStore = signalStore(
     /** @param loading - Whether AI is generating copy. */
     setGeneratingCopy(loading: boolean): void {
       patchState(store, { isGeneratingCopy: loading });
+    },
+
+    // ── Review state ──────────────────────────────────────────────────────
+
+    /**
+     * Toggles the reviewed state for a creative by ID.
+     * @param id - The creative's client-side ID.
+     */
+    toggleReviewedCreative(id: string): void {
+      const ids = store.reviewedCreativeIds();
+      const next = ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id];
+      patchState(store, { reviewedCreativeIds: next });
+    },
+
+    /**
+     * Sets whether the Campaign summary has been reviewed.
+     * @param value - Reviewed state.
+     */
+    updateCampaignReviewed(value: boolean): void {
+      patchState(store, { campaignReviewed: value });
+    },
+
+    /**
+     * Sets whether the Ad Sets summary has been reviewed.
+     * @param value - Reviewed state.
+     */
+    updateAdSetsReviewed(value: boolean): void {
+      patchState(store, { adSetsReviewed: value });
     },
 
     // ── Publish ───────────────────────────────────────────────────────────

@@ -1,3 +1,60 @@
+/* ── Saved templates strip ───────────────────────────────────────────── */
+.cs-template-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.cs-template-label {
+  font-size: 11px;
+  color: var(--neutral-400);
+  white-space: nowrap;
+}
+
+.cs-template-chip-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.cs-template-chip {
+  padding: 3px 8px;
+  border: 1px solid var(--neutral-300);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: var(--neutral-0);
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--neutral-700);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+
+  &:hover { background: var(--neutral-100); border-color: var(--orange-400); color: var(--orange-700); }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: 1px; }
+}
+
+.cs-template-remove {
+  padding: 3px 6px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 0 12px 12px 0;
+  background: var(--neutral-0);
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--neutral-400);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  line-height: 1;
+
+  &:hover { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+  &:focus-visible { outline: 2px solid var(--orange-400); outline-offset: 1px; }
+}
+
 /* ── AI Prompt Bar ───────────────────────────────────────────────────── */
 .ai-prompt-bar {
   display: flex;

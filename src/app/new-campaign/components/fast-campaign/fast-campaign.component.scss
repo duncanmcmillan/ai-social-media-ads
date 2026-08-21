@@ -1,0 +1,219 @@
+/* ── Container ───────────────────────────────────────────────────────── */
+.fc-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 680px;
+}
+
+/* ── Section ─────────────────────────────────────────────────────────── */
+.fc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Labels ──────────────────────────────────────────────────────────── */
+.fc-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neutral-500);
+}
+
+.fc-label-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--neutral-400);
+  font-size: 10px;
+}
+
+.fc-required { color: var(--color-error, #ef4444); }
+
+.fc-hint {
+  font-size: 11px;
+  color: var(--neutral-400);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Textarea ────────────────────────────────────────────────────────── */
+.fc-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--neutral-800);
+  background: var(--neutral-0);
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+    border-color: var(--orange-400);
+  }
+
+  &::placeholder { color: var(--neutral-400); }
+}
+
+/* ── Pills ───────────────────────────────────────────────────────────── */
+.fc-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fc-pill {
+  padding: 5px 12px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 14px;
+  background: var(--neutral-0);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--neutral-600);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--neutral-100);
+    border-color: var(--neutral-400);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 1px;
+  }
+
+  &--active {
+    background: var(--orange-500);
+    border-color: var(--orange-500);
+    color: var(--neutral-0);
+
+    &:hover { background: var(--orange-600); border-color: var(--orange-600); }
+  }
+}
+
+/* ── Copy options (3-row group) ──────────────────────────────────────── */
+.fc-copy-options {
+  gap: 12px;
+  padding: 14px;
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-150);
+  border-radius: 6px;
+}
+
+.fc-copy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Drop zone ───────────────────────────────────────────────────────── */
+.fc-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 24px;
+  border: 2px dashed var(--neutral-300);
+  border-radius: 8px;
+  background: var(--neutral-50);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  text-align: center;
+
+  &:hover:not([aria-disabled='true']) {
+    border-color: var(--orange-400);
+    background: var(--neutral-100);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--orange-400);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    border-color: var(--orange-500);
+    background: #fff7ed;
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.fc-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.fc-drop-icon {
+  font-size: 28px;
+  color: var(--orange-500);
+  line-height: 1;
+}
+
+.fc-drop-text,
+.fc-drop-hint,
+.fc-drop-formats {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--neutral-600);
+}
+
+/* ── Progress bar ────────────────────────────────────────────────────── */
+.fc-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fc-progress-bar {
+  height: 6px;
+  background: var(--neutral-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fc-progress-fill {
+  height: 100%;
+  background: var(--orange-500);
+  border-radius: 3px;
+  animation: fc-progress-indeterminate 1.4s ease-in-out infinite;
+  width: 40%;
+}
+
+@keyframes fc-progress-indeterminate {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(200%); }
+  100% { transform: translateX(200%); }
+}
+
+.fc-progress-label {
+  font-size: 12px;
+  color: var(--neutral-500);
+  font-style: italic;
+}
+
+/* ── Error banner ────────────────────────────────────────────────────── */
+.fc-error {
+  padding: 10px 14px;
+  background: #fee2e2;
+  border: 1px solid #f87171;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #991b1b;
+}

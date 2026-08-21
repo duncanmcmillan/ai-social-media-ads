@@ -3,11 +3,14 @@
  * Handles campaign name, objective, budget, UTM, and AI draft generation.
  */
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { NewCampaignStore } from '../../store/new-campaign.store';
 import { AuthStore } from '../../../auth';
 import { LicenceStore } from '../../../core';
 import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
 import { UpgradePromptComponent } from '../../../shared/upgrade-prompt/upgrade-prompt.component';
+import { TemplateStore } from '../../../templates';
+import type { CampaignTemplate } from '../../../templates';
 import type { CampaignObjective } from '../../../core/models/index';
 
 const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = [
@@ -28,9 +31,11 @@ const OBJECTIVES: { value: CampaignObjective; label: string; hint: string }[] = 
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CampaignStepComponent {
-  protected readonly store = inject(NewCampaignStore);
-  private readonly authStore = inject(AuthStore);
-  protected readonly licenceStore = inject(LicenceStore);
+  protected readonly store         = inject(NewCampaignStore);
+  protected readonly templateStore = inject(TemplateStore);
+  private readonly authStore       = inject(AuthStore);
+  private readonly router          = inject(Router);
+  protected readonly licenceStore  = inject(LicenceStore);
 
   /** Controls the help video modal. */
   protected readonly videoOpen = signal(false);
@@ -95,6 +100,21 @@ export class CampaignStepComponent {
   /** @param value - Activate immediately flag. */
   protected setActivateImmediately(value: boolean): void {
     this.store.updateCampaign({ activateImmediately: value });
+  }
+
+  /**
+   * Loads a saved template into the wizard store then navigates to Review
+   * so all freshly-mounted step components read the updated store state.
+   * @param template - The template object from the store list.
+   */
+  protected loadTemplate(template: CampaignTemplate): void {
+    this.store.reset();
+    this.store.updateCampaign(template.campaign);
+    this.store.setAdSets(template.adSets);
+    for (const c of template.creatives) {
+      this.store.addCreative({ ...c, file: undefined, objectUrl: '' });
+    }
+    void this.router.navigateByUrl('/new-campaign/review');
   }
 
   /** Calls the store to generate a campaign draft via Claude AI. */

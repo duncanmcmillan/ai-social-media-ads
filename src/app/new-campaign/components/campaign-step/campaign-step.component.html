@@ -1,3 +1,27 @@
+<!-- Saved templates strip (shown when campaign is blank and templates exist) -->
+@if (templateStore.list().length > 0) {
+  <div class="cs-template-strip" role="region" aria-label="Saved templates">
+    <span class="cs-template-label">Saved templates:</span>
+    @for (template of templateStore.list(); track template.id) {
+      <div class="cs-template-chip-wrap">
+        <button
+          type="button"
+          class="cs-template-chip"
+          (click)="loadTemplate(template)"
+          [attr.aria-label]="'Load template: ' + template.name"
+        >{{ template.name }}</button>
+        <button
+          type="button"
+          class="cs-template-remove"
+          (click)="templateStore.remove(template.id)"
+          [attr.aria-label]="'Remove template: ' + template.name"
+          aria-hidden="false"
+        >&#215;</button>
+      </div>
+    }
+  </div>
+}
+
 <!-- AI Draft Builder -->
 @if (licenceStore.tier() === 'pro') {
   <div class="ai-prompt-bar">

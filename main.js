@@ -47,6 +47,28 @@ function stripCodeFences(text) {
   return text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
 }
 
+/**
+ * Extracts and parses the first complete JSON object from an AI response.
+ * Handles leading/trailing prose and code fences that the model occasionally emits
+ * despite being instructed not to.
+ * @param {string} text - Raw text from the AI response.
+ * @returns {unknown} Parsed JSON value.
+ */
+function parseJsonFromResponse(text) {
+  const cleaned = stripCodeFences(text.trim());
+  // Fast path: the entire response is already valid JSON.
+  try { return JSON.parse(cleaned); } catch { /* fall through */ }
+  // Slow path: find the first '{' and brace-count to its matching '}'.
+  const start = cleaned.indexOf('{');
+  if (start === -1) throw new SyntaxError('No JSON object found in AI response');
+  let depth = 0;
+  for (let i = start; i < cleaned.length; i++) {
+    if (cleaned[i] === '{') depth++;
+    else if (cleaned[i] === '}') { depth--; if (depth === 0) return JSON.parse(cleaned.slice(start, i + 1)); }
+  }
+  throw new SyntaxError('Unclosed JSON object in AI response');
+}
+
 function safeWrite(filePath, data) {
   if (!safeStorage.isEncryptionAvailable()) throw new Error('Encryption not available');
   const encrypted = safeStorage.encryptString(typeof data === 'string' ? data : JSON.stringify(data));
@@ -381,7 +403,7 @@ Guidelines:
       messages: [{ role: 'user', content: prompt }],
     });
     const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
-    return JSON.parse(stripCodeFences(text));
+    return parseJsonFromResponse(text);
   });
 
   // ── AI: generate ad copy for a creative ──────────────────────────────
@@ -408,7 +430,7 @@ The JSON must match this exact shape:
       messages: [{ role: 'user', content: userMsg }],
     });
     const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
-    return JSON.parse(stripCodeFences(text));
+    return parseJsonFromResponse(text);
   });
 
   // ── AI: generate marketing guide for an app type and objective ────────
@@ -467,7 +489,7 @@ Required shape:
     });
 
     const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
-    return JSON.parse(stripCodeFences(text));
+    return parseJsonFromResponse(text);
   });
 
   // ── Licence: activate a LemonSqueezy licence key on this machine ─────
