@@ -21,6 +21,19 @@
         Next sync: {{ fmtTime(schedulerService.nextSyncAt()!) }}
       </span>
     }
+
+    <!-- Sync frequency dropdown -->
+    <select
+      class="db-sync-select"
+      [value]="schedulerService.syncIntervalMs()"
+      (change)="setSyncInterval(+$any($event.target).value)"
+      aria-label="Sync frequency"
+    >
+      @for (opt of syncOptions; track opt.ms) {
+        <option [value]="opt.ms">{{ opt.label }}</option>
+      }
+    </select>
+
     <button
       class="btn btn-primary"
       type="button"
@@ -33,6 +46,18 @@
       } @else {
         &#8635; Update now
       }
+    </button>
+
+    <!-- Chart icon button -->
+    <button
+      class="db-toolbar-icon-btn"
+      type="button"
+      aria-label="Open timeline chart"
+      (click)="chartOpen.set(true)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+      </svg>
     </button>
   </div>
 
@@ -342,4 +367,8 @@
   }
 
   </div><!-- /grid-wrapper -->
+}
+
+@if (chartOpen()) {
+  <app-chart-modal (closed)="chartOpen.set(false)" />
 }

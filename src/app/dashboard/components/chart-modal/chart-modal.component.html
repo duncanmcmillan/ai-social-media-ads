@@ -1,0 +1,133 @@
+<!-- Backdrop — click to close -->
+<div class="cm-backdrop" role="dialog" aria-modal="true" aria-label="Timeline chart"
+     (click)="closed.emit()">
+
+  <!-- Dialog — stop click from closing modal -->
+  <div class="cm-dialog" (click)="$event.stopPropagation()">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <div class="cm-header">
+      <span class="cm-title">Timeline Chart</span>
+      <button class="cm-close" type="button" aria-label="Close chart" (click)="closed.emit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── Body ────────────────────────────────────────────────────────── -->
+    <div class="cm-body">
+
+      <!-- Left key panel -->
+      <aside class="cm-key-panel" aria-label="Chart controls">
+
+        <!-- Level -->
+        <div class="cm-section">
+          <div class="cm-section-label">Level</div>
+          <div class="cm-level-btns" role="group" aria-label="Reporting level">
+            <button class="cm-level-btn" type="button"
+              [class.cm-level-btn--active]="level() === 'campaign'"
+              (click)="setLevel('campaign')"
+              [attr.aria-pressed]="level() === 'campaign'">
+              Campaign
+            </button>
+            <button class="cm-level-btn" type="button"
+              [class.cm-level-btn--active]="level() === 'adset'"
+              (click)="setLevel('adset')"
+              [attr.aria-pressed]="level() === 'adset'">
+              Ad Set
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric -->
+        <div class="cm-section">
+          <div class="cm-section-label">Metric</div>
+          <fieldset class="cm-metric-list" aria-label="Metric selector">
+            <legend class="cm-sr-only">Select metric</legend>
+            @for (opt of metricOptions; track opt.key) {
+              <label class="cm-metric-item">
+                <input
+                  type="radio"
+                  name="cm-metric"
+                  [value]="opt.key"
+                  [checked]="metric() === opt.key"
+                  (change)="metric.set(opt.key)"
+                  class="cm-radio"
+                />
+                <span class="cm-metric-label">{{ opt.label }}</span>
+              </label>
+            }
+          </fieldset>
+        </div>
+
+        <!-- Entities -->
+        <div class="cm-section cm-section--entities">
+          <div class="cm-section-label">
+            {{ level() === 'campaign' ? 'Campaigns' : 'Ad Sets' }}
+            <span class="cm-max-hint">(max 5)</span>
+          </div>
+
+          @if (isLoading()) {
+            <div class="cm-entity-loading" aria-live="polite">Loading…</div>
+          } @else if (error()) {
+            <div class="cm-entity-error" role="alert">{{ error() }}</div>
+          } @else if (entities().length === 0) {
+            <div class="cm-entity-empty">No data for selected range.</div>
+          } @else {
+            <div class="cm-entity-list" role="group" [attr.aria-label]="(level() === 'campaign' ? 'Campaign' : 'Ad set') + ' selection'">
+              @for (entity of entities(); track entity.id) {
+                <label class="cm-entity-item" [class.cm-entity-item--disabled]="isDisabled(entity.id)">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(entity.id)"
+                    [disabled]="isDisabled(entity.id)"
+                    (change)="toggleEntity(entity.id)"
+                    class="cm-checkbox"
+                    [attr.aria-label]="entity.name"
+                  />
+                  <span class="cm-entity-name" [title]="entity.name">{{ entity.name }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
+
+      </aside>
+
+      <!-- Right chart area -->
+      <div class="cm-chart-area">
+
+        <!-- Date range pills -->
+        <div class="cm-date-row" role="group" aria-label="Date range">
+          @for (opt of dateRangeOptions; track opt.key) {
+            <button class="cm-date-btn" type="button"
+              [class.cm-date-btn--active]="dateRange() === opt.key"
+              (click)="dateRange.set(opt.key)"
+              [attr.aria-pressed]="dateRange() === opt.key">
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Chart or loading -->
+        @if (isLoading()) {
+          <div class="cm-chart-loading" aria-live="polite" aria-label="Loading chart">
+            <div class="cm-spinner" aria-hidden="true"></div>
+            <span>Loading chart data…</span>
+          </div>
+        } @else {
+          <div class="cm-chart-canvas"
+            echarts
+            [options]="chartOptions()"
+            [autoResize]="true"
+            aria-hidden="true">
+          </div>
+        }
+
+      </div>
+
+    </div><!-- /cm-body -->
+  </div><!-- /cm-dialog -->
+</div><!-- /cm-backdrop -->

@@ -40,7 +40,9 @@
     "@angular/router": "^21.1.0",
     "@anthropic-ai/sdk": "^0.115.0",
     "@ngrx/signals": "^21.1.0",
+    "echarts": "^6.1.0",
     "electron-squirrel-startup": "^1.0.1",
+    "ngx-echarts": "^21.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

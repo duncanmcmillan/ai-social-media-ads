@@ -61,6 +61,42 @@
   white-space: nowrap;
 }
 
+/* ── Sync frequency select ───────────────────────────────────────────── */
+.db-sync-select {
+  height: 32px;
+  padding: 0 24px 0 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-700);
+  font-size: 12px;
+  cursor: pointer;
+  appearance: auto;
+
+  &:focus { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
+/* ── Chart icon button ───────────────────────────────────────────────── */
+.db-toolbar-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0, #fff);
+  color: var(--neutral-500);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+
+  svg { width: 16px; height: 16px; display: block; }
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); border-color: var(--neutral-400); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
 /* ── Error / Loading ─────────────────────────────────────────────────── */
 .error-banner {
   padding: 10px 14px;

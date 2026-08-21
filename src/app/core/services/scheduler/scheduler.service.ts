@@ -12,30 +12,45 @@ import { AuthStore } from '../../../auth/store/auth.store';
 import { SlackService } from '../slack/slack.service';
 import { gateKey } from '../../../dashboard/model/dashboard.model';
 
+/** Timestamp payload returned by scheduler IPC calls. */
+interface SchedulerTimestamps {
+  /** ISO string of the last completed sync, or null. */
+  lastSyncAt:     string | null;
+  /** ISO string of the next scheduled sync, or null. */
+  nextSyncAt:     string | null;
+  /** Current sync interval in milliseconds. */
+  syncIntervalMs: number;
+}
+
 /** IPC bridge type for the scheduler, exposed by `preload.js` as `window.appScheduler`. */
 type SchedulerBridge = {
-  /** Retrieves the stored sync timestamps from the main process. */
-  getTimestamps(): Promise<{ lastSyncAt: string | null; nextSyncAt: string | null }>;
+  /** Retrieves the stored sync timestamps and interval from the main process. */
+  getTimestamps(): Promise<SchedulerTimestamps>;
   /**
    * Triggers an immediate sync (fires `sync-due` to renderer) and returns updated timestamps.
    * Used only by the automated scheduler path.
    */
-  syncNow(): Promise<{ lastSyncAt: string; nextSyncAt: string }>;
+  syncNow(): Promise<SchedulerTimestamps>;
   /**
    * Resets the timer and timestamps WITHOUT firing `sync-due`.
    * Used by "Update now" so the renderer drives the sync without triggering a second run
    * via the `onSyncDue` IPC listener.
    */
-  resetTimer(): Promise<{ lastSyncAt: string; nextSyncAt: string }>;
+  resetTimer(): Promise<SchedulerTimestamps>;
   /** Registers a callback invoked when the scheduler fires. */
   onSyncDue(cb: () => void): void;
   /**
    * Registers a callback invoked whenever timestamps are updated.
-   * @param cb - Called with the new timestamp pair.
+   * @param cb - Called with the new timestamp payload.
    */
-  onTimestampsUpdated(cb: (ts: { lastSyncAt: string | null; nextSyncAt: string | null }) => void): void;
+  onTimestampsUpdated(cb: (ts: SchedulerTimestamps) => void): void;
   /** Removes all `scheduler:*` IPC listeners registered by this bridge. */
   removeListeners(): void;
+  /**
+   * Updates the sync interval, persists it, and reschedules the timer.
+   * @param ms - New interval in milliseconds.
+   */
+  setInterval(ms: number): Promise<void>;
 };
 
 const bridge = (window as unknown as { appScheduler?: SchedulerBridge }).appScheduler ?? null;
@@ -55,6 +70,8 @@ export class SchedulerService implements OnDestroy {
   readonly lastSyncAt = signal<Date | null>(null);
   /** ISO timestamp of the next scheduled sync, or null when not running in Electron. */
   readonly nextSyncAt = signal<Date | null>(null);
+  /** Current sync interval in milliseconds; initialised from persisted scheduler.json. */
+  readonly syncIntervalMs = signal<number>(12 * 60 * 60 * 1000);
 
   private readonly KNOWN_GATES_KEY = 'ai-fb-ads:known-gates';
 
@@ -95,12 +112,23 @@ export class SchedulerService implements OnDestroy {
   }
 
   /**
-   * Updates the local timestamp signals from a raw IPC timestamp pair.
-   * @param ts - Raw timestamp strings from the main process.
+   * Updates the local timestamp and interval signals from an IPC payload.
+   * @param ts - Timestamp payload from the main process.
    */
-  private applyTimestamps(ts: { lastSyncAt: string | null; nextSyncAt: string | null }): void {
+  private applyTimestamps(ts: SchedulerTimestamps): void {
     this.lastSyncAt.set(ts.lastSyncAt ? new Date(ts.lastSyncAt) : null);
     this.nextSyncAt.set(ts.nextSyncAt ? new Date(ts.nextSyncAt) : null);
+    if (ts.syncIntervalMs) this.syncIntervalMs.set(ts.syncIntervalMs);
+  }
+
+  /**
+   * Updates the sync interval in the main process, persisting and rescheduling.
+   * No-op when not running in Electron.
+   * @param ms - New sync interval in milliseconds.
+   */
+  async setInterval(ms: number): Promise<void> {
+    this.syncIntervalMs.set(ms);
+    if (bridge) await bridge.setInterval(ms);
   }
 
   /**

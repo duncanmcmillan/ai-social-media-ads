@@ -88,37 +88,41 @@ function safeDelete(filePath) {
 
 // ── Scheduler ──────────────────────────────────────────────────────────────
 
-const SYNC_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
-const STARTUP_DELAY_MS = 30_000;               // allow renderer to initialise
+const DEFAULT_SYNC_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 hours
+const STARTUP_DELAY_MS         = 30_000;               // allow renderer to initialise
 
+let syncIntervalMs = DEFAULT_SYNC_INTERVAL_MS;
 let schedulerTimer = null;
 let lastSyncAt     = null;
 let nextSyncAt     = null;
 let mainWindow     = null;
 
-/** Reads persisted sync timestamps from scheduler.json. */
+/** Reads persisted sync timestamps (and interval) from scheduler.json. */
 function readSchedulerTimestamps() {
   try {
-    const raw = JSON.parse(fs.readFileSync(SCHEDULER_PATH(), 'utf8'));
-    lastSyncAt = raw.lastSyncAt ? new Date(raw.lastSyncAt) : null;
-    nextSyncAt = raw.nextSyncAt ? new Date(raw.nextSyncAt) : null;
+    const raw  = JSON.parse(fs.readFileSync(SCHEDULER_PATH(), 'utf8'));
+    lastSyncAt     = raw.lastSyncAt     ? new Date(raw.lastSyncAt)  : null;
+    nextSyncAt     = raw.nextSyncAt     ? new Date(raw.nextSyncAt)  : null;
+    syncIntervalMs = raw.syncIntervalMs ?? DEFAULT_SYNC_INTERVAL_MS;
   } catch { /* first run or corrupt — leave as null */ }
 }
 
-/** Writes current sync timestamps to scheduler.json. */
+/** Writes current sync timestamps and interval to scheduler.json. */
 function writeSchedulerTimestamps() {
   fs.writeFileSync(SCHEDULER_PATH(), JSON.stringify({
-    lastSyncAt: lastSyncAt?.toISOString() ?? null,
-    nextSyncAt: nextSyncAt?.toISOString() ?? null,
+    lastSyncAt:    lastSyncAt?.toISOString() ?? null,
+    nextSyncAt:    nextSyncAt?.toISOString() ?? null,
+    syncIntervalMs,
   }));
 }
 
-/** Pushes current timestamps to the renderer via IPC. */
+/** Pushes current timestamps (and sync interval) to the renderer via IPC. */
 function pushTimestamps() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('scheduler:timestamps-updated', {
-      lastSyncAt: lastSyncAt?.toISOString() ?? null,
-      nextSyncAt: nextSyncAt?.toISOString() ?? null,
+      lastSyncAt:    lastSyncAt?.toISOString() ?? null,
+      nextSyncAt:    nextSyncAt?.toISOString() ?? null,
+      syncIntervalMs,
     });
   }
 }
@@ -132,13 +136,13 @@ function scheduleNextSync(delayMs) {
 /** Fires a sync event to the renderer and schedules the next one. */
 function triggerSync() {
   lastSyncAt = new Date();
-  nextSyncAt = new Date(Date.now() + SYNC_INTERVAL_MS);
+  nextSyncAt = new Date(Date.now() + syncIntervalMs);
   writeSchedulerTimestamps();
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('scheduler:sync-due');
   }
   pushTimestamps();
-  scheduleNextSync(SYNC_INTERVAL_MS);
+  scheduleNextSync(syncIntervalMs);
 }
 
 /**
@@ -622,8 +626,9 @@ Required shape:
 
   // ── Scheduler: query timestamps ───────────────────────────────────────
   ipcMain.handle('scheduler:get-timestamps', () => ({
-    lastSyncAt: lastSyncAt?.toISOString() ?? null,
-    nextSyncAt: nextSyncAt?.toISOString() ?? null,
+    lastSyncAt:    lastSyncAt?.toISOString() ?? null,
+    nextSyncAt:    nextSyncAt?.toISOString() ?? null,
+    syncIntervalMs,
   }));
 
   // ── Scheduler: trigger an immediate sync (fires sync-due to renderer) ─
@@ -640,13 +645,23 @@ Required shape:
   // without triggering a second sync via the onSyncDue IPC listener.
   ipcMain.handle('scheduler:reset-timer', () => {
     lastSyncAt = new Date();
-    nextSyncAt = new Date(Date.now() + SYNC_INTERVAL_MS);
+    nextSyncAt = new Date(Date.now() + syncIntervalMs);
     writeSchedulerTimestamps();
-    scheduleNextSync(SYNC_INTERVAL_MS);
+    scheduleNextSync(syncIntervalMs);
     return {
-      lastSyncAt: lastSyncAt.toISOString(),
-      nextSyncAt: nextSyncAt.toISOString(),
+      lastSyncAt:    lastSyncAt.toISOString(),
+      nextSyncAt:    nextSyncAt.toISOString(),
+      syncIntervalMs,
     };
+  });
+
+  // ── Scheduler: update sync interval and reschedule ────────────────────
+  ipcMain.handle('scheduler:set-interval', (_e, ms) => {
+    syncIntervalMs = ms;
+    nextSyncAt     = new Date(Date.now() + syncIntervalMs);
+    writeSchedulerTimestamps();
+    scheduleNextSync(syncIntervalMs);
+    pushTimestamps();
   });
 
   createWindow();

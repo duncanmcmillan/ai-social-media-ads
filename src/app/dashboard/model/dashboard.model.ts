@@ -1,9 +1,11 @@
 /**
  * @fileoverview Domain models for the Dashboard feature.
  * Provides types for campaign cards, ad rows, conversion events,
- * gate alerts, recommendations, and the ad-verdict evaluation function.
+ * gate alerts, recommendations, the ad-verdict evaluation function,
+ * and time-series chart data.
  */
 import type { WorkspaceLearningRules } from '../../workspace/model/workspace.model';
+export type { TimeSeriesInsightRow as TimeSeriesRow } from '../../core/services/facebook/insights-api/insights-api.service';
 
 /** The performance verdict assigned to an ad after evaluating learning rules. */
 export type Verdict =

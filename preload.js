@@ -159,4 +159,8 @@ contextBridge.exposeInMainWorld('appScheduler', {
     ipcRenderer.removeAllListeners('scheduler:sync-due');
     ipcRenderer.removeAllListeners('scheduler:timestamps-updated');
   },
+
+  /** Updates the sync interval (ms), persists it, and reschedules the timer. */
+  setInterval: (ms) =>
+    ipcRenderer.invoke('scheduler:set-interval', ms),
 });

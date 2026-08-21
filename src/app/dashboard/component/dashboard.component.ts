@@ -9,6 +9,7 @@ import { LicenceStore, SchedulerService } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
 import { GuidePanelComponent, MetricsGuidePanelComponent, GuidesStore } from '../../guides';
+import { ChartModalComponent } from '../components/chart-modal/chart-modal.component';
 import {
   gateKey,
   worstVerdict,
@@ -19,6 +20,19 @@ import {
   type GateType,
   type Verdict,
 } from '../model/dashboard.model';
+
+/** Available sync frequency options shown in the toolbar dropdown. */
+export const SYNC_OPTIONS = [
+  { label: '10 min', ms: 10 * 60_000 },
+  { label: '20 min', ms: 20 * 60_000 },
+  { label: '30 min', ms: 30 * 60_000 },
+  { label: '40 min', ms: 40 * 60_000 },
+  { label: '50 min', ms: 50 * 60_000 },
+  { label: '1 hr',   ms:  1 * 60 * 60_000 },
+  { label: '2 hr',   ms:  2 * 60 * 60_000 },
+  { label: '6 hr',   ms:  6 * 60 * 60_000 },
+  { label: '12 hr',  ms: 12 * 60 * 60_000 },
+] as const;
 
 /** Human-readable labels for each date preset. */
 const DATE_PRESET_LABELS: Record<string, string> = {
@@ -72,7 +86,7 @@ const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [GuidePanelComponent, MetricsGuidePanelComponent],
+  imports: [GuidePanelComponent, MetricsGuidePanelComponent, ChartModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,11 +101,17 @@ export class DashboardComponent {
 
   protected readonly datePresetLabels = DATE_PRESET_LABELS;
 
+  /** Sync frequency dropdown options. */
+  protected readonly syncOptions = SYNC_OPTIONS;
+
   /** Controls visibility of the Marketing Guide slide-over panel. */
   protected readonly guidePanelOpen = signal(false);
 
   /** Controls visibility of the Metrics Contextual Guide slide-over panel. */
   protected readonly metricsGuidePanelOpen = signal(false);
+
+  /** Controls visibility of the timeline chart modal. */
+  protected readonly chartOpen = signal(false);
 
   /** Currently selected gate index for gate→recommendation linking. */
   protected readonly selectedGateIndex = signal<number | null>(null);
@@ -218,6 +238,14 @@ export class DashboardComponent {
    */
   protected verdictClass(v: Verdict): string {
     return `verdict--${v}`;
+  }
+
+  /**
+   * Updates the sync interval via the SchedulerService and persists it to disk.
+   * @param ms - New interval in milliseconds.
+   */
+  protected setSyncInterval(ms: number): void {
+    void this.schedulerService.setInterval(ms);
   }
 
   /**

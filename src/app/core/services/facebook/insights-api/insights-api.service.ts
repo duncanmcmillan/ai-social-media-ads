@@ -137,6 +137,53 @@ interface RawAdInsightRow {
   purchase_roas?: RawAction[];
 }
 
+/** Raw time-series insight row returned when time_increment=1 is used. */
+interface RawTimeSeriesRow {
+  campaign_id?:   string;
+  campaign_name?: string;
+  adset_id?:      string;
+  adset_name?:    string;
+  impressions:    string;
+  clicks:         string;
+  ctr:            string;
+  cpc:            string;
+  cpm:            string;
+  spend:          string;
+  reach:          string;
+  frequency?:     string;
+  date_start:     string;
+  date_stop:      string;
+}
+
+/**
+ * A single day's aggregated metrics for one campaign or ad set,
+ * returned by {@link InsightsApiService.getTimeSeriesInsights}.
+ */
+export interface TimeSeriesInsightRow {
+  /** Facebook entity ID (campaign_id or adset_id). */
+  entityId:    string;
+  /** Display name of the entity. */
+  entityName:  string;
+  /** Date of this data point (YYYY-MM-DD). */
+  date:        string;
+  /** Total impressions. */
+  impressions: number;
+  /** Total link clicks. */
+  clicks:      number;
+  /** Click-through rate as a decimal percentage. */
+  ctr:         number;
+  /** Cost per click in account currency. */
+  cpc:         number;
+  /** Cost per 1,000 impressions. */
+  cpm:         number;
+  /** Total spend in account currency. */
+  spend:       number;
+  /** Unique reach (people). */
+  reach:       number;
+  /** Average ad frequency. */
+  frequency:   number;
+}
+
 /** Date preset options for insights queries. */
 export type DatePreset =
   | 'today'
@@ -307,5 +354,55 @@ export class InsightsApiService {
         };
       })
       .sort((a, b) => parseFloat(b.spend) - parseFloat(a.spend));
+  }
+
+  /**
+   * Fetches day-by-day insights for all campaigns or ad sets in the given date window.
+   * Uses `time_increment=1` so each API row represents a single calendar day.
+   * @param params.level - 'campaign' or 'adset'.
+   * @param params.since - Start date string (YYYY-MM-DD).
+   * @param params.until - End date string (YYYY-MM-DD).
+   * @returns Promise resolving to an array of daily rows keyed by entity + date.
+   * @throws When not authenticated or the API call fails.
+   */
+  async getTimeSeriesInsights(params: {
+    level: 'campaign' | 'adset';
+    since: string;
+    until: string;
+  }): Promise<TimeSeriesInsightRow[]> {
+    const adAccountId = this.requireAdAccountId();
+    const fields = params.level === 'campaign'
+      ? 'campaign_id,campaign_name,impressions,clicks,ctr,cpc,cpm,spend,reach,frequency,date_start,date_stop'
+      : 'adset_id,adset_name,impressions,clicks,ctr,cpc,cpm,spend,reach,frequency,date_start,date_stop';
+
+    const httpParams = this.authParams()
+      .set('level', params.level)
+      .set('time_range', JSON.stringify({ since: params.since, until: params.until }))
+      .set('time_increment', '1')
+      .set('fields', fields)
+      .set('limit', '5000');
+
+    const result = await firstValueFrom(
+      this.http.get<{ data: RawTimeSeriesRow[] }>(
+        `${GRAPH_API_BASE}/${adAccountId}/insights`, { params: httpParams }
+      )
+    );
+
+    return (result.data ?? []).map(r => {
+      const isCampaign = params.level === 'campaign';
+      return {
+        entityId:    isCampaign ? (r.campaign_id ?? '')  : (r.adset_id ?? ''),
+        entityName:  isCampaign ? (r.campaign_name ?? '') : (r.adset_name ?? ''),
+        date:        r.date_start,
+        impressions: parseFloat(r.impressions) || 0,
+        clicks:      parseFloat(r.clicks)      || 0,
+        ctr:         parseFloat(r.ctr)         || 0,
+        cpc:         parseFloat(r.cpc)         || 0,
+        cpm:         parseFloat(r.cpm)         || 0,
+        spend:       parseFloat(r.spend)       || 0,
+        reach:       parseFloat(r.reach)       || 0,
+        frequency:   parseFloat(r.frequency ?? '0') || 0,
+      };
+    });
   }
 }
