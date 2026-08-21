@@ -191,6 +191,15 @@ export class MetricsGuidePanelComponent {
   }
 
   /**
+   * Splits an AI-generated text block on double newlines into individual paragraph strings.
+   * @param text - Raw AI text with double-newline paragraph separators.
+   * @returns Array of non-empty paragraph strings.
+   */
+  protected paragraphs(text: string): string[] {
+    return text.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+  }
+
+  /**
    * Scrolls the panel body to the top.
    */
   protected scrollToTop(): void {

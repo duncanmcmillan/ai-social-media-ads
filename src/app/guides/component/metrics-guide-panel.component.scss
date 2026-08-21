@@ -150,11 +150,12 @@
 }
 
 .ai-callout-text {
-  white-space: pre-line;
   font-size: 12px;
   line-height: 1.65;
   color: var(--neutral-700);
   margin: 0;
+
+  & + & { margin-top: 8px; }
 }
 
 /* ── No AI hint ──────────────────────────────────────────────────────────── */
@@ -226,6 +227,8 @@
   line-height: 1.65;
   color: var(--neutral-600);
   margin: 0;
+
+  & + & { margin-top: 8px; }
 }
 
 /* ── Rule list ───────────────────────────────────────────────────────────── */

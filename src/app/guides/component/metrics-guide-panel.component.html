@@ -38,7 +38,9 @@
     @if (guidesStore.activeGuide(); as guide) {
       <div class="ai-callout">
         <div class="ai-callout-label">AI — Funnel Metrics</div>
-        <p class="ai-callout-text">{{ guide.content.funnelMetrics }}</p>
+        @for (para of paragraphs(guide.content.funnelMetrics); track para) {
+          <p class="ai-callout-text">{{ para }}</p>
+        }
       </div>
 
       <section class="rule-section" aria-labelledby="mg-monitoring">
@@ -46,7 +48,9 @@
           <h3 id="mg-monitoring" class="section-heading">Monitoring Techniques</h3>
           <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
         </div>
-        <p class="section-text">{{ guide.content.monitoringTechniques }}</p>
+        @for (para of paragraphs(guide.content.monitoringTechniques); track para) {
+          <p class="section-text">{{ para }}</p>
+        }
       </section>
     } @else {
       <div class="no-ai-hint">

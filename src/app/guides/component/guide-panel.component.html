@@ -148,7 +148,9 @@
             <h3 id="gs-objective" class="section-heading">Campaign Objective</h3>
             <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
           </div>
-          <p class="guide-text">{{ guide.content.campaignObjectiveDetails }}</p>
+          @for (para of paragraphs(guide.content.campaignObjectiveDetails); track para) {
+            <p class="guide-text">{{ para }}</p>
+          }
         </section>
 
         <!-- Section 2: Monitoring -->
@@ -157,7 +159,9 @@
             <h3 id="gs-monitoring" class="section-heading">Monitoring Techniques</h3>
             <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
           </div>
-          <p class="guide-text">{{ guide.content.monitoringTechniques }}</p>
+          @for (para of paragraphs(guide.content.monitoringTechniques); track para) {
+            <p class="guide-text">{{ para }}</p>
+          }
         </section>
 
         <!-- Section 3: Funnel Metrics -->
@@ -166,7 +170,9 @@
             <h3 id="gs-funnel" class="section-heading">Funnel Metrics</h3>
             <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
           </div>
-          <p class="guide-text">{{ guide.content.funnelMetrics }}</p>
+          @for (para of paragraphs(guide.content.funnelMetrics); track para) {
+            <p class="guide-text">{{ para }}</p>
+          }
         </section>
 
         <!-- Section 4: Creative & Optimisation -->
@@ -175,7 +181,9 @@
             <h3 id="gs-creative" class="section-heading">Creative Types &amp; Optimisation</h3>
             <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
           </div>
-          <p class="guide-text">{{ guide.content.creativeTypesAndOptimisation }}</p>
+          @for (para of paragraphs(guide.content.creativeTypesAndOptimisation); track para) {
+            <p class="guide-text">{{ para }}</p>
+          }
         </section>
 
         <!-- Key Takeaways -->

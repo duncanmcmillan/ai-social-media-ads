@@ -14,6 +14,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { AuthStore } from '../../auth';
 import { AdAccountStatus } from '../../auth';
@@ -21,7 +22,8 @@ import { WorkspaceStore } from '../store/workspace.store';
 import { AiService } from '../../core/services/ai/ai.service';
 import { SlackService } from '../../core/services/slack/slack.service';
 import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
-import { MetricsGuidePanelComponent } from '../../guides';
+import { GuidesStore, MetricsGuidePanelComponent } from '../../guides';
+import { LicenceStore } from '../../core';
 import type { Gate } from '../../dashboard/model/dashboard.model';
 
 /** Metadata for each collapsible workspace section. */
@@ -57,6 +59,8 @@ export class WorkspaceComponent implements AfterViewInit {
   protected readonly workspaceStore = inject(WorkspaceStore);
   private readonly aiService = inject(AiService);
   private readonly slackService = inject(SlackService);
+  private readonly guidesStore = inject(GuidesStore);
+  private readonly licenceStore = inject(LicenceStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
 
@@ -75,6 +79,25 @@ export class WorkspaceComponent implements AfterViewInit {
       if (this.authStore.isAuthenticated() && accountId) {
         void this.authStore.fetchPixels(accountId);
       }
+    });
+    // Regenerate the Marketing Guide (Pro only) when App Type changes while the
+    // user is on this page — the Dashboard effect is inactive during Workspace navigation.
+    // Uses a "change-only" guard so navigating to this page does not trigger a generation.
+    let previousAppType = '';
+    effect(() => {
+      const appType = this.workspaceStore.appType();
+      untracked(() => {
+        if (
+          previousAppType &&              // not the initial mount run
+          previousAppType !== appType &&  // real change, not a no-op
+          this.licenceStore.tier() === 'pro' &&
+          !this.guidesStore.isGenerating()
+        ) {
+          const objective = this.guidesStore.selectedObjective();
+          void this.guidesStore.generate({ appType, objective, gates: [], totalSpend: 0, campaignCount: 0 });
+        }
+        previousAppType = appType;
+      });
     });
   }
 

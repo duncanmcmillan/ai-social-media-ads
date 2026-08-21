@@ -79,6 +79,26 @@ export class GuidePanelComponent {
       const appType = this.workspaceStore.appType();
       untracked(() => this.store.setAppType(appType));
     });
+
+    // Auto-regenerate (Pro only) when the App Type or Objective selectors change.
+    // Uses a "change-only" guard so the panel opening alone does not trigger a generation.
+    let previousKey = '';
+    effect(() => {
+      const appType   = this.store.selectedAppType();
+      const objective = this.store.selectedObjective();
+      const key = `${appType}:${objective}`;
+      untracked(() => {
+        if (
+          previousKey &&            // not the initial run
+          previousKey !== key &&    // a real change, not a no-op
+          this.licenceStore.tier() === 'pro' &&
+          !this.store.isGenerating()
+        ) {
+          void this.generate();
+        }
+        previousKey = key;
+      });
+    });
   }
 
   /** App type options for the selector dropdown. */
@@ -161,5 +181,15 @@ export class GuidePanelComponent {
    */
   protected async generate(): Promise<void> {
     await this.store.generate(this.guideCtx());
+  }
+
+  /**
+   * Splits an AI-generated text block on double newlines into individual paragraph strings.
+   * Ensures long-form AI content renders as readable paragraphs rather than a single block.
+   * @param text - The raw AI text containing double-newline paragraph separators.
+   * @returns Array of non-empty paragraph strings.
+   */
+  protected paragraphs(text: string): string[] {
+    return text.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
   }
 }
