@@ -93,6 +93,34 @@
   gap: 4px;
 }
 
+/* ── Metrics Guide button (Learning Rules section header) ────────────── */
+.ws-metrics-guide-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--neutral-500);
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+
+  &--active {
+    background: #fff7ed;
+    border-color: var(--accent-400, #fb923c);
+    color: var(--accent-600, #ea580c);
+  }
+}
+
 /* ── Video help button ───────────────────────────────────────────────── */
 .ws-video-btn {
   display: flex;

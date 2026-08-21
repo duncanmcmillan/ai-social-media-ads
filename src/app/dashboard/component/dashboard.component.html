@@ -244,6 +244,13 @@
     <div class="col col--gates">
       <div class="col-header">
         <span class="col-title">Gates</span>
+        <button
+          type="button"
+          class="guide-open-btn"
+          [class.guide-open-btn--active]="metricsGuidePanelOpen()"
+          (click)="metricsGuidePanelOpen.set(true)"
+          aria-label="Open Metrics Contextual Guide panel"
+        >&#128202; Metrics Guide</button>
       </div>
 
       @if (store.gates().length === 0) {
@@ -297,11 +304,11 @@
           [attr.aria-label]="guidesStore.isGenerating() ? 'Generating marketing guide…' : 'Open Marketing Guide panel'"
         >
           @if (guidesStore.isGenerating()) {
-            <span class="guide-btn-spinner" aria-hidden="true"></span> Guide…
+            <span class="guide-btn-spinner" aria-hidden="true"></span> Marketing Guide…
           } @else if (guidesStore.activeGuide()) {
-            &#128214; Guide &#10003;
+            &#128214; Marketing Guide &#10003;
           } @else {
-            &#128214; Guide
+            &#128214; Marketing Guide
           }
         </button>
       </div>
@@ -328,6 +335,10 @@
 
   @if (guidePanelOpen()) {
     <app-guide-panel (closed)="guidePanelOpen.set(false)" />
+  }
+
+  @if (metricsGuidePanelOpen()) {
+    <app-metrics-guide-panel (closed)="metricsGuidePanelOpen.set(false)" />
   }
 
   </div><!-- /grid-wrapper -->

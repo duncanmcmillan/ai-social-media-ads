@@ -21,6 +21,7 @@ import { WorkspaceStore } from '../store/workspace.store';
 import { AiService } from '../../core/services/ai/ai.service';
 import { SlackService } from '../../core/services/slack/slack.service';
 import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
+import { MetricsGuidePanelComponent } from '../../guides';
 import type { Gate } from '../../dashboard/model/dashboard.model';
 
 /** Metadata for each collapsible workspace section. */
@@ -46,7 +47,7 @@ const SECTIONS: Section[] = [
  */
 @Component({
   selector: 'app-workspace',
-  imports: [VideoModalComponent],
+  imports: [VideoModalComponent, MetricsGuidePanelComponent],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -106,6 +107,9 @@ export class WorkspaceComponent implements AfterViewInit {
   protected readonly slackWebhookDraft = signal(this.workspaceStore.slackWebhookUrl());
   /** Feedback status for the Slack test button. */
   protected readonly slackTestStatus = signal<'idle' | 'sending' | 'ok' | 'error'>('idle');
+
+  /** Controls visibility of the Metrics Contextual Guide slide-over panel. */
+  protected readonly metricsGuidePanelOpen = signal(false);
 
   /** Map of section id → collapsed state (true = collapsed). */
   protected readonly collapsed = signal<Record<string, boolean>>({});

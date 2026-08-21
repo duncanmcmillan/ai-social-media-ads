@@ -1,0 +1,123 @@
+<div class="panel" role="complementary" aria-label="Metrics Contextual Guide">
+
+  <!-- Panel header -->
+  <div class="panel-header">
+    <span class="panel-title">Metrics Contextual Guide</span>
+    <div class="panel-header-actions">
+      <button
+        type="button"
+        class="fullscreen-btn"
+        (click)="fullscreen.set(!fullscreen())"
+        [attr.aria-label]="fullscreen() ? 'Exit full screen' : 'Expand to full screen'"
+        [attr.aria-pressed]="fullscreen()"
+        [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
+      >@if (fullscreen()) { &#x29C5; } @else { &#x29C4; }</button>
+      <button
+        type="button"
+        class="close-btn"
+        (click)="closed.emit()"
+        aria-label="Close Metrics Contextual Guide panel"
+      >&#10005;</button>
+    </div>
+  </div>
+
+  <!-- Panel body -->
+  <div class="panel-body" #panelBody>
+
+    <!-- Table of contents -->
+    <nav class="panel-toc" aria-label="Guide sections">
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-learning-phase')">Learning Phase</button>
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-cat-Data Floors')">Data Floors</button>
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-cat-Winner Gate')">Winner Gate</button>
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-cat-Performance Flags')">Performance Flags</button>
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-cat-Kill Rule')">Kill Rule</button>
+      <button class="toc-link" type="button" (click)="scrollToSection('mg-cat-Fatigue')">Fatigue</button>
+    </nav>
+
+    <!-- AI insights (when a marketing guide has been generated) -->
+    @if (guidesStore.activeGuide(); as guide) {
+      <div class="ai-callout">
+        <div class="ai-callout-label">AI — Funnel Metrics</div>
+        <p class="ai-callout-text">{{ guide.content.funnelMetrics }}</p>
+      </div>
+
+      <section class="rule-section" aria-labelledby="mg-monitoring">
+        <div class="section-heading-row">
+          <h3 id="mg-monitoring" class="section-heading">Monitoring Techniques</h3>
+          <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+        </div>
+        <p class="section-text">{{ guide.content.monitoringTechniques }}</p>
+      </section>
+    } @else {
+      <div class="no-ai-hint">
+        <span class="no-ai-icon" aria-hidden="true">&#128203;</span>
+        <p class="no-ai-text">Generate a <strong>Marketing Guide</strong> on the Dashboard or New Campaign tab to unlock AI funnel insights here.</p>
+      </div>
+    }
+
+    <!-- About the Learning Phase -->
+    <section class="rule-section" aria-labelledby="mg-learning-phase">
+      <div class="section-heading-row">
+        <h3 id="mg-learning-phase" class="section-heading">About the Learning Phase</h3>
+        <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+      </div>
+      <p class="section-text">
+        Facebook's delivery system enters a <strong>learning phase</strong> whenever a new ad or significant
+        change is made. During this phase Meta is optimising who sees the ad — results vary and verdicts are
+        unreliable. An ad exits the learning phase once it has enough data (typically 50 optimisation events).
+      </p>
+      <p class="section-text">
+        The <em>Data Floors</em> below define the minimum signals required before the dashboard applies any
+        verdict. If an ad shows "Needs Data", the correct action is usually to let it run, not pause it.
+      </p>
+    </section>
+
+    <!-- Rule categories -->
+    @for (category of ruleCategories; track category.label) {
+      <section class="rule-section" [attr.aria-labelledby]="'mg-cat-' + category.label">
+        <div class="section-heading-row">
+          <h3 [id]="'mg-cat-' + category.label" class="section-heading">{{ category.label }}</h3>
+          <button class="back-to-top" type="button" (click)="scrollToTop()" aria-label="Back to top">&#8593; Top</button>
+        </div>
+        <div class="rule-list">
+          @for (rule of category.rules; track rule.key) {
+            <div class="rule-card">
+              <div class="rule-card-header">
+                <span class="rule-label">{{ rule.label }}</span>
+                <div class="rule-badges">
+                  <span
+                    class="funnel-badge"
+                    [class.funnel-badge--tofu]="rule.funnel === 'TOFU'"
+                    [class.funnel-badge--mofu]="rule.funnel === 'MOFU'"
+                    [class.funnel-badge--bofu]="rule.funnel === 'BOFU'"
+                    [class.funnel-badge--all]="rule.funnel === 'All'"
+                  >{{ rule.funnel }}</span>
+                  @if (rule.gate) {
+                    <span
+                      class="gate-badge"
+                      [class.gate-badge--fatigue]="rule.gate === 'fatigue'"
+                      [class.gate-badge--learning]="rule.gate === 'learning-phase'"
+                      [class.gate-badge--roas]="rule.gate === 'low-roas'"
+                      [class.gate-badge--verdict]="rule.gate === 'verdict'"
+                    >{{ rule.gate }}</span>
+                  }
+                </div>
+              </div>
+              <div class="rule-value" aria-label="Current threshold">
+                Current: <strong>{{ ruleValue(rule.key) }}</strong>
+              </div>
+              <p class="rule-desc">{{ rule.description }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Back to top -->
+    <button class="back-to-top-bottom" type="button" (click)="scrollToTop()" aria-label="Back to top">
+      &#8593; Back to top
+    </button>
+
+  </div><!-- /panel-body -->
+
+</div>

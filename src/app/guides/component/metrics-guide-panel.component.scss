@@ -1,0 +1,328 @@
+/* ── Host layout ─────────────────────────────────────────────────────────── */
+/* position:fixed so the panel overlays correctly in both Dashboard and       */
+/* Workspace contexts without requiring a positioned parent container.        */
+:host {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100%;
+  z-index: 60;
+  background: var(--neutral-0, #fff);
+  border-left: 1px solid var(--neutral-200);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.2s ease;
+
+  &.metrics-guide-panel--fullscreen {
+    width: 100%;
+    border-left: none;
+    box-shadow: none;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Panel header ────────────────────────────────────────────────────────── */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--neutral-100);
+  flex-shrink: 0;
+  background: var(--neutral-50, #fafafa);
+}
+
+.panel-title {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--neutral-600);
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fullscreen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--neutral-400);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--neutral-400);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-700); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
+/* ── Panel body ──────────────────────────────────────────────────────────── */
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Table of contents ───────────────────────────────────────────────────── */
+.panel-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--neutral-50, #fafafa);
+  border: 1px solid var(--neutral-100);
+  border-radius: 4px;
+}
+
+.toc-link {
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  padding: 3px 6px;
+  font-size: 11px;
+  color: var(--accent-600, #ea580c);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: background 0.1s;
+
+  &:hover { background: var(--neutral-100); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
+/* ── AI callout ──────────────────────────────────────────────────────────── */
+.ai-callout {
+  padding: 10px 12px;
+  background: var(--neutral-50, #fafafa);
+  border-left: 3px solid var(--accent-500, #f97316);
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-callout-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-600, #ea580c);
+}
+
+.ai-callout-text {
+  white-space: pre-line;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--neutral-700);
+  margin: 0;
+}
+
+/* ── No AI hint ──────────────────────────────────────────────────────────── */
+.no-ai-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--neutral-50, #fafafa);
+  border: 1px dashed var(--neutral-200);
+  border-radius: 6px;
+}
+
+.no-ai-icon { font-size: 28px; }
+
+.no-ai-text {
+  font-size: 12px;
+  color: var(--neutral-500);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 280px;
+}
+
+/* ── Rule sections ───────────────────────────────────────────────────────── */
+.rule-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.section-heading {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--neutral-500);
+  margin: 0;
+}
+
+.back-to-top {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  font-size: 10px;
+  color: var(--neutral-400);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.1s;
+
+  &:hover { color: var(--accent-600, #ea580c); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 2px; border-radius: 2px; }
+}
+
+.section-text {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--neutral-600);
+  margin: 0;
+}
+
+/* ── Rule list ───────────────────────────────────────────────────────────── */
+.rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rule-card {
+  padding: 8px 10px;
+  background: var(--neutral-50, #fafafa);
+  border: 1px solid var(--neutral-150, #e8eaed);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rule-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.rule-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Funnel badges */
+.funnel-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--neutral-200);
+  color: var(--neutral-600);
+  letter-spacing: 0.04em;
+
+  &--tofu { background: #dbeafe; color: #1e40af; }
+  &--mofu { background: #fef9c3; color: #854d0e; }
+  &--bofu { background: #dcfce7; color: #166534; }
+  &--all  { background: var(--neutral-100); color: var(--neutral-500); }
+}
+
+/* Gate badges */
+.gate-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--neutral-100);
+  color: var(--neutral-400);
+
+  &--fatigue  { background: #fef3c7; color: #92400e; }
+  &--learning { background: #e0e7ff; color: #3730a3; }
+  &--roas     { background: #fee2e2; color: #991b1b; }
+  &--verdict  { background: #f3e8ff; color: #6b21a8; }
+}
+
+.rule-value {
+  font-size: 10px;
+  color: var(--neutral-500);
+
+  strong { color: var(--neutral-700); }
+}
+
+.rule-desc {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--neutral-500);
+  margin: 0;
+}
+
+/* ── Back to top (bottom) ────────────────────────────────────────────────── */
+.back-to-top-bottom {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  background: var(--neutral-50, #fafafa);
+  font-size: 11px;
+  color: var(--neutral-400);
+  cursor: pointer;
+  padding: 6px 0;
+  margin-top: 4px;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover { background: var(--neutral-100); color: var(--neutral-600); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}

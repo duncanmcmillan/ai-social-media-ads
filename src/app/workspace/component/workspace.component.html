@@ -587,6 +587,13 @@
       <div class="ws-section-header" (click)="toggle('ws-rules')">
         <h2 class="ws-section-title">Learning Rules</h2>
         <div class="ws-section-actions">
+          <button
+            class="ws-metrics-guide-btn"
+            type="button"
+            [class.ws-metrics-guide-btn--active]="metricsGuidePanelOpen()"
+            (click)="$event.stopPropagation(); metricsGuidePanelOpen.set(true)"
+            aria-label="Open Metrics Contextual Guide"
+          >&#128202; Metrics Guide</button>
           <button class="ws-video-btn" type="button" [class.ws-video-btn--available]="hasVideo('ws-rules')"
             (click)="$event.stopPropagation(); openVideo('ws-rules')"
             [title]="hasVideo('ws-rules') ? 'Watch help video' : 'Help video coming soon'">
@@ -865,4 +872,9 @@
     [title]="videoModalTitle()"
     (closed)="videoKey.set(null)"
   />
+}
+
+<!-- ── Metrics Contextual Guide panel ────────────────────────────────── -->
+@if (metricsGuidePanelOpen()) {
+  <app-metrics-guide-panel (closed)="metricsGuidePanelOpen.set(false)" />
 }

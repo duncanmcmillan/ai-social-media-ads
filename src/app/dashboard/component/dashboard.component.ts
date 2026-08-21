@@ -8,7 +8,7 @@ import { AuthStore } from '../../auth';
 import { LicenceStore, SchedulerService } from '../../core';
 import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
-import { GuidePanelComponent, GuidesStore } from '../../guides';
+import { GuidePanelComponent, MetricsGuidePanelComponent, GuidesStore } from '../../guides';
 import {
   gateKey,
   worstVerdict,
@@ -72,7 +72,7 @@ const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [GuidePanelComponent],
+  imports: [GuidePanelComponent, MetricsGuidePanelComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +89,9 @@ export class DashboardComponent {
 
   /** Controls visibility of the Marketing Guide slide-over panel. */
   protected readonly guidePanelOpen = signal(false);
+
+  /** Controls visibility of the Metrics Contextual Guide slide-over panel. */
+  protected readonly metricsGuidePanelOpen = signal(false);
 
   /** Currently selected gate index for gate→recommendation linking. */
   protected readonly selectedGateIndex = signal<number | null>(null);

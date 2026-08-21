@@ -153,11 +153,11 @@
         (click)="guidePanelOpen.set(true)"
       >
         @if (guidesStore.isGenerating()) {
-          <span class="ncp-guide-spinner" aria-hidden="true"></span> Guide&#8230;
+          <span class="ncp-guide-spinner" aria-hidden="true"></span> Marketing Guide&#8230;
         } @else if (guidesStore.activeGuide()) {
-          &#128214; Guide &#10003;
+          &#128214; Marketing Guide &#10003;
         } @else {
-          &#128214; Open Guide
+          &#128214; Marketing Guide
         }
       </button>
       @if (!guidesStore.activeGuide() && !guidesStore.isGenerating()) {
