@@ -617,21 +617,21 @@
               <span class="ws-rule-group-label">Data Floors</span>
               <div class="ws-field-row">
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="min-impr">Min Impressions</label>
+                  <label class="ws-sublabel" for="min-impr">Min Impressions <span class="info-icon" data-tooltip="Minimum impressions before a verdict is applied. Below this threshold the ad is labelled 'Needs Data' and excluded from winner/loser scoring.">i</span></label>
                   <p class="ws-rule-hint">Below this, an ad is "not enough data"</p>
                   <input id="min-impr" class="ws-input ws-input--sm" type="number"
                     [value]="workspaceStore.learningRules().minImpressions"
                     (change)="setLearningRule('minImpressions', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="min-spend">Min Spend</label>
+                  <label class="ws-sublabel" for="min-spend">Min Spend <span class="info-icon" data-tooltip="Minimum budget spent before any verdict fires. Prevents judging ads that have barely been served.">i</span></label>
                   <p class="ws-rule-hint">Spend floor before any verdict</p>
                   <input id="min-spend" class="ws-input ws-input--sm" type="number"
                     [value]="workspaceStore.learningRules().minSpend"
                     (change)="setLearningRule('minSpend', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="min-conv">Min Conversions</label>
+                  <label class="ws-sublabel" for="min-conv">Min Conversions <span class="info-icon" data-tooltip="Required bottom-funnel events (purchases, leads) before conversion-rate verdicts are considered statistically meaningful.">i</span></label>
                   <p class="ws-rule-hint">Required before conversion-rate verdicts</p>
                   <input id="min-conv" class="ws-input ws-input--sm" type="number"
                     [value]="workspaceStore.learningRules().minConversions"
@@ -644,7 +644,7 @@
               <span class="ws-rule-group-label">Winner Gate</span>
               <div class="ws-field-row">
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="win-spend">Winner Min Spend</label>
+                  <label class="ws-sublabel" for="win-spend">Winner Min Spend <span class="info-icon" data-tooltip="Minimum spend before an ad can earn the Winner label, regardless of how strong its ROAS looks.">i</span></label>
                   <p class="ws-rule-hint">Spend an ad must prove before it can be called a winner</p>
                   <input id="win-spend" class="ws-input ws-input--sm" type="number"
                     [value]="workspaceStore.learningRules().winnerMinSpend"
@@ -695,14 +695,14 @@
               <span class="ws-rule-group-label">Fatigue</span>
               <div class="ws-field-row">
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="prosp-freq">Prospecting Frequency Max</label>
+                  <label class="ws-sublabel" for="prosp-freq">Prospecting Frequency Max <span class="info-icon" data-tooltip="Average number of times a cold-audience user sees the ad before fatigue is flagged. Feeds the Fatigue gate on the Dashboard.">i</span></label>
                   <p class="ws-rule-hint">Frequency ceiling for prospecting before fatigue counts</p>
                   <input id="prosp-freq" class="ws-input ws-input--sm" type="number" step="0.1"
                     [value]="workspaceStore.learningRules().prospectingFrequencyMax"
                     (change)="setLearningRule('prospectingFrequencyMax', +$any($event.target).value)" />
                 </div>
                 <div class="ws-rule-field">
-                  <label class="ws-sublabel" for="retarg-freq">Retargeting Frequency Max</label>
+                  <label class="ws-sublabel" for="retarg-freq">Retargeting Frequency Max <span class="info-icon" data-tooltip="Higher frequency ceiling for warm retargeting audiences who need more exposures before converting.">i</span></label>
                   <p class="ws-rule-hint">Higher ceiling allowed for retargeting audiences</p>
                   <input id="retarg-freq" class="ws-input ws-input--sm" type="number" step="0.1"
                     [value]="workspaceStore.learningRules().retargetingFrequencyMax"
