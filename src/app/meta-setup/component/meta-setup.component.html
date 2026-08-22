@@ -3,7 +3,388 @@
   <div class="page-sub">Step-by-step video walkthroughs to get your Meta account ready before creating campaigns.</div>
 </div>
 
-<!-- Licence section -->
+<!-- ── Wizard / Reference Card ─────────────────────────────────────────── -->
+@if (setupStore.isComplete()) {
+
+  <!-- Reference card (all steps done) -->
+  <section class="ref-card" aria-labelledby="ref-heading">
+    <div class="ref-card__header">
+      <span class="ref-card__tick" aria-hidden="true">&#10003;</span>
+      <h2 class="ref-card__title" id="ref-heading">Meta Setup Complete</h2>
+      <button class="ref-card__reopen" type="button" (click)="setupStore.reset()">
+        Reopen wizard
+      </button>
+    </div>
+
+    <dl class="ref-card__list">
+      @if (setupStore.businessPortfolioId()) {
+        <div class="ref-row">
+          <dt class="ref-label">Business Portfolio ID</dt>
+          <dd class="ref-value">
+            <span class="ref-id">{{ setupStore.businessPortfolioId() }}</span>
+            <button class="ref-copy-btn" type="button"
+                    (click)="copyToClipboard(setupStore.businessPortfolioId())"
+                    aria-label="Copy Business Portfolio ID">Copy</button>
+          </dd>
+        </div>
+      }
+      @if (refAppId()) {
+        <div class="ref-row">
+          <dt class="ref-label">App ID</dt>
+          <dd class="ref-value">
+            <span class="ref-id">{{ refAppId() }}</span>
+            <button class="ref-copy-btn" type="button"
+                    (click)="copyToClipboard(refAppId())"
+                    aria-label="Copy App ID">Copy</button>
+          </dd>
+        </div>
+      }
+      @if (refAdAccountId()) {
+        <div class="ref-row">
+          <dt class="ref-label">Ad Account ID</dt>
+          <dd class="ref-value">
+            <span class="ref-id">{{ refAdAccountId() }}</span>
+            <button class="ref-copy-btn" type="button"
+                    (click)="copyToClipboard(refAdAccountId())"
+                    aria-label="Copy Ad Account ID">Copy</button>
+          </dd>
+        </div>
+      }
+      @if (refPageId()) {
+        <div class="ref-row">
+          <dt class="ref-label">Facebook Page ID</dt>
+          <dd class="ref-value">
+            <span class="ref-id">{{ refPageId() }}</span>
+            <button class="ref-copy-btn" type="button"
+                    (click)="copyToClipboard(refPageId())"
+                    aria-label="Copy Facebook Page ID">Copy</button>
+          </dd>
+        </div>
+      }
+      @if (refPixelId()) {
+        <div class="ref-row">
+          <dt class="ref-label">Pixel ID</dt>
+          <dd class="ref-value">
+            <span class="ref-id">{{ refPixelId() }}</span>
+            <button class="ref-copy-btn" type="button"
+                    (click)="copyToClipboard(refPixelId())"
+                    aria-label="Copy Pixel ID">Copy</button>
+          </dd>
+        </div>
+      }
+    </dl>
+
+    @if (refUser()) {
+      <p class="ref-card__user">Connected as {{ refUser() }}</p>
+    }
+  </section>
+
+} @else {
+
+  <!-- Accordion wizard -->
+  <section class="wizard" aria-label="Meta setup wizard">
+    @for (step of steps; track step.key) {
+      <div class="step-card"
+           [class.step-card--complete]="setupStore.completedSteps().includes(step.key)"
+           [class.step-card--open]="isStepOpen(step.key)">
+
+        <!-- Step header — always visible, click to toggle -->
+        <button class="step-header" type="button"
+                (click)="setupStore.setOpenStep(isStepOpen(step.key) ? null : step.key)"
+                [attr.aria-expanded]="isStepOpen(step.key)">
+          <span class="step-status" aria-hidden="true">
+            {{ setupStore.completedSteps().includes(step.key) ? '&#10003;' : '&#9675;' }}
+          </span>
+          <span class="step-title">{{ step.title }}</span>
+          @if (setupStore.completedSteps().includes(step.key) && !isStepOpen(step.key)) {
+            <span class="step-summary">{{ step.summary }}</span>
+          }
+          <span class="step-chevron" aria-hidden="true">{{ isStepOpen(step.key) ? '&#9650;' : '&#9660;' }}</span>
+        </button>
+
+        <!-- Collapsible body (CSS grid trick for smooth animation) -->
+        <div class="step-body" [class.step-body--open]="isStepOpen(step.key)"
+             [attr.aria-hidden]="!isStepOpen(step.key)">
+          <div class="step-inner">
+
+            @switch (step.key) {
+
+              <!-- ── Step 1: Business Portfolio ──────────────────────── -->
+              @case ('business-portfolio') {
+                <p class="step-desc">
+                  A <strong>Meta Business Portfolio</strong> (formerly Business Manager) groups your
+                  ad accounts, Pages, and pixels. Create one at
+                  <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer">business.facebook.com</a>
+                  if you don't already have one.
+                </p>
+
+                <!-- Screenshot thumbnails -->
+                <div class="screenshot-strip" role="list" aria-label="Business Portfolio setup screenshots">
+                  @for (img of bportScreenshots; track $index) {
+                    <button class="screenshot-thumb" type="button" role="listitem"
+                            [attr.aria-label]="img.caption"
+                            (click)="openLightbox(bportScreenshots, $index)">
+                      <div class="screenshot-thumb__img-wrap">
+                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
+                      </div>
+                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
+                    </button>
+                  }
+                </div>
+
+                <div class="step-field">
+                  <label class="step-label" for="bp-id-input">Business Portfolio ID <span class="step-optional">(optional — for reference)</span></label>
+                  <input id="bp-id-input" class="step-input" type="text"
+                         placeholder="e.g. 123456789"
+                         [(ngModel)]="businessPortfolioIdInput"
+                         autocomplete="off" spellcheck="false" />
+                </div>
+                <div class="step-actions">
+                  <button class="btn btn-primary btn-sm" type="button"
+                          (click)="markBusinessPortfolioDone()">
+                    Mark as Done
+                  </button>
+                </div>
+              }
+
+              <!-- ── Step 2: Developer App ───────────────────────────── -->
+              @case ('developer-app') {
+                <p class="step-desc">
+                  Register a <strong>Facebook App</strong> at
+                  <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer">developers.facebook.com</a>.
+                  Choose <em>Business</em> as the app type, then copy your <strong>App ID</strong>
+                  and generate an <strong>App Secret</strong> from the app dashboard.
+                </p>
+                <div class="step-field">
+                  <label class="step-label" for="app-id-input">App ID</label>
+                  <input id="app-id-input" class="step-input" type="text"
+                         placeholder="e.g. 1234567890123456"
+                         [(ngModel)]="appIdInput"
+                         autocomplete="off" spellcheck="false" />
+                </div>
+                <div class="step-field">
+                  <label class="step-label" for="app-secret-input">App Secret</label>
+                  <input id="app-secret-input" class="step-input" type="password"
+                         placeholder="Your App Secret"
+                         [(ngModel)]="appSecretInput"
+                         autocomplete="new-password" />
+                </div>
+                @if (authStore.error()) {
+                  <div class="step-error" role="alert">{{ authStore.error() }}</div>
+                }
+                <div class="step-actions">
+                  <button class="btn btn-primary btn-sm" type="button"
+                          [disabled]="!appIdInput.trim() || !appSecretInput.trim() || authStore.isLoading()"
+                          (click)="saveDeveloperApp()">
+                    @if (authStore.isLoading()) {
+                      <span class="spinner"></span> Saving&hellip;
+                    } @else {
+                      Save Credentials
+                    }
+                  </button>
+                </div>
+              }
+
+              <!-- ── Step 3: Ad Account ──────────────────────────────── -->
+              @case ('ad-account') {
+                @if (authStore.isAuthenticated()) {
+                  <p class="step-desc">Select the ad account this app will manage.</p>
+                  @if (authStore.adAccounts().length > 0) {
+                    <div class="step-field">
+                      <label class="step-label" for="ad-account-select">Ad Account</label>
+                      <select id="ad-account-select" class="step-select"
+                              [ngModel]="selectedAdAccount()"
+                              (ngModelChange)="selectedAdAccount.set($event)">
+                        <option [ngValue]="null">— Select an account —</option>
+                        @for (acc of authStore.adAccounts(); track acc.id) {
+                          <option [ngValue]="acc">{{ acc.name }} ({{ acc.id }})</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="step-actions">
+                      <button class="btn btn-primary btn-sm" type="button"
+                              [disabled]="!selectedAdAccount()"
+                              (click)="saveAdAccount()">
+                        Select Account
+                      </button>
+                    </div>
+                  } @else {
+                    <p class="step-note">No ad accounts found for this user. Ensure your account has access in Business Manager.</p>
+                  }
+                } @else {
+                  <p class="step-desc">
+                    Enter your Ad Account ID manually. Connect Facebook in Step 6 to auto-populate this list.
+                  </p>
+                  <div class="step-field">
+                    <label class="step-label" for="manual-ad-account-input">Ad Account ID</label>
+                    <input id="manual-ad-account-input" class="step-input" type="text"
+                           placeholder="e.g. act_1234567890"
+                           [(ngModel)]="adAccountInput"
+                           autocomplete="off" spellcheck="false" />
+                  </div>
+                  <div class="step-actions">
+                    <button class="btn btn-primary btn-sm" type="button"
+                            [disabled]="!adAccountInput.trim()"
+                            (click)="saveManualAdAccount()">
+                      Save for Reference
+                    </button>
+                  </div>
+                }
+              }
+
+              <!-- ── Step 4: Facebook Page ───────────────────────────── -->
+              @case ('facebook-page') {
+                <p class="step-desc">
+                  Select the <strong>Facebook Page</strong> that will appear as the ad identity.
+                  Your Page must be linked to your Business Portfolio.
+                </p>
+                @if (authStore.isAuthenticated()) {
+                  <div class="step-actions step-actions--row">
+                    <button class="btn btn-sm" type="button"
+                            [disabled]="authStore.pagesLoading()"
+                            (click)="fetchPages()">
+                      @if (authStore.pagesLoading()) {
+                        <span class="spinner"></span> Fetching&hellip;
+                      } @else {
+                        Fetch My Pages
+                      }
+                    </button>
+                  </div>
+                  @if (authStore.pages().length > 0) {
+                    <div class="step-field">
+                      <label class="step-label" for="page-select">Page</label>
+                      <select id="page-select" class="step-select"
+                              [ngModel]="selectedPageId()"
+                              (ngModelChange)="selectedPageId.set($event)">
+                        <option value="">— Select a Page —</option>
+                        @for (page of authStore.pages(); track page.id) {
+                          <option [value]="page.id">{{ page.name }} ({{ page.id }})</option>
+                        }
+                      </select>
+                    </div>
+                  }
+                }
+                <div class="step-field">
+                  <label class="step-label" for="manual-page-input">
+                    Page ID <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                  </label>
+                  <input id="manual-page-input" class="step-input" type="text"
+                         placeholder="e.g. 123456789012345"
+                         [(ngModel)]="manualPageIdInput"
+                         autocomplete="off" spellcheck="false" />
+                </div>
+                <div class="step-actions">
+                  <button class="btn btn-primary btn-sm" type="button"
+                          [disabled]="!selectedPageId() && !manualPageIdInput.trim()"
+                          (click)="saveFacebookPage()">
+                    Save Page
+                  </button>
+                </div>
+              }
+
+              <!-- ── Step 5: Meta Pixel ─────────────────────────────── -->
+              @case ('pixel') {
+                <p class="step-desc">
+                  Link a <strong>Meta Pixel</strong> (Dataset) to track conversions from your ads.
+                  Create one in Events Manager if you don't have one yet.
+                </p>
+                @if (authStore.isAuthenticated() && authStore.selectedAccount()) {
+                  <div class="step-actions step-actions--row">
+                    <button class="btn btn-sm" type="button"
+                            [disabled]="authStore.pixelsLoading()"
+                            (click)="fetchPixels()">
+                      @if (authStore.pixelsLoading()) {
+                        <span class="spinner"></span> Fetching&hellip;
+                      } @else {
+                        Fetch Pixels
+                      }
+                    </button>
+                  </div>
+                  @if (authStore.pixels().length > 0) {
+                    <div class="step-field">
+                      <label class="step-label" for="pixel-select">Pixel</label>
+                      <select id="pixel-select" class="step-select"
+                              [ngModel]="selectedPixelId()"
+                              (ngModelChange)="selectedPixelId.set($event)">
+                        <option value="">— Select a Pixel —</option>
+                        @for (pixel of authStore.pixels(); track pixel.id) {
+                          <option [value]="pixel.id">{{ pixel.name }} ({{ pixel.id }})</option>
+                        }
+                      </select>
+                    </div>
+                  }
+                } @else if (!authStore.isAuthenticated()) {
+                  <p class="step-note">Connect Facebook in Step 6 and select an Ad Account to auto-load your pixels.</p>
+                }
+                <div class="step-field">
+                  <label class="step-label" for="manual-pixel-input">
+                    Pixel ID <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                  </label>
+                  <input id="manual-pixel-input" class="step-input" type="text"
+                         placeholder="e.g. 1234567890123456"
+                         [(ngModel)]="manualPixelIdInput"
+                         autocomplete="off" spellcheck="false" />
+                </div>
+                <div class="step-actions">
+                  <button class="btn btn-primary btn-sm" type="button"
+                          [disabled]="!selectedPixelId() && !manualPixelIdInput.trim()"
+                          (click)="savePixel()">
+                    Save Pixel
+                  </button>
+                </div>
+              }
+
+              <!-- ── Step 6: Connect Facebook ───────────────────────── -->
+              @case ('connect') {
+                @if (authStore.isAuthenticated()) {
+                  <div class="step-connected">
+                    <span class="connected-badge">Connected</span>
+                    @if (authStore.user()) {
+                      <span class="connected-name">as {{ authStore.user()!.name }}</span>
+                    }
+                  </div>
+                  <div class="step-actions">
+                    <button class="btn btn-primary btn-sm" type="button"
+                            (click)="markConnectDone()">
+                      Mark as Done
+                    </button>
+                  </div>
+                } @else {
+                  <p class="step-desc">
+                    Authorise this app to access your Meta ad accounts via Facebook OAuth.
+                    You must have saved your App ID and App Secret in Step 2 before connecting.
+                  </p>
+                  @if (authStore.error()) {
+                    <div class="step-error" role="alert">{{ authStore.error() }}</div>
+                  }
+                  <div class="step-actions">
+                    <button class="btn btn-primary btn-sm" type="button"
+                            [disabled]="authStore.isLoading() || !authStore.appId()"
+                            (click)="connectFacebook()">
+                      @if (authStore.isLoading()) {
+                        <span class="spinner"></span> Connecting&hellip;
+                      } @else {
+                        Connect with Facebook
+                      }
+                    </button>
+                    @if (!authStore.appId()) {
+                      <span class="step-note">Save your App credentials in Step 2 first.</span>
+                    }
+                  </div>
+                }
+              }
+
+            }
+
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+}
+
+<!-- ── Licence section ─────────────────────────────────────────────────── -->
 <section class="licence-section" aria-labelledby="licence-heading">
   <h2 class="section-title" id="licence-heading">Licence</h2>
 
@@ -118,5 +499,13 @@
     [src]="openSrc"
     [title]="openTitle"
     (closed)="openKey.set(null)"
+  />
+}
+
+@if (lightboxIndex() !== null) {
+  <app-image-modal
+    [images]="lightboxImages"
+    [startIndex]="lightboxIndex()!"
+    (closed)="lightboxIndex.set(null)"
   />
 }
