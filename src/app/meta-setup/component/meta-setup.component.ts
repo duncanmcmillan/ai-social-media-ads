@@ -62,7 +62,7 @@ const SETUP_VIDEOS: SetupVideo[] = [
 
 /**
  * Screenshot walkthrough images for the Business Portfolio step.
- * Served from src/assets/ so they are bundled with the app.
+ * Served from public/ so they are included in the Angular build output.
  */
 const BPORT_SCREENSHOTS: LightboxImage[] = [
   {
@@ -87,6 +87,70 @@ const BPORT_SCREENSHOTS: LightboxImage[] = [
   },
 ];
 
+/** Screenshot walkthrough images for the Developer App step. */
+const DEV_APP_SCREENSHOTS: LightboxImage[] = [
+  {
+    src: 'meta-setup/screenshots/meta-create-app-1.png',
+    caption: 'Step 1 — Go to developers.facebook.com/apps and click "Create App"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-2.png',
+    caption: 'Step 2 — Enter your app name and contact email, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-3.png',
+    caption: 'Step 3 — Select "Create & manage ads with Marketing API" as your use case',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-4.png',
+    caption: 'Step 4 — Connect your AIAds Business Portfolio',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-5.png',
+    caption: 'Step 5 — Review publishing requirements (typically none at this stage)',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-6.png',
+    caption: 'Step 6 — Review the overview and click "Create app"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-7.png',
+    caption: 'Step 7 — Copy your App ID and App Secret from App Settings → Basic',
+  },
+];
+
+/** Screenshot walkthrough images for the Ad Account step. */
+const AD_ACCOUNT_SCREENSHOTS: LightboxImage[] = [
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-1.png',
+    caption: 'Step 1 — Go to business.facebook.com and select your AIAds Business Portfolio',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-2.png',
+    caption: 'Step 2 — Go to Settings → Ad accounts and click "+ Add"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-3.png',
+    caption: 'Step 3 — Choose "Create a new ad account" (or add an existing one)',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-4.png',
+    caption: 'Step 4 — Enter a name, time zone, and currency for the account',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-5.png',
+    caption: 'Step 5 — Select "My business" as the account usage',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-6.png',
+    caption: 'Step 6 — Review and confirm, then click "Create ad account"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-ad-account-7.png',
+    caption: 'Step 7 — Your Ad Account ID is shown in Settings — copy it for reference',
+  },
+];
+
 /** Meta Setup tab — wizard, reference card, video walkthroughs, and licence management. */
 @Component({
   selector: 'app-meta-setup',
@@ -99,6 +163,8 @@ export class MetaSetupComponent {
   protected readonly videos              = SETUP_VIDEOS;
   protected readonly steps               = SETUP_STEPS;
   protected readonly bportScreenshots    = BPORT_SCREENSHOTS;
+  protected readonly devAppScreenshots   = DEV_APP_SCREENSHOTS;
+  protected readonly adAccountScreenshots = AD_ACCOUNT_SCREENSHOTS;
 
   // ── Stores ──────────────────────────────────────────────────────────────
   protected readonly licenceStore   = inject(LicenceStore);

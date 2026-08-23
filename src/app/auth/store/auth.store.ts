@@ -163,12 +163,18 @@ export const AuthStore = signalStore(
       patchState(store, { isLoading: true, error: null });
       try {
         const [tokens, config] = await Promise.all([bridge.loadTokens(), bridge.loadConfig()]);
+        // Always restore App ID and Ad Account ID from config so the wizard
+        // can show "Saved" chips even before the user has completed OAuth.
+        if (config?.appId) {
+          patchState(store, {
+            appId: config.appId,
+            adAccountId: config.adAccountId ?? null,
+          });
+        }
         if (tokens?.accessToken) {
           patchState(store, {
             isAuthenticated: true,
             accessToken: tokens.accessToken,
-            adAccountId: config?.adAccountId ?? null,
-            appId: config?.appId ?? null,
           });
           // Restore user profile and ad accounts (non-fatal if API is unavailable)
           try {

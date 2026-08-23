@@ -133,7 +133,13 @@
                 </div>
 
                 <div class="step-field">
-                  <label class="step-label" for="bp-id-input">Business Portfolio ID <span class="step-optional">(optional — for reference)</span></label>
+                  <label class="step-label" for="bp-id-input">
+                    Business Portfolio ID
+                    <span class="step-optional">(optional — for reference)</span>
+                    @if (setupStore.businessPortfolioId()) {
+                      <span class="saved-chip" title="Saved value">Saved: {{ setupStore.businessPortfolioId() }}</span>
+                    }
+                  </label>
                   <input id="bp-id-input" class="step-input" type="text"
                          placeholder="e.g. 123456789"
                          [(ngModel)]="businessPortfolioIdInput"
@@ -152,18 +158,42 @@
                 <p class="step-desc">
                   Register a <strong>Facebook App</strong> at
                   <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer">developers.facebook.com</a>.
-                  Choose <em>Business</em> as the app type, then copy your <strong>App ID</strong>
-                  and generate an <strong>App Secret</strong> from the app dashboard.
+                  Select the Marketing API use case, link your Business Portfolio, then copy your
+                  <strong>App ID</strong> and <strong>App Secret</strong> from App Settings → Basic.
                 </p>
+
+                <!-- Screenshot thumbnails -->
+                <div class="screenshot-strip" role="list" aria-label="Developer App setup screenshots">
+                  @for (img of devAppScreenshots; track $index) {
+                    <button class="screenshot-thumb" type="button" role="listitem"
+                            [attr.aria-label]="img.caption"
+                            (click)="openLightbox(devAppScreenshots, $index)">
+                      <div class="screenshot-thumb__img-wrap">
+                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
+                      </div>
+                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
+                    </button>
+                  }
+                </div>
                 <div class="step-field">
-                  <label class="step-label" for="app-id-input">App ID</label>
+                  <label class="step-label" for="app-id-input">
+                    App ID
+                    @if (authStore.appId()) {
+                      <span class="saved-chip" title="Saved value">Saved: {{ authStore.appId() }}</span>
+                    }
+                  </label>
                   <input id="app-id-input" class="step-input" type="text"
                          placeholder="e.g. 1234567890123456"
                          [(ngModel)]="appIdInput"
                          autocomplete="off" spellcheck="false" />
                 </div>
                 <div class="step-field">
-                  <label class="step-label" for="app-secret-input">App Secret</label>
+                  <label class="step-label" for="app-secret-input">
+                    App Secret
+                    @if (authStore.appId()) {
+                      <span class="saved-chip" title="Stored securely in Electron">Saved securely</span>
+                    }
+                  </label>
                   <input id="app-secret-input" class="step-input" type="password"
                          placeholder="Your App Secret"
                          [(ngModel)]="appSecretInput"
@@ -187,11 +217,34 @@
 
               <!-- ── Step 3: Ad Account ──────────────────────────────── -->
               @case ('ad-account') {
+                <!-- Screenshot thumbnails -->
+                <div class="screenshot-strip" role="list" aria-label="Ad Account setup screenshots">
+                  @for (img of adAccountScreenshots; track $index) {
+                    <button class="screenshot-thumb" type="button" role="listitem"
+                            [attr.aria-label]="img.caption"
+                            (click)="openLightbox(adAccountScreenshots, $index)">
+                      <div class="screenshot-thumb__img-wrap">
+                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
+                      </div>
+                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
+                    </button>
+                  }
+                </div>
+
                 @if (authStore.isAuthenticated()) {
-                  <p class="step-desc">Select the ad account this app will manage.</p>
+                  <p class="step-desc">
+                    Select the ad account this app will manage. Your ad accounts are listed below — if
+                    none appear, make sure your Facebook user has access in
+                    <a href="https://business.facebook.com/settings/ad-accounts" target="_blank" rel="noopener noreferrer">Meta Business Suite → Accounts → Ad accounts</a>.
+                  </p>
                   @if (authStore.adAccounts().length > 0) {
                     <div class="step-field">
-                      <label class="step-label" for="ad-account-select">Ad Account</label>
+                      <label class="step-label" for="ad-account-select">
+                        Ad Account
+                        @if (authStore.selectedAccount()) {
+                          <span class="saved-chip" title="Currently selected">Saved: {{ authStore.selectedAccount()!.id }}</span>
+                        }
+                      </label>
                       <select id="ad-account-select" class="step-select"
                               [ngModel]="selectedAdAccount()"
                               (ngModelChange)="selectedAdAccount.set($event)">
@@ -213,10 +266,20 @@
                   }
                 } @else {
                   <p class="step-desc">
-                    Enter your Ad Account ID manually. Connect Facebook in Step 6 to auto-populate this list.
+                    Find your Ad Account ID in
+                    <a href="https://adsmanager.facebook.com" target="_blank" rel="noopener noreferrer">Meta Ads Manager</a>
+                    — it appears in the account switcher at the top and starts with <code>act_</code>.
+                    You can also find it under
+                    <a href="https://business.facebook.com/settings/ad-accounts" target="_blank" rel="noopener noreferrer">Meta Business Suite → Accounts → Ad accounts</a>.
+                    Connect Facebook in Step 6 to auto-populate this list instead.
                   </p>
                   <div class="step-field">
-                    <label class="step-label" for="manual-ad-account-input">Ad Account ID</label>
+                    <label class="step-label" for="manual-ad-account-input">
+                      Ad Account ID
+                      @if (setupStore.manualAdAccountId()) {
+                        <span class="saved-chip" title="Saved value">Saved: {{ setupStore.manualAdAccountId() }}</span>
+                      }
+                    </label>
                     <input id="manual-ad-account-input" class="step-input" type="text"
                            placeholder="e.g. act_1234567890"
                            [(ngModel)]="adAccountInput"
@@ -236,7 +299,11 @@
               @case ('facebook-page') {
                 <p class="step-desc">
                   Select the <strong>Facebook Page</strong> that will appear as the ad identity.
-                  Your Page must be linked to your Business Portfolio.
+                  If you don't have a Page yet, create one at
+                  <a href="https://www.facebook.com/pages/create" target="_blank" rel="noopener noreferrer">facebook.com/pages/create</a>.
+                  Then link it to your Business Portfolio in
+                  <a href="https://business.facebook.com/settings/pages" target="_blank" rel="noopener noreferrer">Meta Business Suite → Accounts → Pages</a>
+                  before connecting here.
                 </p>
                 @if (authStore.isAuthenticated()) {
                   <div class="step-actions step-actions--row">
@@ -266,7 +333,11 @@
                 }
                 <div class="step-field">
                   <label class="step-label" for="manual-page-input">
-                    Page ID <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                    Page ID
+                    <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                    @if (workspaceStore.metaDefaults().facebookPageId) {
+                      <span class="saved-chip" title="Saved value">Saved: {{ workspaceStore.metaDefaults().facebookPageId }}</span>
+                    }
                   </label>
                   <input id="manual-page-input" class="step-input" type="text"
                          placeholder="e.g. 123456789012345"
@@ -286,7 +357,10 @@
               @case ('pixel') {
                 <p class="step-desc">
                   Link a <strong>Meta Pixel</strong> (Dataset) to track conversions from your ads.
-                  Create one in Events Manager if you don't have one yet.
+                  Create and manage pixels in
+                  <a href="https://business.facebook.com/events_manager" target="_blank" rel="noopener noreferrer">Meta Events Manager</a>
+                  — choose <em>Connect a data source → Web → Meta Pixel</em>.
+                  Your pixel must be linked to your ad account before it appears in the list below.
                 </p>
                 @if (authStore.isAuthenticated() && authStore.selectedAccount()) {
                   <div class="step-actions step-actions--row">
@@ -318,7 +392,11 @@
                 }
                 <div class="step-field">
                   <label class="step-label" for="manual-pixel-input">
-                    Pixel ID <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                    Pixel ID
+                    <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
+                    @if (workspaceStore.metaDefaults().pixelId) {
+                      <span class="saved-chip" title="Saved value">Saved: {{ workspaceStore.metaDefaults().pixelId }}</span>
+                    }
                   </label>
                   <input id="manual-pixel-input" class="step-input" type="text"
                          placeholder="e.g. 1234567890123456"
