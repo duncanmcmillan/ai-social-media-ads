@@ -63,7 +63,7 @@
       }
       @if (refPixelId()) {
         <div class="ref-row">
-          <dt class="ref-label">Pixel ID</dt>
+          <dt class="ref-label">Dataset ID</dt>
           <dd class="ref-value">
             <span class="ref-id">{{ refPixelId() }}</span>
             <button class="ref-copy-btn" type="button"
@@ -367,14 +367,38 @@
                 </div>
               }
 
-              <!-- ── Step 5: Meta Pixel ─────────────────────────────── -->
+              <!-- ── Step 5: Meta Dataset ───────────────────────────── -->
               @case ('pixel') {
+                <!-- Screenshot thumbnails -->
+                <div class="screenshot-strip" role="list" aria-label="Meta Dataset setup screenshots">
+                  @for (img of datasetScreenshots; track $index) {
+                    <button class="screenshot-thumb" type="button" role="listitem"
+                            [attr.aria-label]="img.caption"
+                            (click)="openLightbox(datasetScreenshots, $index)">
+                      <div class="screenshot-thumb__img-wrap">
+                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
+                      </div>
+                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
+                    </button>
+                  }
+                </div>
+
                 <p class="step-desc">
-                  Link a <strong>Meta Pixel</strong> (Dataset) to track conversions from your ads.
-                  Create and manage pixels in
-                  <a href="https://business.facebook.com/events_manager" target="_blank" rel="noopener noreferrer">Meta Events Manager</a>
-                  — choose <em>Connect a data source → Web → Meta Pixel</em>.
-                  Your pixel must be linked to your ad account before it appears in the list below.
+                  A <strong>Meta Dataset</strong> (formerly Meta Pixel) tracks conversions from your ads.
+                  Meta allows <strong>one dataset per ad account</strong>.
+                </p>
+                <p class="step-desc">
+                  <strong>No dataset yet?</strong> Go to
+                  <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer">Meta Business Suite</a>
+                  &rarr; <em>Settings &rarr; Data Sources &rarr; Datasets &amp; pixels &rarr; + Add</em>.
+                  Name your dataset, connect your ad account, then go to
+                  <a href="https://business.facebook.com/events_manager2/list" target="_blank" rel="noopener noreferrer">Events Manager</a>
+                  to connect a Web data source and install the Meta Pixel code.
+                </p>
+                <p class="step-desc">
+                  <strong>Already have one?</strong> Your Dataset ID is shown below the dataset name in
+                  <a href="https://business.facebook.com/events_manager2/list" target="_blank" rel="noopener noreferrer">Events Manager</a>.
+                  Make sure it is connected to your ad account under <em>Settings &rarr; Connected assets</em>.
                 </p>
                 @if (authStore.isAuthenticated() && authStore.selectedAccount()) {
                   <div class="step-actions step-actions--row">
@@ -384,17 +408,17 @@
                       @if (authStore.pixelsLoading()) {
                         <span class="spinner"></span> Fetching&hellip;
                       } @else {
-                        Fetch Pixels
+                        Fetch Datasets
                       }
                     </button>
                   </div>
                   @if (authStore.pixels().length > 0) {
                     <div class="step-field">
-                      <label class="step-label" for="pixel-select">Pixel</label>
+                      <label class="step-label" for="pixel-select">Dataset</label>
                       <select id="pixel-select" class="step-select"
                               [ngModel]="selectedPixelId()"
                               (ngModelChange)="selectedPixelId.set($event)">
-                        <option value="">— Select a Pixel —</option>
+                        <option value="">— Select a Dataset —</option>
                         @for (pixel of authStore.pixels(); track pixel.id) {
                           <option [value]="pixel.id">{{ pixel.name }} ({{ pixel.id }})</option>
                         }
@@ -402,11 +426,11 @@
                     </div>
                   }
                 } @else if (!authStore.isAuthenticated()) {
-                  <p class="step-note">Connect Facebook in Step 6 and select an Ad Account to auto-load your pixels.</p>
+                  <p class="step-note">Connect Facebook in Step 6 and select an Ad Account to auto-load your datasets.</p>
                 }
                 <div class="step-field">
                   <label class="step-label" for="manual-pixel-input">
-                    Pixel ID
+                    Dataset ID
                     <span class="step-optional">{{ authStore.isAuthenticated() ? '(or enter manually)' : '' }}</span>
                     @if (workspaceStore.metaDefaults().pixelId) {
                       <span class="saved-chip" title="Saved value">Saved: {{ workspaceStore.metaDefaults().pixelId }}</span>
@@ -421,7 +445,7 @@
                   <button class="btn btn-primary btn-sm" type="button"
                           [disabled]="!selectedPixelId() && !manualPixelIdInput.trim()"
                           (click)="savePixel()">
-                    Save Pixel
+                    Save Dataset
                   </button>
                 </div>
               }

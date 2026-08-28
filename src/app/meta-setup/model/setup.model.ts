@@ -46,8 +46,8 @@ export const SETUP_STEPS: StepDefinition[] = [
   },
   {
     key: 'pixel',
-    title: '5. Meta Pixel',
-    summary: 'Set up a Pixel to track conversions.',
+    title: '5. Meta Dataset',
+    summary: 'Create a Dataset and install the Meta Pixel code.',
   },
   {
     key: 'connect',

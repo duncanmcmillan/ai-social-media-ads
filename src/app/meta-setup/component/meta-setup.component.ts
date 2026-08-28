@@ -143,6 +143,70 @@ const FB_PAGE_SCREENSHOTS: LightboxImage[] = [
   },
 ];
 
+/** Screenshot walkthrough images for the Meta Dataset step. */
+const DATASET_SCREENSHOTS: LightboxImage[] = [
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-1.png',
+    caption: 'Step 1 — Go to Meta Business Suite and select your AIAds Business Portfolio',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-2.png',
+    caption: 'Step 2 — Go to Settings → Data Sources → Datasets & pixels and click "+ Add"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-3.png',
+    caption: 'Step 3 — Enter a dataset name and optional category, then click Create',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-4.png',
+    caption: 'Step 4 — Select the ad account(s) to connect to this dataset, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-5.png',
+    caption: 'Step 5 — Dataset created — click "Go to Events Manager"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-6.png',
+    caption: 'Step 6 — In Events Manager click "Connect data", select Web, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-7.png',
+    caption: 'Step 7 — Select your dataset from the dropdown, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-8.png',
+    caption: 'Step 8 — Choose "Set up Meta Pixel" to connect your web data, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-9.png',
+    caption: 'Step 9 — Choose "Add Meta Pixel code to website yourself", then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-10.png',
+    caption: 'Step 10 — Copy the Meta Pixel base code and paste it into your website\'s <head>, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-11.png',
+    caption: 'Step 11 — Configure Automatic Advanced Matching (recommended), then click Done',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-12.png',
+    caption: 'Step 12 — Datasets overview — your Dataset ID appears below the name; copy it for Step 5 here',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-13.png',
+    caption: 'Step 13 — Return to "Connect data" and choose "Set up Conversions API" for server-side tracking',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-14.png',
+    caption: 'Step 14 — Choose "Set up manually" to implement the Conversions API yourself',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-dataset-15.png',
+    caption: 'Step 15 — Manual Implementation Overview — follow the 3-step guide to send events via the API',
+  },
+];
+
 /** Screenshot walkthrough images for the Ad Account step. */
 const AD_ACCOUNT_SCREENSHOTS: LightboxImage[] = [
   {
@@ -190,6 +254,7 @@ export class MetaSetupComponent {
   protected readonly devAppScreenshots    = DEV_APP_SCREENSHOTS;
   protected readonly adAccountScreenshots = AD_ACCOUNT_SCREENSHOTS;
   protected readonly fbPageScreenshots    = FB_PAGE_SCREENSHOTS;
+  protected readonly datasetScreenshots   = DATASET_SCREENSHOTS;
 
   // ── Stores ──────────────────────────────────────────────────────────────
   protected readonly licenceStore   = inject(LicenceStore);
