@@ -119,18 +119,10 @@
                 </p>
 
                 <!-- Screenshot thumbnails -->
-                <div class="screenshot-strip" role="list" aria-label="Business Portfolio setup screenshots">
-                  @for (img of bportScreenshots; track $index) {
-                    <button class="screenshot-thumb" type="button" role="listitem"
-                            [attr.aria-label]="img.caption"
-                            (click)="openLightbox(bportScreenshots, $index)">
-                      <div class="screenshot-thumb__img-wrap">
-                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
-                      </div>
-                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
-                    </button>
-                  }
-                </div>
+                <app-screenshot-strip
+                  [images]="bportScreenshots"
+                  ariaLabel="Business Portfolio setup screenshots"
+                  (open)="openLightbox(bportScreenshots, $event)" />
 
                 <div class="step-field">
                   <label class="step-label" for="bp-id-input">
@@ -163,18 +155,10 @@
                 </p>
 
                 <!-- Screenshot thumbnails -->
-                <div class="screenshot-strip" role="list" aria-label="Developer App setup screenshots">
-                  @for (img of devAppScreenshots; track $index) {
-                    <button class="screenshot-thumb" type="button" role="listitem"
-                            [attr.aria-label]="img.caption"
-                            (click)="openLightbox(devAppScreenshots, $index)">
-                      <div class="screenshot-thumb__img-wrap">
-                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
-                      </div>
-                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
-                    </button>
-                  }
-                </div>
+                <app-screenshot-strip
+                  [images]="devAppScreenshots"
+                  ariaLabel="Developer App setup screenshots"
+                  (open)="openLightbox(devAppScreenshots, $event)" />
                 <div class="step-field">
                   <label class="step-label" for="app-id-input">
                     App ID
@@ -218,18 +202,10 @@
               <!-- ── Step 3: Ad Account ──────────────────────────────── -->
               @case ('ad-account') {
                 <!-- Screenshot thumbnails -->
-                <div class="screenshot-strip" role="list" aria-label="Ad Account setup screenshots">
-                  @for (img of adAccountScreenshots; track $index) {
-                    <button class="screenshot-thumb" type="button" role="listitem"
-                            [attr.aria-label]="img.caption"
-                            (click)="openLightbox(adAccountScreenshots, $index)">
-                      <div class="screenshot-thumb__img-wrap">
-                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
-                      </div>
-                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
-                    </button>
-                  }
-                </div>
+                <app-screenshot-strip
+                  [images]="adAccountScreenshots"
+                  ariaLabel="Ad Account setup screenshots"
+                  (open)="openLightbox(adAccountScreenshots, $event)" />
 
                 @if (authStore.isAuthenticated()) {
                   <p class="step-desc">
@@ -298,18 +274,10 @@
               <!-- ── Step 4: Facebook Page ───────────────────────────── -->
               @case ('facebook-page') {
                 <!-- Screenshot thumbnails -->
-                <div class="screenshot-strip" role="list" aria-label="Facebook Page setup screenshots">
-                  @for (img of fbPageScreenshots; track $index) {
-                    <button class="screenshot-thumb" type="button" role="listitem"
-                            [attr.aria-label]="img.caption"
-                            (click)="openLightbox(fbPageScreenshots, $index)">
-                      <div class="screenshot-thumb__img-wrap">
-                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
-                      </div>
-                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
-                    </button>
-                  }
-                </div>
+                <app-screenshot-strip
+                  [images]="fbPageScreenshots"
+                  ariaLabel="Facebook Page setup screenshots"
+                  (open)="openLightbox(fbPageScreenshots, $event)" />
 
                 <p class="step-desc">
                   Select the <strong>Facebook Page</strong> that will appear as the ad identity.
@@ -370,18 +338,10 @@
               <!-- ── Step 5: Meta Dataset ───────────────────────────── -->
               @case ('pixel') {
                 <!-- Screenshot thumbnails -->
-                <div class="screenshot-strip" role="list" aria-label="Meta Dataset setup screenshots">
-                  @for (img of datasetScreenshots; track $index) {
-                    <button class="screenshot-thumb" type="button" role="listitem"
-                            [attr.aria-label]="img.caption"
-                            (click)="openLightbox(datasetScreenshots, $index)">
-                      <div class="screenshot-thumb__img-wrap">
-                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
-                      </div>
-                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
-                    </button>
-                  }
-                </div>
+                <app-screenshot-strip
+                  [images]="datasetScreenshots"
+                  ariaLabel="Meta Dataset setup screenshots"
+                  (open)="openLightbox(datasetScreenshots, $event)" />
 
                 <p class="step-desc">
                   A <strong>Meta Dataset</strong> (formerly Meta Pixel) tracks conversions from your ads.
