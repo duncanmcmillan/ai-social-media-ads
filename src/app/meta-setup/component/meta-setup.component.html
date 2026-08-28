@@ -297,6 +297,20 @@
 
               <!-- ── Step 4: Facebook Page ───────────────────────────── -->
               @case ('facebook-page') {
+                <!-- Screenshot thumbnails -->
+                <div class="screenshot-strip" role="list" aria-label="Facebook Page setup screenshots">
+                  @for (img of fbPageScreenshots; track $index) {
+                    <button class="screenshot-thumb" type="button" role="listitem"
+                            [attr.aria-label]="img.caption"
+                            (click)="openLightbox(fbPageScreenshots, $index)">
+                      <div class="screenshot-thumb__img-wrap">
+                        <img [src]="img.src" [alt]="img.caption" loading="lazy" />
+                      </div>
+                      <span class="screenshot-thumb__label">{{ img.caption }}</span>
+                    </button>
+                  }
+                </div>
+
                 <p class="step-desc">
                   Select the <strong>Facebook Page</strong> that will appear as the ad identity.
                   If you don't have a Page yet, create one at

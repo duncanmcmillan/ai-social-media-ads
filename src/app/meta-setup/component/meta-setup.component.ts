@@ -119,6 +119,30 @@ const DEV_APP_SCREENSHOTS: LightboxImage[] = [
   },
 ];
 
+/** Screenshot walkthrough images for the Facebook Page step. */
+const FB_PAGE_SCREENSHOTS: LightboxImage[] = [
+  {
+    src: 'meta-setup/screenshots/meta-create-fb-page-1.png',
+    caption: 'Step 1 — Go to business.facebook.com and select your AIAds Business Portfolio',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-fb-page-2.png',
+    caption: 'Step 2 — Go to Settings → Pages — "No Pages added" appears; click "+ Add"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-fb-page-3.png',
+    caption: 'Step 3 — Enter your Page name, category and bio, then click Next',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-fb-page-4.png',
+    caption: 'Step 4 — Review and confirm, accept Meta Commercial Terms, then click "Create Page"',
+  },
+  {
+    src: 'meta-setup/screenshots/meta-create-fb-page-5.png',
+    caption: 'Step 5 — Your new Facebook Page appears — copy the Page ID shown below the name',
+  },
+];
+
 /** Screenshot walkthrough images for the Ad Account step. */
 const AD_ACCOUNT_SCREENSHOTS: LightboxImage[] = [
   {
@@ -162,9 +186,10 @@ const AD_ACCOUNT_SCREENSHOTS: LightboxImage[] = [
 export class MetaSetupComponent {
   protected readonly videos              = SETUP_VIDEOS;
   protected readonly steps               = SETUP_STEPS;
-  protected readonly bportScreenshots    = BPORT_SCREENSHOTS;
-  protected readonly devAppScreenshots   = DEV_APP_SCREENSHOTS;
+  protected readonly bportScreenshots     = BPORT_SCREENSHOTS;
+  protected readonly devAppScreenshots    = DEV_APP_SCREENSHOTS;
   protected readonly adAccountScreenshots = AD_ACCOUNT_SCREENSHOTS;
+  protected readonly fbPageScreenshots    = FB_PAGE_SCREENSHOTS;
 
   // ── Stores ──────────────────────────────────────────────────────────────
   protected readonly licenceStore   = inject(LicenceStore);
