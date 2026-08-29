@@ -1,6 +1,8 @@
 {
   "name": "ai-social-media-ads",
   "version": "1.0.0",
+  "description": "Build Facebook campaigns in minutes with AI. Monitor performance, optimise creatives, and manage your ad account — all in one desktop app.",
+  "author": "Duncan McMillan <hello@ai-social-media-ads.online>",
   "main": "main.js",
   "scripts": {
     "ng": "ng",
