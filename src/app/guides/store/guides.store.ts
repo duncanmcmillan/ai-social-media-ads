@@ -157,6 +157,12 @@ export const GuidesStore = signalStore(
         persist(updated);
       },
 
+      /** Deletes all saved guides and clears the active selection. */
+      deleteAllGuides(): void {
+        patchState(store, { savedGuides: [], activeGuideId: null });
+        persist([]);
+      },
+
       /**
        * Loads a pre-written seed guide for development and demo purposes.
        * Does not require authentication or an AI API key.
