@@ -186,6 +186,8 @@ export class WorkspaceComponent implements AfterViewInit {
   }
 
   private observer?: IntersectionObserver;
+  /** True while a ToC-initiated scroll is in progress — prevents the observer overriding the selection. */
+  private suppressObserver = false;
 
   ngAfterViewInit(): void {
     // Check whether an Anthropic key is already stored.
@@ -195,6 +197,7 @@ export class WorkspaceComponent implements AfterViewInit {
 
     this.observer = new IntersectionObserver(
       entries => {
+        if (this.suppressObserver) return;
         // NgZone.run ensures the signal write triggers CD in ng serve (zone.js) mode.
         this.ngZone.run(() => {
           // Pick the entry closest to the top of the viewport that is intersecting.
@@ -241,8 +244,12 @@ export class WorkspaceComponent implements AfterViewInit {
     }
     this.collapsed.set(next);
     this.activeSection.set(id);
+    // Suppress the IntersectionObserver while the smooth scroll animates (~700 ms)
+    // so it cannot overwrite the selection the user just made.
+    this.suppressObserver = true;
     requestAnimationFrame(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => { this.suppressObserver = false; }, 800);
     });
   }
 
