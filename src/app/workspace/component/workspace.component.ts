@@ -220,10 +220,25 @@ export class WorkspaceComponent implements AfterViewInit {
     this.destroyRef.onDestroy(() => this.observer?.disconnect());
   }
 
-  /** Toggles collapse state of a section. */
+  /** Toggles collapse state of a section.
+   * Opening a section closes all others and updates the nav highlight.
+   * Closing a section just hides its body.
+   */
   protected toggle(id: string): void {
     const c = this.collapsed();
-    this.collapsed.set({ ...c, [id]: !c[id] });
+    const isOpening = !!c[id]; // true = currently collapsed → about to open
+    if (isOpening) {
+      const next: Record<string, boolean> = {};
+      for (const s of SECTIONS) {
+        next[s.id] = s.id !== id;
+      }
+      this.collapsed.set(next);
+      this.activeSection.set(id);
+      this.suppressObserver = true;
+      setTimeout(() => { this.suppressObserver = false; }, 800);
+    } else {
+      this.collapsed.set({ ...c, [id]: true });
+    }
   }
 
   /** Returns true when a section is collapsed. */
