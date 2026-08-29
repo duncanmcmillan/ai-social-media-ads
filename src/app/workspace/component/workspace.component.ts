@@ -134,8 +134,10 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Controls visibility of the Metrics Contextual Guide slide-over panel. */
   protected readonly metricsGuidePanelOpen = signal(false);
 
-  /** Map of section id → collapsed state (true = collapsed). */
-  protected readonly collapsed = signal<Record<string, boolean>>({});
+  /** Map of section id → collapsed state (true = collapsed). All closed except the first on entry. */
+  protected readonly collapsed = signal<Record<string, boolean>>(
+    Object.fromEntries(SECTIONS.slice(1).map(s => [s.id, true]))
+  );
 
   /** ID of the section currently most visible in the scroll area. */
   protected readonly activeSection = signal<string>(SECTIONS[0].id);
@@ -227,14 +229,18 @@ export class WorkspaceComponent implements AfterViewInit {
   }
 
   /**
-   * Expands (if needed) and smoothly scrolls to a section.
-   * Used by the ToC nav.
+   * Closes all sections, opens the selected one, highlights it in the nav,
+   * and smoothly scrolls to it. Used by the ToC nav.
+   *
+   * @param id - The section ID to expand and scroll to.
    */
   protected scrollTo(id: string): void {
-    if (this.isCollapsed(id)) {
-      const c = this.collapsed();
-      this.collapsed.set({ ...c, [id]: false });
+    const next: Record<string, boolean> = {};
+    for (const s of SECTIONS) {
+      next[s.id] = s.id !== id;
     }
+    this.collapsed.set(next);
+    this.activeSection.set(id);
     requestAnimationFrame(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
