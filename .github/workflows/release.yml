@@ -1,0 +1,162 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  # ── macOS (Apple Silicon) ──────────────────────────────────────────────────
+  build-mac-arm64:
+    name: macOS (arm64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build & package
+        run: npm run make -- --arch arm64
+        env:
+          NODE_ENV: production
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-arm64
+          path: out/make/**/*.zip
+          retention-days: 7
+
+  # ── macOS (Intel) ──────────────────────────────────────────────────────────
+  build-mac-x64:
+    name: macOS (x64)
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build & package
+        run: npm run make -- --arch x64
+        env:
+          NODE_ENV: production
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-x64
+          path: out/make/**/*.zip
+          retention-days: 7
+
+  # ── Windows ────────────────────────────────────────────────────────────────
+  build-windows:
+    name: Windows (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build & package
+        run: npm run make
+        env:
+          NODE_ENV: production
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/make/**/*.exe
+          retention-days: 7
+
+  # ── Linux ──────────────────────────────────────────────────────────────────
+  build-linux:
+    name: Linux (x64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y rpm fakeroot
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build & package
+        run: npm run make
+        env:
+          NODE_ENV: production
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            out/make/**/*.deb
+            out/make/**/*.rpm
+          retention-days: 7
+
+  # ── GitHub Release ─────────────────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    needs: [build-mac-arm64, build-mac-x64, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: AI Ads Manager ${{ github.ref_name }}
+          body: |
+            ## AI Ads Manager ${{ github.ref_name }}
+
+            ### Downloads
+
+            | Platform | File |
+            |---|---|
+            | macOS (Apple Silicon) | `*-arm64.zip` |
+            | macOS (Intel) | `*-x64.zip` |
+            | Windows | `*.exe` (Squirrel installer) |
+            | Linux | `*.deb` / `*.rpm` |
+
+            ### macOS installation note
+            This build is ad-hoc signed (no Apple Developer account). On first launch, right-click the app and choose **Open**, then click **Open** in the dialog. You only need to do this once.
+
+            ### Windows installation note
+            Windows may show a SmartScreen warning for unsigned apps. Click **More info → Run anyway** to proceed.
+          files: artifacts/**/*
+          fail_on_unmatched_files: false
+          generate_release_notes: false
