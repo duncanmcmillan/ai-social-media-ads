@@ -219,6 +219,23 @@
 
 .cm-entity-error { color: #dc2626; }
 
+.cm-seed-btn {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--neutral-400);
+  background: none;
+  border: 1px solid var(--neutral-200);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  text-decoration: underline;
+  width: 100%;
+  text-align: left;
+
+  &:hover { color: var(--neutral-600); background: var(--neutral-50); }
+  &:focus-visible { outline: 2px solid var(--accent-500, #f97316); outline-offset: 1px; }
+}
+
 /* ── Chart area (right) ───────────────────────────────────────────────────── */
 .cm-chart-area {
   flex: 1;

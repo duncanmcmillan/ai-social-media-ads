@@ -156,8 +156,9 @@ export class ChartModalComponent {
   }
 
   /**
-   * Fetches time-series data (or generates seed data when not authenticated)
-   * and auto-selects the top 3 entities by total spend when no selection exists yet.
+   * Fetches time-series data (or generates seed data when not authenticated or no
+   * ad account is selected) and auto-selects the top 3 entities by total spend
+   * when no selection exists yet.
    * @param level - Campaign or ad-set level.
    * @param dateRange - Date range preset key.
    */
@@ -170,7 +171,8 @@ export class ChartModalComponent {
     this.error.set(null);
 
     try {
-      const data = this.authStore.isAuthenticated()
+      const canFetchLive = this.authStore.isAuthenticated() && !!this.authStore.adAccountId();
+      const data = canFetchLive
         ? await this.insightsApi.getTimeSeriesInsights({ level, since, until })
         : this.generateSeedRows(level, days);
 
@@ -240,6 +242,27 @@ export class ChartModalComponent {
     }
 
     return rows;
+  }
+
+  /**
+   * Loads deterministic seed rows for the current level and date range.
+   * Clears any existing error so the chart recovers without needing a live API call.
+   */
+  protected loadSeedData(): void {
+    const days = DATE_RANGES.find(d => d.key === this.dateRange())!.days;
+    const data = this.generateSeedRows(this.level(), days);
+    this.error.set(null);
+    this.rows.set(data);
+    this.selectedIds.set(new Set());
+    const spendById = new Map<string, number>();
+    for (const r of data) {
+      spendById.set(r.entityId, (spendById.get(r.entityId) ?? 0) + r.spend);
+    }
+    const top3 = [...spendById.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([id]) => id);
+    this.selectedIds.set(new Set(top3));
   }
 
   /**

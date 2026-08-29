@@ -73,8 +73,10 @@
             <div class="cm-entity-loading" aria-live="polite">Loading…</div>
           } @else if (error()) {
             <div class="cm-entity-error" role="alert">{{ error() }}</div>
+            <button class="cm-seed-btn" type="button" (click)="loadSeedData()">Load test data</button>
           } @else if (entities().length === 0) {
             <div class="cm-entity-empty">No data for selected range.</div>
+            <button class="cm-seed-btn" type="button" (click)="loadSeedData()">Load test data</button>
           } @else {
             <div class="cm-entity-list" role="group" [attr.aria-label]="(level() === 'campaign' ? 'Campaign' : 'Ad set') + ' selection'">
               @for (entity of entities(); track entity.id) {
