@@ -13,6 +13,7 @@ jobs:
   build-mac-arm64:
     name: macOS (arm64)
     runs-on: macos-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +41,7 @@ jobs:
   build-mac-x64:
     name: macOS (x64)
     runs-on: macos-13
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -67,6 +69,7 @@ jobs:
   build-windows:
     name: Windows (x64)
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -94,6 +97,7 @@ jobs:
   build-linux:
     name: Linux (x64)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -126,6 +130,7 @@ jobs:
   release:
     name: Create GitHub Release
     needs: [build-mac-arm64, build-mac-x64, build-windows, build-linux]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
