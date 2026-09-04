@@ -486,6 +486,14 @@
       </div>
     }
 
+    <!-- Free-tier limit banner -->
+    @if (atFreeLimit()) {
+      <div class="rs-limit-banner" role="alert" aria-live="polite">
+        <span>Free plan: 3-campaign limit reached.</span>
+        <app-upgrade-prompt />
+      </div>
+    }
+
     <!-- Launch button -->
     <button
       type="button"

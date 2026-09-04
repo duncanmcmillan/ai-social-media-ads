@@ -10,7 +10,12 @@ import { NewCampaignStore } from '../../store/new-campaign.store';
 import { WorkspaceStore } from '../../../workspace';
 import { AuthStore } from '../../../auth';
 import { TemplateStore } from '../../../templates';
+import { LicenceStore } from '../../../core/store/licence.store';
+import { UpgradePromptComponent } from '../../../shared/upgrade-prompt/upgrade-prompt.component';
 import type { DraftAdSet } from '../../model/draft.model';
+
+/** Maximum number of campaigns allowed on the free tier. */
+const FREE_CAMPAIGN_LIMIT = 3;
 
 /** Maps CampaignObjective enum values to human-readable labels. */
 const OBJECTIVE_LABELS: Record<string, string> = {
@@ -53,16 +58,22 @@ export interface PreflightItem {
 /** Step 4 of the New Campaign wizard — Review & Launch. */
 @Component({
   selector: 'app-review-step',
-  imports: [RouterLink],
+  imports: [RouterLink, UpgradePromptComponent],
   templateUrl: './review-step.component.html',
   styleUrl: './review-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewStepComponent {
-  protected readonly store         = inject(NewCampaignStore);
+  protected readonly store          = inject(NewCampaignStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
-  protected readonly authStore     = inject(AuthStore);
-  protected readonly templateStore = inject(TemplateStore);
+  protected readonly authStore      = inject(AuthStore);
+  protected readonly templateStore  = inject(TemplateStore);
+  protected readonly licenceStore   = inject(LicenceStore);
+
+  constructor() {
+    // Refresh the campaign count so the limit indicator is accurate when the step opens.
+    void this.store.loadCampaignCount();
+  }
 
   /** Available CTA options for the inline select. */
   protected readonly ctaOptions = CTA_OPTIONS;
@@ -106,6 +117,15 @@ export class ReviewStepComponent {
     const creatives = this.store.creatives();
     return creatives.length > 0 && creatives.every(c => this.reviewedIds().has(c.id));
   });
+
+  /**
+   * Whether the free-tier campaign limit has been reached.
+   * True when tier is 'free' and the account already has 3 or more campaigns.
+   */
+  protected readonly atFreeLimit = computed(() =>
+    this.licenceStore.tier() === 'free' &&
+    this.store.campaignCount() >= FREE_CAMPAIGN_LIMIT
+  );
 
   /** Human-readable label for the campaign objective. */
   protected readonly objectiveLabel = computed(() =>
@@ -192,6 +212,12 @@ export class ReviewStepComponent {
       { label: 'Ad sets reviewed',         ok: this.adSetsReviewed() },
       { label: 'All creatives reviewed',   ok: this.allReviewed() },
     );
+    if (this.licenceStore.tier() === 'free' && this.store.campaignCount() >= 0) {
+      items.push({
+        label: `Campaign limit (${this.store.campaignCount()}/${FREE_CAMPAIGN_LIMIT} used)`,
+        ok: !this.atFreeLimit(),
+      });
+    }
     return items;
   });
 
@@ -208,7 +234,8 @@ export class ReviewStepComponent {
     !this.hasFilesAttached() ||
     !this.campaignReviewed() ||
     !this.adSetsReviewed() ||
-    !this.allReviewed()
+    !this.allReviewed() ||
+    this.atFreeLimit()
   );
 
   /**

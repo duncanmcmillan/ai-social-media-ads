@@ -11,6 +11,10 @@ import { MarketingApiService } from '../../core/services/facebook/marketing-api/
 import { WorkspaceStore } from '../../workspace';
 import { AiService } from '../../core/services/ai/ai.service';
 import type { GeneratedCarouselCard } from '../../core/services/ai/ai.service';
+import { LicenceStore } from '../../core/store/licence.store';
+
+/** Maximum number of campaigns allowed on the free tier. */
+const FREE_CAMPAIGN_LIMIT = 3;
 
 // ── Module-level publish helpers ─────────────────────────────────────────────
 
@@ -65,6 +69,11 @@ interface NewCampaignState {
   campaignReviewed: boolean;
   /** Whether the user has marked the Ad Sets summary as reviewed. */
   adSetsReviewed: boolean;
+  /**
+   * Number of campaigns already in the Facebook ad account.
+   * -1 means not yet loaded (auth not ready or call failed).
+   */
+  campaignCount: number;
 }
 
 const DEFAULT_CAMPAIGN: DraftCampaign = {
@@ -92,6 +101,7 @@ const initialState: NewCampaignState = {
   reviewedCreativeIds: [],
   campaignReviewed: false,
   adSetsReviewed: false,
+  campaignCount: -1,
 };
 
 /**
@@ -137,6 +147,7 @@ export const NewCampaignStore = signalStore(
     const marketingApi = inject(MarketingApiService);
     const workspaceStore = inject(WorkspaceStore);
     const aiService = inject(AiService);
+    const licenceStore = inject(LicenceStore);
 
     return {
     // ── Campaign ──────────────────────────────────────────────────────────
@@ -480,6 +491,19 @@ export const NewCampaignStore = signalStore(
     // ── Publish ───────────────────────────────────────────────────────────
 
     /**
+     * Fetches the current campaign count from the Facebook API and caches it.
+     * Called when the Review step opens so the UI can show the limit indicator.
+     * Silently ignored if auth is not ready (leaves campaignCount at -1).
+     * @returns Promise that resolves once the count is loaded or the call fails.
+     */
+    async loadCampaignCount(): Promise<void> {
+      try {
+        const campaigns = await marketingApi.getCampaigns();
+        patchState(store, { campaignCount: campaigns.length });
+      } catch { /* leave at -1 if auth not ready */ }
+    },
+
+    /**
      * Publishes the wizard draft to the Facebook Marketing API.
      *
      * Sequence:
@@ -501,6 +525,18 @@ export const NewCampaignStore = signalStore(
     async publishCampaign(): Promise<void> {
       patchState(store, { isPublishing: true, error: null });
       try {
+        // Free-tier enforcement: re-fetch count at launch time to prevent races.
+        if (licenceStore.tier() === 'free') {
+          const campaigns = await marketingApi.getCampaigns();
+          if (campaigns.length >= FREE_CAMPAIGN_LIMIT) {
+            patchState(store, {
+              isPublishing: false,
+              error: 'Free plan is limited to 3 campaigns. Upgrade to Pro to launch more.',
+            });
+            return;
+          }
+        }
+
         const draft = store.campaign();
         const adSets = store.adSets();
         const creatives = store.creatives();
