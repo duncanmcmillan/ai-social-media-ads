@@ -123,10 +123,19 @@ export class ReviewStepComponent {
     this.store.creatives().every(c => c.primaryText.trim().length > 0)
   );
 
-  /** Whether all creatives have actual file objects attached (not just template placeholders). */
+  /**
+   * Whether all creatives have actual file objects attached (not just template placeholders).
+   * For Carousel creatives, all cards must have a file. For all other formats,
+   * the top-level creative file is checked.
+   */
   protected readonly hasFilesAttached = computed(() =>
     this.store.creatives().length > 0 &&
-    this.store.creatives().every(c => !!c.file)
+    this.store.creatives().every(c => {
+      if (c.adFormat === 'CAROUSEL') {
+        return c.carouselCards.length >= 2 && c.carouselCards.every(card => !!card.file);
+      }
+      return !!c.file;
+    })
   );
 
   /** Sum of all ad-set budgets when budgetType is 'adset'. Returns null when not applicable. */

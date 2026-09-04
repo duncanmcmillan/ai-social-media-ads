@@ -98,6 +98,10 @@ contextBridge.exposeInMainWorld('claudeAi', {
   generateCopy: (context) =>
     ipcRenderer.invoke('ai:generate-copy', { context }),
 
+  /** Generate per-card copy (primaryText + cards[]) for a Carousel creative. */
+  generateCarouselCopy: (context) =>
+    ipcRenderer.invoke('ai:generate-carousel-copy', { context }),
+
   /** Generate a full marketing guide (four sections + key takeaways) for an app type and objective. */
   generateGuide: (ctx) =>
     ipcRenderer.invoke('ai:generate-guide', { ctx }),

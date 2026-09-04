@@ -1,0 +1,68 @@
+<!-- Header -->
+<div class="guide-header">
+  <span class="guide-title">Ad Format Guide</span>
+  <button class="guide-close" type="button" aria-label="Close format guide" (click)="closed.emit()">&#10005;</button>
+</div>
+
+<!-- Tab pills -->
+<nav class="guide-tabs" role="tablist" aria-label="Ad formats">
+  @for (tab of tabs; track tab.key) {
+    <button
+      class="guide-tab"
+      role="tab"
+      [class.guide-tab--active]="activeTab() === tab.key"
+      [attr.aria-selected]="activeTab() === tab.key"
+      (click)="selectTab(tab.key)"
+      type="button"
+    >{{ tab.label }}</button>
+  }
+</nav>
+
+<!-- Body -->
+<div class="guide-body" role="tabpanel">
+
+  <!-- Aspect ratio diagram -->
+  <div class="guide-diagram-wrap">
+    <div class="guide-diagram" [style.aspect-ratio]="spec.cssAspectRatio" aria-hidden="true">
+      <span class="guide-diagram-label">{{ spec.aspectRatio }}</span>
+    </div>
+    <span class="guide-diagram-title">{{ spec.title }}</span>
+  </div>
+
+  <!-- Media specs table -->
+  <section class="guide-section">
+    <h3 class="guide-section-title">Media Requirements</h3>
+    <table class="guide-table" aria-label="Media requirements">
+      <tbody>
+        @for (row of spec.mediaSpecs; track row.label) {
+          <tr>
+            <td class="guide-table-label">{{ row.label }}</td>
+            <td class="guide-table-value">{{ row.value }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Text limits table -->
+  <section class="guide-section">
+    <h3 class="guide-section-title">Text Limits</h3>
+    <table class="guide-table" aria-label="Text character limits">
+      <tbody>
+        @for (row of spec.textLimits; track row.label) {
+          <tr>
+            <td class="guide-table-label">{{ row.label }}</td>
+            <td class="guide-table-value">{{ row.value }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Platform note -->
+  <p class="guide-note" role="note">
+    <span class="guide-note-icon" aria-hidden="true">&#9432;</span>
+    {{ spec.platformNote }}
+  </p>
+
+</div>

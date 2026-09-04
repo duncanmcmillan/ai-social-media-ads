@@ -66,6 +66,33 @@ export interface GeneratedCopy {
   description: string;
 }
 
+/** Context sent to ai:generate-carousel-copy. */
+export interface CarouselCopyContext {
+  campaignName: string;
+  objective: string;
+  fileName: string;
+  tones: string[];
+  hook: string;
+  /** Number of carousel cards to generate copy for. */
+  cardCount: number;
+}
+
+/** Per-card copy returned inside GeneratedCarouselCopy. */
+export interface GeneratedCarouselCard {
+  /** Per-card headline, max 20 chars. */
+  headline: string;
+  /** Per-card description, max 18 chars. */
+  description: string;
+}
+
+/** Shape returned by ai:generate-carousel-copy. */
+export interface GeneratedCarouselCopy {
+  /** Shared primary text shown above all cards, max 80 chars. */
+  primaryText: string;
+  /** Copy for each card, in order. Length matches cardCount. */
+  cards: GeneratedCarouselCard[];
+}
+
 declare global {
   interface Window {
     claudeAi: {
@@ -73,6 +100,7 @@ declare global {
       loadApiKey(): Promise<boolean>;
       generateDraft(prompt: string): Promise<GeneratedDraft>;
       generateCopy(context: CopyContext): Promise<GeneratedCopy>;
+      generateCarouselCopy(context: CarouselCopyContext): Promise<GeneratedCarouselCopy>;
       generateGuide(ctx: GuideContext): Promise<GuideContent>;
     };
   }
@@ -98,6 +126,15 @@ export class AiService {
   /** Generates ad copy for the active creative. */
   generateCopy(context: CopyContext): Promise<GeneratedCopy> {
     return window.claudeAi.generateCopy(context);
+  }
+
+  /**
+   * Generates shared primary text and per-card copy for a Carousel creative.
+   * @param context - Carousel copy generation context including card count.
+   * @returns Promise resolving to primary text and per-card headline/description.
+   */
+  generateCarouselCopy(context: CarouselCopyContext): Promise<GeneratedCarouselCopy> {
+    return window.claudeAi.generateCarouselCopy(context);
   }
 
   /**

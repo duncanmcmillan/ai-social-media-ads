@@ -2,7 +2,7 @@
  * @fileoverview Draft (in-memory) models for the New Campaign wizard.
  * These types represent campaign data before it has been published to Facebook.
  */
-import type { CampaignObjective, AdSetStatus, BillingEvent, OptimizationGoal } from '../../core/models/index';
+import type { CampaignObjective, AdSetStatus, BillingEvent, OptimizationGoal, AdFormat } from '../../core/models/index';
 
 /** Step 1 — campaign-level draft data. */
 export interface DraftCampaign {
@@ -70,6 +70,10 @@ export interface CarouselCard {
   objectUrl: string;
   /** Original file name. */
   fileName: string;
+  /** The original File object, retained for upload to the Facebook API. */
+  file?: File;
+  /** Whether the card media is an image or video. */
+  fileType: 'image' | 'video';
   /** Per-card headline. */
   headline: string;
   /** Per-card description. */
@@ -78,6 +82,20 @@ export interface CarouselCard {
   url: string;
   /** Per-card call to action. */
   cta: string;
+}
+
+/** A single collection product card within a creative. */
+export interface CollectionCard {
+  /** Client-side unique identifier. */
+  id: string;
+  /** Object URL for local preview (revoked on component destroy). */
+  objectUrl: string;
+  /** Original file name. */
+  fileName: string;
+  /** The original File object, retained for upload to the Facebook API. */
+  file?: File;
+  /** Whether the card media is an image or video. */
+  fileType: 'image' | 'video';
 }
 
 /** Step 3 — creative draft data. */
@@ -113,10 +131,14 @@ export interface DraftCreative {
   launchStatus: 'active' | 'paused';
   /** Whether each copy variation becomes a separate ad or a flexible ad. */
   adCreationMode: 'separate' | 'flexible';
-  /** When true, this creative is a Carousel ad. */
-  isCarousel: boolean;
-  /** Carousel cards (only used when isCarousel is true). */
+  /** The Facebook ad format for this creative. */
+  adFormat: AdFormat;
+  /** Carousel cards (only used when adFormat is 'CAROUSEL'). */
   carouselCards: CarouselCard[];
+  /** Collection product cards (only used when adFormat is 'COLLECTION'). */
+  collectionCards: CollectionCard[];
+  /** Instant Experience ID for Collection ads, created in Meta Ads Manager. */
+  instantExperienceId: string;
 }
 
 /** URL source for the creatives step. */

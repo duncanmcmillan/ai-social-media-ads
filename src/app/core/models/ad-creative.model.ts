@@ -30,6 +30,22 @@ export interface AdCreative {
   createdTime: string;
 }
 
+/** A single child attachment for a Carousel ad creative. */
+export interface CarouselChildAttachment {
+  /** Image hash returned from POST /{ad-account-id}/adimages (for image cards). */
+  imageHash?: string;
+  /** Video ID returned from POST /{ad-account-id}/advideos (for video cards). */
+  videoId?: string;
+  /** Destination URL for this card. */
+  link: string;
+  /** Per-card headline (max 20 chars). */
+  name: string;
+  /** Per-card description (max 18 chars). */
+  description: string;
+  /** Call to action type (e.g. LEARN_MORE, SHOP_NOW). */
+  callToActionType: string;
+}
+
 /** Payload for creating an ad creative. */
 export interface AdCreativePayload {
   /** Creative display name. */
@@ -73,4 +89,11 @@ export interface AdCreativePayload {
    * Required for ads targeting EU audiences.
    */
   payer?: string;
+  /** Child card attachments for Carousel ad creatives. */
+  carouselChildAttachments?: CarouselChildAttachment[];
+  /**
+   * Instant Experience (Canvas) ID for Collection ad creatives.
+   * Created in Meta Ads Manager and pasted by the user.
+   */
+  instantExperienceId?: string;
 }

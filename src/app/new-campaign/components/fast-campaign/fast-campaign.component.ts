@@ -204,8 +204,10 @@ export class FastCampaignComponent {
         cta: 'LEARN_MORE',
         launchStatus: 'paused',
         adCreationMode: 'separate',
-        isCarousel: false,
+        adFormat: file.type.startsWith('video') ? 'SINGLE_VIDEO' as const : 'SINGLE_IMAGE' as const,
         carouselCards: [],
+        collectionCards: [],
+        instantExperienceId: '',
       };
       this.store.addCreative(creative);
     });

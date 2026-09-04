@@ -60,39 +60,114 @@
                   <p class="mini-fb-body mini-fb-body--placeholder">Add primary text…</p>
                 }
 
-                <!-- Image / Video -->
-                <div class="mini-fb-image-wrap">
-                  @if (creative.objectUrl) {
-                    @if (creative.fileType === 'image') {
-                      <img
-                        [src]="creative.objectUrl"
-                        [alt]="creative.fileName"
-                        class="mini-fb-image"
-                      />
-                    } @else {
-                      <div
-                        class="mini-fb-video-placeholder"
-                        [attr.aria-label]="'Video: ' + creative.fileName"
-                      >
-                        <span aria-hidden="true">&#9654;</span>
+                @if (creative.adFormat === 'CAROUSEL') {
+                  <!-- Scrollable carousel: 2 cards visible at once, scroll for more -->
+                  <div
+                    class="mini-carousel-scroll"
+                    [attr.aria-label]="'Carousel preview, ' + creative.carouselCards.length + ' cards'"
+                  >
+                    @for (card of creative.carouselCards; track card.id; let ci = $index) {
+                      <div class="mini-carousel-card">
+                        <div class="mini-carousel-img-wrap">
+                          @if (card.objectUrl) {
+                            @if (card.fileType === 'image') {
+                              <img class="mini-carousel-img" [src]="card.objectUrl" [alt]="card.fileName || 'Card ' + (ci + 1)" />
+                            } @else {
+                              <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
+                            }
+                          } @else {
+                            <div class="mini-carousel-media-ph" aria-hidden="true">{{ ci + 1 }}</div>
+                          }
+                        </div>
+                        <div class="mini-carousel-card-footer">
+                          <div class="mini-fb-domain">{{ previewDomain() }}</div>
+                          <div class="mini-carousel-headline">{{ card.headline || '—' }}</div>
+                          @if (card.description) {
+                            <div class="mini-carousel-desc">{{ card.description }}</div>
+                          }
+                          <div class="mini-carousel-cta">{{ ctaLabel(card.cta) }}</div>
+                        </div>
                       </div>
                     }
-                  } @else {
-                    <div class="mini-fb-no-preview" aria-label="No preview — re-upload file to launch">
-                      <span aria-hidden="true">&#128444;</span>
-                      <span class="mini-fb-no-preview-text">Re-upload to preview</span>
-                    </div>
-                  }
-                </div>
-
-                <!-- Link card -->
-                <div class="mini-fb-link-card">
-                  <div class="mini-fb-link-copy">
-                    <div class="mini-fb-domain">{{ previewDomain() }}</div>
-                    <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
                   </div>
-                  <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
-                </div>
+                } @else if (creative.adFormat === 'COLLECTION') {
+                  <!-- Collection: cover + product thumbnail grid -->
+                  <div class="mini-collection-wrap">
+                    <div class="mini-collection-cover">
+                      @if (creative.objectUrl) {
+                        @if (creative.fileType === 'image') {
+                          <img class="mini-collection-cover-img" [src]="creative.objectUrl" [alt]="creative.fileName" />
+                        } @else {
+                          <div class="mini-collection-cover-ph" aria-hidden="true">&#9654;</div>
+                        }
+                      } @else {
+                        <div class="mini-collection-cover-ph" aria-hidden="true">Cover</div>
+                      }
+                    </div>
+                    @if (creative.collectionCards.length) {
+                      <div
+                        class="mini-carousel-scroll"
+                        [attr.aria-label]="'Product cards, ' + creative.collectionCards.length + ' items'"
+                      >
+                        @for (card of creative.collectionCards; track card.id; let ci = $index) {
+                          <div class="mini-carousel-card">
+                            <div class="mini-carousel-img-wrap">
+                              @if (card.objectUrl) {
+                                @if (card.fileType === 'image') {
+                                  <img class="mini-carousel-img" [src]="card.objectUrl" [alt]="card.fileName || 'Product ' + (ci + 1)" />
+                                } @else {
+                                  <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
+                                }
+                              } @else {
+                                <div class="mini-carousel-media-ph" aria-hidden="true">{{ ci + 1 }}</div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="mini-fb-link-card">
+                    <div class="mini-fb-link-copy">
+                      <div class="mini-fb-domain">{{ previewDomain() }}</div>
+                      <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
+                    </div>
+                    <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
+                  </div>
+                } @else {
+                  <!-- Single Image / Video -->
+                  <div class="mini-fb-image-wrap">
+                    @if (creative.objectUrl) {
+                      @if (creative.fileType === 'image') {
+                        <img
+                          [src]="creative.objectUrl"
+                          [alt]="creative.fileName"
+                          class="mini-fb-image"
+                        />
+                      } @else {
+                        <div
+                          class="mini-fb-video-placeholder"
+                          [attr.aria-label]="'Video: ' + creative.fileName"
+                        >
+                          <span aria-hidden="true">&#9654;</span>
+                        </div>
+                      }
+                    } @else {
+                      <div class="mini-fb-no-preview" aria-label="No preview — re-upload file to launch">
+                        <span aria-hidden="true">&#128444;</span>
+                        <span class="mini-fb-no-preview-text">Re-upload to preview</span>
+                      </div>
+                    }
+                  </div>
+                  <!-- Link card -->
+                  <div class="mini-fb-link-card">
+                    <div class="mini-fb-link-copy">
+                      <div class="mini-fb-domain">{{ previewDomain() }}</div>
+                      <div class="mini-fb-headline">{{ creative.headline || '—' }}</div>
+                    </div>
+                    <div class="mini-fb-cta">{{ ctaLabel(creative.cta) }}</div>
+                  </div>
+                }
 
                 <!-- Review toggle -->
                 <button
@@ -121,30 +196,34 @@
                   aria-label="Primary text"
                   placeholder="Primary text…"
                 ></textarea>
-                <input
-                  class="rs-edit-input"
-                  [value]="creative.headline"
-                  (input)="updateCreative(i, 'headline', $any($event.target).value)"
-                  aria-label="Headline"
-                  placeholder="Headline…"
-                />
-                <input
-                  class="rs-edit-input"
-                  [value]="creative.description"
-                  (input)="updateCreative(i, 'description', $any($event.target).value)"
-                  aria-label="Description"
-                  placeholder="Description…"
-                />
-                <select
-                  class="rs-edit-select"
-                  [value]="creative.cta"
-                  (change)="updateCreative(i, 'cta', $any($event.target).value)"
-                  aria-label="Call to action"
-                >
-                  @for (opt of ctaOptions; track opt) {
-                    <option [value]="opt">{{ ctaLabel(opt) }}</option>
-                  }
-                </select>
+                @if (creative.adFormat !== 'CAROUSEL') {
+                  <input
+                    class="rs-edit-input"
+                    [value]="creative.headline"
+                    (input)="updateCreative(i, 'headline', $any($event.target).value)"
+                    aria-label="Headline"
+                    placeholder="Headline…"
+                  />
+                  <input
+                    class="rs-edit-input"
+                    [value]="creative.description"
+                    (input)="updateCreative(i, 'description', $any($event.target).value)"
+                    aria-label="Description"
+                    placeholder="Description…"
+                  />
+                  <select
+                    class="rs-edit-select"
+                    [value]="creative.cta"
+                    (change)="updateCreative(i, 'cta', $any($event.target).value)"
+                    aria-label="Call to action"
+                  >
+                    @for (opt of ctaOptions; track opt) {
+                      <option [value]="opt">{{ ctaLabel(opt) }}</option>
+                    }
+                  </select>
+                } @else {
+                  <p class="rs-carousel-hint">Per-card headline, description &amp; CTA are set in the Creatives step.</p>
+                }
               </div>
             </div>
           }

@@ -1,17 +1,26 @@
 <div class="step-panel-header">
   <span class="step-panel-title">Creatives</span>
-  <button
-    class="step-video-btn step-video-btn--available"
-    type="button"
-    title="Watch help video"
-    aria-label="Watch help video"
-    (click)="videoOpen.set(true)"
-  >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-      <circle cx="12" cy="12" r="9"/>
-      <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/>
-    </svg>
-  </button>
+  <div class="step-panel-header-actions">
+    <button
+      class="step-guide-btn"
+      type="button"
+      title="View ad format guide"
+      aria-label="View ad format guide"
+      (click)="showFormatGuide.set(true)"
+    >Format Guide</button>
+    <button
+      class="step-video-btn step-video-btn--available"
+      type="button"
+      title="Watch help video"
+      aria-label="Watch help video"
+      (click)="videoOpen.set(true)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <div class="creatives-layout">
@@ -44,6 +53,16 @@
       <span class="drop-formats">JPG, PNG &middot; MP4, MOV &middot; Up to 4GB</span>
     </label>
 
+    <!-- Carousel / Collection buttons -->
+    <div class="format-create-row">
+      <button class="format-create-btn" type="button" (click)="createCarousel()" aria-label="Create new Carousel creative">
+        + Carousel
+      </button>
+      <button class="format-create-btn" type="button" (click)="createCollection()" aria-label="Create new Collection creative">
+        + Collection
+      </button>
+    </div>
+
     <!-- File list -->
     @if (store.creatives().length > 0) {
       <ul class="file-list" role="list">
@@ -56,13 +75,20 @@
             [attr.aria-pressed]="i === store.activeCreativeIndex()"
           >
             <span class="file-thumb">
-              @if (creative.fileType === 'image') {
+              @if (creative.adFormat === 'CAROUSEL') {
+                <span class="file-thumb-icon file-thumb-icon--carousel">&#9783;</span>
+              } @else if (creative.adFormat === 'COLLECTION') {
+                <span class="file-thumb-icon file-thumb-icon--collection">&#9783;</span>
+              } @else if (creative.fileType === 'image' && creative.objectUrl) {
                 <img [src]="creative.objectUrl" [alt]="creative.fileName" class="file-thumb-img" />
               } @else {
                 <span class="file-thumb-icon">&#9654;</span>
               }
             </span>
-            <span class="file-name">{{ creative.fileName }}</span>
+            <div class="file-item-meta">
+              <span class="file-name">{{ creative.fileName }}</span>
+              <span class="format-badge format-badge--{{ creative.adFormat.toLowerCase() }}">{{ formatBadge(creative) }}</span>
+            </div>
             <button
               class="file-remove"
               (click)="$event.stopPropagation(); removeCreative(i)"
@@ -84,166 +110,378 @@
       </div>
     } @else {
       @let creative = store.activeCreative()!;
+      @let creativeIndex = store.activeCreativeIndex();
 
-      <!-- Preview thumbnail -->
-      <div class="copy-preview">
-        @if (creative.objectUrl && creative.fileType === 'image') {
-          <img [src]="creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
+      <!-- ── Carousel editor ─────────────────────────────────────────────── -->
+      @if (creative.adFormat === 'CAROUSEL') {
+
+        <!-- Carousel card tabs -->
+        <div class="carousel-card-tabs" role="tablist" aria-label="Carousel cards">
+          @for (card of creative.carouselCards; track card.id; let ci = $index) {
+            <button
+              class="carousel-card-tab"
+              role="tab"
+              [class.carousel-card-tab--active]="activeCarouselCardIndex() === ci"
+              [attr.aria-selected]="activeCarouselCardIndex() === ci"
+              (click)="activeCarouselCardIndex.set(ci)"
+              type="button"
+            >{{ ci + 1 }}</button>
+          }
+          <button
+            class="carousel-card-tab carousel-card-tab--add"
+            type="button"
+            [disabled]="creative.carouselCards.length >= 10"
+            (click)="addCarouselCard(creativeIndex)"
+            aria-label="Add carousel card"
+          >+</button>
+        </div>
+
+        <!-- Active card editor -->
+        @if (creative.carouselCards[activeCarouselCardIndex()]; as card) {
+          @let ci = activeCarouselCardIndex();
+          <div class="card-slot">
+            <!-- Card media upload -->
+            <label class="card-slot-upload" [for]="'carousel-file-' + creative.id + '-' + ci">
+              <input
+                [id]="'carousel-file-' + creative.id + '-' + ci"
+                type="file"
+                accept="image/jpeg,image/png,video/mp4,video/mov"
+                class="file-input"
+                (change)="onCarouselCardFileSelected(creativeIndex, ci, $event)"
+              />
+              @if (card.objectUrl) {
+                @if (card.fileType === 'image') {
+                  <img class="card-slot-thumb" [src]="card.objectUrl" [alt]="card.fileName" />
+                } @else {
+                  <video class="card-slot-thumb" [src]="card.objectUrl" muted playsinline></video>
+                }
+              } @else {
+                <div class="card-slot-empty">
+                  <span class="card-slot-empty-icon" aria-hidden="true">&#9707;</span>
+                  <span class="card-slot-empty-label">Upload card {{ ci + 1 }} media</span>
+                  <span class="card-slot-empty-hint">1:1 · JPG, PNG, MP4</span>
+                </div>
+              }
+            </label>
+
+            <!-- Card fields -->
+            <div class="card-slot-fields">
+              <div class="copy-field">
+                <label class="copy-field-label" [for]="'card-headline-' + ci">Headline <span class="char-hint">20</span></label>
+                <input [id]="'card-headline-' + ci" class="copy-input" type="text"
+                  placeholder="Card headline" maxlength="20"
+                  [value]="card.headline"
+                  (input)="store.updateCarouselCard(creativeIndex, ci, { headline: $any($event.target).value })" />
+              </div>
+              <div class="copy-field">
+                <label class="copy-field-label" [for]="'card-desc-' + ci">Description <span class="char-hint">18</span></label>
+                <input [id]="'card-desc-' + ci" class="copy-input" type="text"
+                  placeholder="Card description" maxlength="18"
+                  [value]="card.description"
+                  (input)="store.updateCarouselCard(creativeIndex, ci, { description: $any($event.target).value })" />
+              </div>
+              <div class="copy-field">
+                <label class="copy-field-label" [for]="'card-url-' + ci">Destination URL</label>
+                <input [id]="'card-url-' + ci" class="copy-input" type="url"
+                  placeholder="https://example.com/page"
+                  [value]="card.url"
+                  (input)="store.updateCarouselCard(creativeIndex, ci, { url: $any($event.target).value })" />
+              </div>
+              <div class="copy-field">
+                <label class="copy-field-label" [for]="'card-cta-' + ci">Call to Action</label>
+                <select [id]="'card-cta-' + ci" class="form-select"
+                  [value]="card.cta"
+                  (change)="store.updateCarouselCard(creativeIndex, ci, { cta: $any($event.target).value })">
+                  @for (cta of ctaOptions; track cta) {
+                    <option [value]="cta">{{ ctaLabel(cta) }}</option>
+                  }
+                </select>
+              </div>
+              @if (creative.carouselCards.length > 2) {
+                <button class="card-remove-btn" type="button"
+                  (click)="removeCarouselCard(creativeIndex, ci)"
+                  aria-label="Remove this card">
+                  Remove card {{ ci + 1 }}
+                </button>
+              }
+            </div>
+          </div>
         }
-        <span class="copy-preview-name">{{ creative.fileName }}</span>
-      </div>
 
-      <!-- Re-upload prompt for template-loaded creatives with no file -->
-      @if (!creative.file) {
-        <label class="cs-reupload">
-          <input
-            type="file"
-            class="cs-reupload-input"
-            accept="image/*,video/*"
-            (change)="onReplaceFile(store.activeCreativeIndex(), $event)"
-          />
-          <span class="cs-reupload-btn" aria-hidden="true">Upload file</span>
-          <span class="cs-reupload-hint">Loaded from template — upload an image or video to enable launch</span>
-        </label>
-      }
-
-      <!-- Tone chips -->
-      <div class="chip-group">
-        <span class="chip-label">Tone</span>
-        <div class="chips">
-          @for (tone of tones; track tone) {
-            <button
-              class="chip"
-              [class.chip--active]="creative.tones.includes(tone)"
-              (click)="toggleTone(tone)"
-              type="button"
-            >{{ tone }}</button>
-          }
+        <!-- Shared primary text -->
+        <div class="copy-field" style="border-top: 1px solid var(--neutral-150); padding-top: 12px;">
+          <label class="copy-field-label" [for]="'primary-' + creative.id">Primary Text <span class="char-hint">80</span></label>
+          <textarea [id]="'primary-' + creative.id" class="copy-textarea" rows="3"
+            placeholder="Shared primary text for all cards..."
+            [value]="creative.primaryText"
+            (input)="update('primaryText', $any($event.target).value)"></textarea>
         </div>
-      </div>
 
-      <!-- Hook chips -->
-      <div class="chip-group">
-        <span class="chip-label">Hook</span>
-        <div class="chips">
-          @for (hook of hooks; track hook) {
-            <button
-              class="chip"
-              [class.chip--active]="creative.hook === hook"
-              (click)="update('hook', creative.hook === hook ? '' : hook)"
-              type="button"
-            >{{ hook }}</button>
-          }
+        <!-- Toolbar -->
+        <div class="copy-toolbar">
+          <button class="toolbar-btn toolbar-btn--primary" (click)="generateAiCopy()" [disabled]="store.isGeneratingCopy()" type="button">
+            @if (store.isGeneratingCopy()) { <span class="spinner"></span> Generating... } @else { Generate AI Copy }
+          </button>
+          <button class="toolbar-btn" (click)="duplicateCreative()" type="button">Duplicate</button>
         </div>
-      </div>
 
-      <!-- Length chips -->
-      <div class="chip-group">
-        <span class="chip-label">Length</span>
-        <div class="chips">
-          @for (len of lengths; track len) {
-            <button
-              class="chip"
-              [class.chip--active]="creative.length === len"
-              (click)="update('length', len)"
-              type="button"
-            >{{ len }}</button>
-          }
-        </div>
-      </div>
+      <!-- ── Collection editor ───────────────────────────────────────────── -->
+      } @else if (creative.adFormat === 'COLLECTION') {
 
-      <!-- Copy fields -->
-      <div class="copy-field">
-        <label class="copy-field-label" [for]="'primary-' + creative.id">Primary Text</label>
-        <textarea
-          [id]="'primary-' + creative.id"
-          class="copy-textarea"
-          rows="4"
-          placeholder="Write your main ad copy here..."
-          [value]="creative.primaryText"
-          (input)="update('primaryText', $any($event.target).value)"
-        ></textarea>
-      </div>
-
-      <div class="copy-field">
-        <label class="copy-field-label" [for]="'headline-' + creative.id">Headline</label>
-        <input
-          [id]="'headline-' + creative.id"
-          class="copy-input"
-          type="text"
-          placeholder="Short attention-grabbing headline"
-          [value]="creative.headline"
-          (input)="update('headline', $any($event.target).value)"
-        />
-      </div>
-
-      <div class="copy-field">
-        <label class="copy-field-label" [for]="'desc-' + creative.id">Description</label>
-        <input
-          [id]="'desc-' + creative.id"
-          class="copy-input"
-          type="text"
-          placeholder="Supporting description text"
-          [value]="creative.description"
-          (input)="update('description', $any($event.target).value)"
-        />
-      </div>
-
-      <!-- CTA + Launch Status -->
-      <div class="copy-meta-row">
-        <div>
-          <label class="copy-field-label" for="cta-select">Call to Action</label>
-          <select id="cta-select" class="form-select" [value]="creative.cta" (change)="update('cta', $any($event.target).value)">
-            @for (cta of ctaOptions; track cta) {
-              <option [value]="cta">{{ ctaLabel(cta) }}</option>
+        <!-- Cover slot -->
+        <div class="collection-cover">
+          <span class="card-slot-section-label">Cover (1.91:1 – 1:1)</span>
+          <label class="card-slot-upload" [for]="'col-cover-' + creative.id">
+            <input [id]="'col-cover-' + creative.id" type="file"
+              accept="image/jpeg,image/png,video/mp4,video/mov"
+              class="file-input"
+              (change)="onCollectionCardFileSelected(creativeIndex, 0, $event, true)" />
+            @if (creative.objectUrl) {
+              @if (creative.fileType === 'image') {
+                <img class="card-slot-thumb" [src]="creative.objectUrl" [alt]="creative.fileName" />
+              } @else {
+                <video class="card-slot-thumb" [src]="creative.objectUrl" muted playsinline></video>
+              }
+            } @else {
+              <div class="card-slot-empty">
+                <span class="card-slot-empty-icon" aria-hidden="true">&#9707;</span>
+                <span class="card-slot-empty-label">Upload cover image or video</span>
+                <span class="card-slot-empty-hint">1.91:1 – 1:1 · JPG, PNG, MP4</span>
+              </div>
             }
-          </select>
+          </label>
         </div>
-        <div>
-          <label class="copy-field-label">Launch Status</label>
-          <div class="status-toggles">
-            <button class="status-btn status-btn--active-opt" [class.status-btn--selected]="creative.launchStatus === 'active'"
-              (click)="update('launchStatus', 'active')" type="button">Active</button>
-            <button class="status-btn" [class.status-btn--selected]="creative.launchStatus === 'paused'"
-              (click)="update('launchStatus', 'paused')" type="button">Paused</button>
+
+        <!-- Product card grid -->
+        <div class="collection-products">
+          <span class="card-slot-section-label">Product Images (1:1)</span>
+          <div class="collection-product-grid">
+            @for (card of creative.collectionCards; track card.id; let ci = $index) {
+              <label class="collection-product-slot" [for]="'col-card-' + creative.id + '-' + ci" [attr.aria-label]="'Upload product ' + (ci + 1)">
+                <input [id]="'col-card-' + creative.id + '-' + ci" type="file"
+                  accept="image/jpeg,image/png"
+                  class="file-input"
+                  (change)="onCollectionCardFileSelected(creativeIndex, ci, $event, false)" />
+                @if (card.objectUrl) {
+                  <img class="collection-product-thumb" [src]="card.objectUrl" [alt]="card.fileName" />
+                } @else {
+                  <div class="collection-product-empty">
+                    <span aria-hidden="true">{{ ci + 1 }}</span>
+                  </div>
+                }
+              </label>
+            }
           </div>
         </div>
-      </div>
 
-      <!-- Ad Creation Mode -->
-      <div class="ad-mode-row">
-        <button
-          class="ad-mode-btn"
-          [class.ad-mode-btn--active]="creative.adCreationMode === 'separate'"
-          (click)="update('adCreationMode', 'separate')"
-          type="button"
-        >
-          <span class="ad-mode-name">Separate Ads</span>
-          <span class="ad-mode-hint">Creates one ad per text variation. Full control over each ad's performance.</span>
-        </button>
-        <button
-          class="ad-mode-btn"
-          [class.ad-mode-btn--active]="creative.adCreationMode === 'flexible'"
-          (click)="update('adCreationMode', 'flexible')"
-          type="button"
-        >
-          <span class="ad-mode-name">Flexible Ad</span>
-          <span class="ad-mode-hint">Meta automatically tests all text combinations and shows the best performing one.</span>
-        </button>
-      </div>
+        <!-- Text fields -->
+        <div class="copy-field">
+          <label class="copy-field-label" [for]="'primary-' + creative.id">Primary Text <span class="char-hint">125</span></label>
+          <textarea [id]="'primary-' + creative.id" class="copy-textarea" rows="3"
+            placeholder="Write your main ad copy here..."
+            [value]="creative.primaryText"
+            (input)="update('primaryText', $any($event.target).value)"></textarea>
+        </div>
+        <div class="copy-field">
+          <label class="copy-field-label" [for]="'headline-' + creative.id">Headline <span class="char-hint">40</span></label>
+          <input [id]="'headline-' + creative.id" class="copy-input" type="text"
+            placeholder="Short attention-grabbing headline" maxlength="40"
+            [value]="creative.headline"
+            (input)="update('headline', $any($event.target).value)" />
+        </div>
 
-      <!-- Toolbar -->
-      <div class="copy-toolbar">
-        <button class="toolbar-btn toolbar-btn--primary" (click)="generateAiCopy()" [disabled]="store.isGeneratingCopy()" type="button">
-          @if (store.isGeneratingCopy()) {
-            <span class="spinner"></span> Generating...
-          } @else {
-            Generate AI Copy
+        <!-- Instant Experience ID -->
+        <div class="copy-field ie-field" [class.ie-field--missing]="!creative.instantExperienceId">
+          <label class="copy-field-label" [for]="'ie-' + creative.id">Instant Experience ID</label>
+          <input [id]="'ie-' + creative.id" class="copy-input" type="text"
+            placeholder="e.g. 1234567890"
+            [value]="creative.instantExperienceId"
+            (input)="update('instantExperienceId', $any($event.target).value)" />
+          <span class="ie-hint">Create your Instant Experience in Meta Ads Manager, then paste the ID here.</span>
+          @if (!creative.instantExperienceId) {
+            <span class="ie-warning" role="alert" aria-live="polite">
+              &#9888; Required before publishing — collection ads need an Instant Experience.
+            </span>
           }
-        </button>
-        <button class="toolbar-btn" (click)="showPreview.set(true)" type="button">Preview</button>
-        <button class="toolbar-btn" (click)="duplicateCreative()" type="button">Duplicate</button>
-      </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="copy-toolbar">
+          <button class="toolbar-btn toolbar-btn--primary" (click)="generateAiCopy()" [disabled]="store.isGeneratingCopy()" type="button">
+            @if (store.isGeneratingCopy()) { <span class="spinner"></span> Generating... } @else { Generate AI Copy }
+          </button>
+          <button class="toolbar-btn" (click)="duplicateCreative()" type="button">Duplicate</button>
+        </div>
+
+      <!-- ── Single Image / Single Video editor ─────────────────────────── -->
+      } @else {
+
+        <!-- Preview thumbnail -->
+        <div class="copy-preview">
+          @if (creative.objectUrl && creative.fileType === 'image') {
+            <img [src]="creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
+          }
+          <span class="copy-preview-name">{{ creative.fileName }}</span>
+        </div>
+
+        <!-- Re-upload prompt for template-loaded creatives with no file -->
+        @if (!creative.file) {
+          <label class="cs-reupload">
+            <input
+              type="file"
+              class="cs-reupload-input"
+              accept="image/*,video/*"
+              (change)="onReplaceFile(store.activeCreativeIndex(), $event)"
+            />
+            <span class="cs-reupload-btn" aria-hidden="true">Upload file</span>
+            <span class="cs-reupload-hint">Loaded from template — upload an image or video to enable launch</span>
+          </label>
+        }
+
+        <!-- Tone chips -->
+        <div class="chip-group">
+          <span class="chip-label">Tone</span>
+          <div class="chips">
+            @for (tone of tones; track tone) {
+              <button
+                class="chip"
+                [class.chip--active]="creative.tones.includes(tone)"
+                (click)="toggleTone(tone)"
+                type="button"
+              >{{ tone }}</button>
+            }
+          </div>
+        </div>
+
+        <!-- Hook chips -->
+        <div class="chip-group">
+          <span class="chip-label">Hook</span>
+          <div class="chips">
+            @for (hook of hooks; track hook) {
+              <button
+                class="chip"
+                [class.chip--active]="creative.hook === hook"
+                (click)="update('hook', creative.hook === hook ? '' : hook)"
+                type="button"
+              >{{ hook }}</button>
+            }
+          </div>
+        </div>
+
+        <!-- Length chips -->
+        <div class="chip-group">
+          <span class="chip-label">Length</span>
+          <div class="chips">
+            @for (len of lengths; track len) {
+              <button
+                class="chip"
+                [class.chip--active]="creative.length === len"
+                (click)="update('length', len)"
+                type="button"
+              >{{ len }}</button>
+            }
+          </div>
+        </div>
+
+        <!-- Copy fields -->
+        <div class="copy-field">
+          <label class="copy-field-label" [for]="'primary-' + creative.id">
+            Primary Text <span class="char-hint">{{ primaryTextLimit() }}</span>
+          </label>
+          <textarea
+            [id]="'primary-' + creative.id"
+            class="copy-textarea"
+            rows="4"
+            placeholder="Write your main ad copy here..."
+            [value]="creative.primaryText"
+            (input)="update('primaryText', $any($event.target).value)"
+          ></textarea>
+        </div>
+
+        <div class="copy-field">
+          <label class="copy-field-label" [for]="'headline-' + creative.id">
+            Headline <span class="char-hint">{{ headlineLimit() }}</span>
+          </label>
+          <input
+            [id]="'headline-' + creative.id"
+            class="copy-input"
+            type="text"
+            placeholder="Short attention-grabbing headline"
+            [value]="creative.headline"
+            (input)="update('headline', $any($event.target).value)"
+          />
+        </div>
+
+        @if (creative.adFormat === 'SINGLE_IMAGE') {
+          <div class="copy-field">
+            <label class="copy-field-label" [for]="'desc-' + creative.id">Description <span class="char-hint">27</span></label>
+            <input
+              [id]="'desc-' + creative.id"
+              class="copy-input"
+              type="text"
+              placeholder="Supporting description text"
+              [value]="creative.description"
+              (input)="update('description', $any($event.target).value)"
+            />
+          </div>
+        }
+
+        <!-- CTA + Launch Status -->
+        <div class="copy-meta-row">
+          <div>
+            <label class="copy-field-label" for="cta-select">Call to Action</label>
+            <select id="cta-select" class="form-select" [value]="creative.cta" (change)="update('cta', $any($event.target).value)">
+              @for (cta of ctaOptions; track cta) {
+                <option [value]="cta">{{ ctaLabel(cta) }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="copy-field-label">Launch Status</label>
+            <div class="status-toggles">
+              <button class="status-btn status-btn--active-opt" [class.status-btn--selected]="creative.launchStatus === 'active'"
+                (click)="update('launchStatus', 'active')" type="button">Active</button>
+              <button class="status-btn" [class.status-btn--selected]="creative.launchStatus === 'paused'"
+                (click)="update('launchStatus', 'paused')" type="button">Paused</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad Creation Mode -->
+        <div class="ad-mode-row">
+          <button
+            class="ad-mode-btn"
+            [class.ad-mode-btn--active]="creative.adCreationMode === 'separate'"
+            (click)="update('adCreationMode', 'separate')"
+            type="button"
+          >
+            <span class="ad-mode-name">Separate Ads</span>
+            <span class="ad-mode-hint">Creates one ad per text variation. Full control over each ad's performance.</span>
+          </button>
+          <button
+            class="ad-mode-btn"
+            [class.ad-mode-btn--active]="creative.adCreationMode === 'flexible'"
+            (click)="update('adCreationMode', 'flexible')"
+            type="button"
+          >
+            <span class="ad-mode-name">Flexible Ad</span>
+            <span class="ad-mode-hint">Meta automatically tests all text combinations and shows the best performing one.</span>
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="copy-toolbar">
+          <button class="toolbar-btn toolbar-btn--primary" (click)="generateAiCopy()" [disabled]="store.isGeneratingCopy()" type="button">
+            @if (store.isGeneratingCopy()) {
+              <span class="spinner"></span> Generating...
+            } @else {
+              Generate AI Copy
+            }
+          </button>
+          <button class="toolbar-btn" (click)="showPreview.set(true)" type="button">Preview</button>
+          <button class="toolbar-btn" (click)="duplicateCreative()" type="button">Duplicate</button>
+        </div>
+      }
     }
   </div>
 
@@ -359,20 +597,27 @@
 
         <!-- Spec bar -->
         <div class="fb-spec-bar">
-          <div class="fb-spec-item" [class.fb-spec-item--over]="c.primaryText.length > 125">
-            Primary: {{ c.primaryText.length }}/125
+          <div class="fb-spec-item" [class.fb-spec-item--over]="c.primaryText.length > primaryTextLimit()">
+            Primary: {{ c.primaryText.length }}/{{ primaryTextLimit() }}
           </div>
-          <div class="fb-spec-item" [class.fb-spec-item--over]="c.headline.length > 27">
-            Headline: {{ c.headline.length }}/27
+          <div class="fb-spec-item" [class.fb-spec-item--over]="c.headline.length > headlineLimit()">
+            Headline: {{ c.headline.length }}/{{ headlineLimit() }}
           </div>
-          <div class="fb-spec-item" [class.fb-spec-item--over]="c.description.length > 27">
-            Description: {{ c.description.length }}/27
-          </div>
+          @if (c.adFormat === 'SINGLE_IMAGE') {
+            <div class="fb-spec-item" [class.fb-spec-item--over]="c.description.length > 27">
+              Description: {{ c.description.length }}/27
+            </div>
+          }
         </div>
 
       </div>
     </div>
   </div>
+}
+
+<!-- ── Ad Format Guide Modal ─────────────────────────────────────────────── -->
+@if (showFormatGuide()) {
+  <app-ad-format-guide (closed)="showFormatGuide.set(false)" />
 }
 
 @if (videoOpen()) {

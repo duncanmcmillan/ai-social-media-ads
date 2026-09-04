@@ -218,6 +218,123 @@
   color: var(--neutral-400);
 }
 
+/* ── Scrollable carousel preview ─────────────────────────────────────── */
+.mini-carousel-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 3px;
+  padding: 4px 4px 4px;
+  background: #f0f2f5;
+  border-top: 1px solid #ced0d4;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.mini-carousel-card {
+  flex-shrink: 0;
+  width: 78%;
+  scroll-snap-align: start;
+  border-radius: 3px;
+  border: 1px solid #ced0d4;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mini-carousel-img-wrap {
+  aspect-ratio: 1 / 1;
+  background: var(--neutral-100);
+  overflow: hidden;
+}
+
+.mini-carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mini-carousel-media-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-200);
+  color: var(--neutral-400);
+  font-size: 14px;
+}
+
+.mini-carousel-card-footer {
+  padding: 4px 5px 5px;
+  background: #f0f2f5;
+  border-top: 1px solid #ced0d4;
+}
+
+.mini-carousel-headline {
+  font-size: 10px;
+  font-weight: 600;
+  color: #050505;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.mini-carousel-desc {
+  font-size: 9px;
+  color: #65676b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.mini-carousel-cta {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 2px 5px;
+  background: #e4e6eb;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #050505;
+  white-space: nowrap;
+}
+
+/* ── Collection preview ──────────────────────────────────────────────── */
+.mini-collection-wrap {
+  width: 100%;
+  background: var(--neutral-100);
+}
+
+.mini-collection-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--neutral-200);
+}
+
+.mini-collection-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mini-collection-cover-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-400);
+  font-size: 13px;
+}
+
+
 .mini-fb-link-card {
   display: flex;
   align-items: center;
@@ -707,6 +824,15 @@
     outline: 2px solid var(--orange-400);
     outline-offset: 1px;
   }
+}
+
+/* ── Carousel-specific hint in inline edit area ──────────────────────── */
+.rs-carousel-hint {
+  font-size: 10px;
+  color: var(--neutral-400);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.4;
 }
 
 /* ── Campaign inline field ───────────────────────────────────────────── */

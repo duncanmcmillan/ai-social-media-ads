@@ -5,11 +5,12 @@
  */
 import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
 import { computed, inject } from '@angular/core';
-import type { DraftCampaign, DraftAdSet, DraftCreative, WebsiteUrlMode } from '../model/draft.model';
-import type { CampaignObjective, CampaignPayload, AdSetPayload, AdCreativePayload, AdPayload, PromotedObject, AttributionSpec } from '../../core/models/index';
+import type { DraftCampaign, DraftAdSet, DraftCreative, WebsiteUrlMode, CarouselCard, CollectionCard } from '../model/draft.model';
+import type { CampaignObjective, CampaignPayload, AdSetPayload, AdCreativePayload, CarouselChildAttachment, AdPayload, PromotedObject, AttributionSpec } from '../../core/models/index';
 import { MarketingApiService } from '../../core/services/facebook/marketing-api/marketing-api.service';
 import { WorkspaceStore } from '../../workspace';
 import { AiService } from '../../core/services/ai/ai.service';
+import type { GeneratedCarouselCard } from '../../core/services/ai/ai.service';
 
 // ── Module-level publish helpers ─────────────────────────────────────────────
 
@@ -248,6 +249,78 @@ export const NewCampaignStore = signalStore(
       patchState(store, { isGeneratingCopy: loading });
     },
 
+    /**
+     * Adds a carousel card to a specific creative.
+     * @param creativeIndex - Index of the creative to update.
+     * @param card - The new carousel card to append.
+     */
+    addCarouselCard(creativeIndex: number, card: CarouselCard): void {
+      const creatives = store.creatives().map((c, i) =>
+        i === creativeIndex ? { ...c, carouselCards: [...c.carouselCards, card] } : c
+      );
+      patchState(store, { creatives });
+    },
+
+    /**
+     * Updates a single carousel card within a creative.
+     * @param creativeIndex - Index of the creative.
+     * @param cardIndex - Index of the card within the creative's carouselCards array.
+     * @param patch - Partial card fields to merge.
+     */
+    updateCarouselCard(creativeIndex: number, cardIndex: number, patch: Partial<CarouselCard>): void {
+      const creatives = store.creatives().map((c, i) => {
+        if (i !== creativeIndex) return c;
+        const carouselCards = c.carouselCards.map((card, j) =>
+          j === cardIndex ? { ...card, ...patch } : card
+        );
+        return { ...c, carouselCards };
+      });
+      patchState(store, { creatives });
+    },
+
+    /**
+     * Removes a carousel card from a specific creative.
+     * @param creativeIndex - Index of the creative.
+     * @param cardIndex - Index of the card to remove.
+     */
+    removeCarouselCard(creativeIndex: number, cardIndex: number): void {
+      const creatives = store.creatives().map((c, i) => {
+        if (i !== creativeIndex) return c;
+        const carouselCards = c.carouselCards.filter((_, j) => j !== cardIndex);
+        return { ...c, carouselCards };
+      });
+      patchState(store, { creatives });
+    },
+
+    /**
+     * Adds a collection product card to a specific creative.
+     * @param creativeIndex - Index of the creative to update.
+     * @param card - The new collection card to append.
+     */
+    addCollectionCard(creativeIndex: number, card: CollectionCard): void {
+      const creatives = store.creatives().map((c, i) =>
+        i === creativeIndex ? { ...c, collectionCards: [...c.collectionCards, card] } : c
+      );
+      patchState(store, { creatives });
+    },
+
+    /**
+     * Updates a single collection card within a creative.
+     * @param creativeIndex - Index of the creative.
+     * @param cardIndex - Index of the card within the creative's collectionCards array.
+     * @param patch - Partial card fields to merge.
+     */
+    updateCollectionCard(creativeIndex: number, cardIndex: number, patch: Partial<CollectionCard>): void {
+      const creatives = store.creatives().map((c, i) => {
+        if (i !== creativeIndex) return c;
+        const collectionCards = c.collectionCards.map((card, j) =>
+          j === cardIndex ? { ...card, ...patch } : card
+        );
+        return { ...c, collectionCards };
+      });
+      patchState(store, { creatives });
+    },
+
     // ── Review state ──────────────────────────────────────────────────────
 
     /**
@@ -348,8 +421,10 @@ export const NewCampaignStore = signalStore(
     // ── AI Copy Generation ────────────────────────────────────────────────
 
     /**
-     * Calls Claude to generate primaryText, headline, and description for the
-     * active creative, using its tone/hook/length settings and campaign context.
+     * Calls Claude to generate copy for the active creative.
+     * For Carousel creatives, generates shared primary text plus per-card
+     * headline and description for every card.
+     * For all other formats, generates primaryText, headline, and description.
      */
     async generateCopy(): Promise<void> {
       const creative = store.creatives()[store.activeCreativeIndex()];
@@ -357,20 +432,43 @@ export const NewCampaignStore = signalStore(
       patchState(store, { isGeneratingCopy: true, error: null });
       try {
         const campaign = store.campaign();
-        const copy = await aiService.generateCopy({
-          campaignName: campaign.name || 'Untitled Campaign',
-          objective: campaign.objective ?? '',
-          fileName: creative.fileName,
-          tones: creative.tones,
-          hook: creative.hook,
-          length: creative.length,
-        });
-        const updatedCreatives = store.creatives().map((c, i) =>
-          i === store.activeCreativeIndex()
-            ? { ...c, primaryText: copy.primaryText, headline: copy.headline, description: copy.description }
-            : c
-        );
-        patchState(store, { creatives: updatedCreatives, isGeneratingCopy: false });
+        const idx = store.activeCreativeIndex();
+
+        if (creative.adFormat === 'CAROUSEL') {
+          const result = await aiService.generateCarouselCopy({
+            campaignName: campaign.name || 'Untitled Campaign',
+            objective: campaign.objective ?? '',
+            fileName: creative.fileName,
+            tones: creative.tones,
+            hook: creative.hook,
+            cardCount: creative.carouselCards.length,
+          });
+          // Apply shared primary text and per-card headline/description
+          const updatedCards = creative.carouselCards.map((card, ci) => {
+            const cardCopy: GeneratedCarouselCard | undefined = result.cards[ci];
+            if (!cardCopy) return card;
+            return { ...card, headline: cardCopy.headline, description: cardCopy.description };
+          });
+          const updatedCreatives = store.creatives().map((c, i) =>
+            i === idx ? { ...c, primaryText: result.primaryText, carouselCards: updatedCards } : c
+          );
+          patchState(store, { creatives: updatedCreatives, isGeneratingCopy: false });
+        } else {
+          const copy = await aiService.generateCopy({
+            campaignName: campaign.name || 'Untitled Campaign',
+            objective: campaign.objective ?? '',
+            fileName: creative.fileName,
+            tones: creative.tones,
+            hook: creative.hook,
+            length: creative.length,
+          });
+          const updatedCreatives = store.creatives().map((c, i) =>
+            i === idx
+              ? { ...c, primaryText: copy.primaryText, headline: copy.headline, description: copy.description }
+              : c
+          );
+          patchState(store, { creatives: updatedCreatives, isGeneratingCopy: false });
+        }
       } catch (e: unknown) {
         patchState(store, {
           error: e instanceof Error ? e.message : 'AI copy generation failed',
@@ -457,24 +555,85 @@ export const NewCampaignStore = signalStore(
         }
 
         // Step 3 — Create creatives and ads
+        const dsaFields = {
+          ...(enhancements.beneficiaryName ? { beneficiary: enhancements.beneficiaryName } : {}),
+          ...(enhancements.payerName       ? { payer:       enhancements.payerName       } : {}),
+        };
         for (const creative of creatives) {
-          // 3a — Upload image to get image hash
-          if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
-          const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
+          let creativePayload: AdCreativePayload;
+
+          if (creative.adFormat === 'CAROUSEL') {
+            // 3a — Upload each carousel card's media
+            const childAttachments: CarouselChildAttachment[] = [];
+            for (const card of creative.carouselCards) {
+              if (!card.file) throw new Error(`No file data for carousel card "${card.fileName}". Re-upload the card.`);
+              if (card.fileType === 'video') {
+                const { id: videoId } = await marketingApi.uploadVideo(card.file);
+                childAttachments.push({ videoId, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+              } else {
+                const { hash: imageHash } = await marketingApi.uploadImage(card.file);
+                childAttachments.push({ imageHash, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+              }
+            }
+            creativePayload = {
+              name: `${creative.fileName} — ${draft.name}`,
+              pageId: meta.facebookPageId,
+              body: creative.primaryText,
+              linkUrl: meta.websiteUrl,
+              carouselChildAttachments: childAttachments,
+              ...dsaFields,
+            };
+
+          } else if (creative.adFormat === 'COLLECTION') {
+            // 3a — Validate instant experience and upload cover
+            if (!creative.instantExperienceId) {
+              throw new Error(`Collection creative "${creative.fileName}" requires an Instant Experience ID. Set it in the creatives editor before publishing.`);
+            }
+            if (!creative.file) throw new Error(`No file data for collection cover "${creative.fileName}". Re-upload the cover.`);
+            const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
+            creativePayload = {
+              name: `${creative.fileName} — ${draft.name}`,
+              pageId: meta.facebookPageId,
+              body: creative.primaryText,
+              title: creative.headline,
+              imageHash,
+              instantExperienceId: creative.instantExperienceId,
+              ...dsaFields,
+            };
+
+          } else if (creative.adFormat === 'SINGLE_VIDEO') {
+            // 3a — Upload video
+            if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the video.`);
+            const { id: videoId } = await marketingApi.uploadVideo(creative.file);
+            creativePayload = {
+              name: `${creative.fileName} — ${draft.name}`,
+              pageId: meta.facebookPageId,
+              body: creative.primaryText,
+              title: creative.headline,
+              linkUrl: meta.websiteUrl,
+              callToActionType: creative.cta,
+              videoId,
+              ...dsaFields,
+            };
+
+          } else {
+            // SINGLE_IMAGE (default)
+            if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
+            const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
+            creativePayload = {
+              name: `${creative.fileName} — ${draft.name}`,
+              pageId: meta.facebookPageId,
+              body: creative.primaryText,
+              title: creative.headline,
+              description: creative.description,
+              linkUrl: meta.websiteUrl,
+              callToActionType: creative.cta,
+              imageHash,
+              ...dsaFields,
+            };
+          }
 
           // 3b — Create ad creative
-          const creativePayload: AdCreativePayload = {
-            name: `${creative.fileName} — ${draft.name}`,
-            pageId: meta.facebookPageId,
-            body: creative.primaryText,
-            title: creative.headline,
-            description: creative.description,
-            linkUrl: meta.websiteUrl,
-            callToActionType: creative.cta,
-            imageHash,
-            ...(enhancements.beneficiaryName ? { beneficiary: enhancements.beneficiaryName } : {}),
-            ...(enhancements.payerName       ? { payer:       enhancements.payerName       } : {}),
-          };
           const { id: creativeId } = await marketingApi.createAdCreative(creativePayload);
 
           // 3c — Create one ad per ad set

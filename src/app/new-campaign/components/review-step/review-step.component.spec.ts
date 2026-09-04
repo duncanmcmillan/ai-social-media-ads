@@ -35,8 +35,10 @@ function makeCreative(overrides: Partial<DraftCreative> = {}): DraftCreative {
     cta: 'LEARN_MORE',
     launchStatus: 'paused',
     adCreationMode: 'separate',
-    isCarousel: false,
+    adFormat: 'SINGLE_IMAGE' as const,
     carouselCards: [],
+    collectionCards: [],
+    instantExperienceId: '',
     ...overrides,
   };
 }

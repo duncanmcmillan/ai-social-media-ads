@@ -12,7 +12,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../../../auth';
-import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload } from '../../../models/index';
+import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload, CarouselChildAttachment } from '../../../models/index';
 
 /** Base URL for the Facebook Graph API. */
 const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
@@ -232,6 +232,7 @@ export class MarketingApiService {
   /**
    * Creates a new ad creative.
    * Call after uploading images/videos to obtain their hash/ID.
+   * Supports Single Image, Single Video, Carousel, and Collection formats.
    * @param payload - Creative creation parameters.
    * @returns Promise resolving to the created creative's ID.
    * @throws When not authenticated or the API call fails.
@@ -241,32 +242,73 @@ export class MarketingApiService {
     if (!adAccountId) throw new Error('No ad account selected.');
     const params = this.authParams();
 
-    // Build link_data inside object_story_spec
-    const linkData: Record<string, unknown> = {
-      link: payload.linkUrl ?? '',
-    };
-    if (payload.body)      linkData['message']     = payload.body;
-    if (payload.title)     linkData['name']        = payload.title;
-    if (payload.description) linkData['description'] = payload.description;
-    if (payload.imageHash) linkData['image_hash']  = payload.imageHash;
-    if (payload.callToActionType) {
-      linkData['call_to_action'] = {
-        type:  payload.callToActionType,
-        value: { link: payload.linkUrl ?? '' },
-      };
-    }
-
     const objectStorySpec: Record<string, unknown> = {
-      page_id:   payload.pageId,
-      link_data: linkData,
+      page_id: payload.pageId,
     };
     if (payload.instagramActorId) {
       objectStorySpec['instagram_actor_id'] = payload.instagramActorId;
     }
 
+    if (payload.carouselChildAttachments?.length) {
+      // Carousel format — use child_attachments
+      const childAttachments = payload.carouselChildAttachments.map((card: CarouselChildAttachment) => {
+        const attachment: Record<string, unknown> = {
+          link:        card.link,
+          name:        card.name,
+          description: card.description,
+          call_to_action: {
+            type:  card.callToActionType,
+            value: { link: card.link },
+          },
+        };
+        if (card.imageHash) attachment['picture'] = card.imageHash;
+        if (card.videoId)   attachment['video_id'] = card.videoId;
+        return attachment;
+      });
+
+      const linkData: Record<string, unknown> = {
+        link:                  payload.linkUrl ?? '',
+        multi_share_optimized: true,
+        child_attachments:     childAttachments,
+      };
+      if (payload.body) linkData['message'] = payload.body;
+      objectStorySpec['link_data'] = linkData;
+
+    } else if (payload.instantExperienceId) {
+      // Collection format — link to Instant Experience canvas
+      const linkData: Record<string, unknown> = {
+        link: `https://fb.com/canvas_doc/${payload.instantExperienceId}`,
+      };
+      if (payload.body)      linkData['message'] = payload.body;
+      if (payload.title)     linkData['name']    = payload.title;
+      if (payload.imageHash) linkData['image_hash'] = payload.imageHash;
+      objectStorySpec['link_data'] = linkData;
+
+    } else {
+      // Single Image / Single Video format
+      const linkData: Record<string, unknown> = {
+        link: payload.linkUrl ?? '',
+      };
+      if (payload.body)        linkData['message']     = payload.body;
+      if (payload.title)       linkData['name']        = payload.title;
+      if (payload.description) linkData['description'] = payload.description;
+      if (payload.imageHash)   linkData['image_hash']  = payload.imageHash;
+      if (payload.videoId) {
+        linkData['video_id'] = payload.videoId;
+        // video ads require call_to_action even for single video format
+      }
+      if (payload.callToActionType) {
+        linkData['call_to_action'] = {
+          type:  payload.callToActionType,
+          value: { link: payload.linkUrl ?? '' },
+        };
+      }
+      objectStorySpec['link_data'] = linkData;
+    }
+
     const body: Record<string, unknown> = {
-      name:               payload.name,
-      object_story_spec:  objectStorySpec,
+      name:              payload.name,
+      object_story_spec: objectStorySpec,
     };
 
     if (payload.beneficiary || payload.payer) {
@@ -277,6 +319,35 @@ export class MarketingApiService {
     return firstValueFrom(
       this.http.post<{ id: string }>(`${GRAPH_API_BASE}/${adAccountId}/adcreatives`, body, { params })
     );
+  }
+
+  /**
+   * Uploads a video to the ad account's video library.
+   * Returns the video ID used when creating video ad creatives.
+   * API: POST /{ad-account-id}/advideos
+   *
+   * @param file - Video file to upload.
+   * @returns Promise resolving to the video ID.
+   * @throws When not authenticated, no account selected, or the API call fails.
+   */
+  async uploadVideo(file: File): Promise<{ id: string }> {
+    const adAccountId = this.authStore.adAccountId();
+    if (!adAccountId) throw new Error('No ad account selected.');
+
+    const params = this.authParams();
+    const body = new FormData();
+    body.append('source', file, file.name);
+
+    const response = await firstValueFrom(
+      this.http.post<{ id: string }>(
+        `${GRAPH_API_BASE}/${adAccountId}/advideos`,
+        body,
+        { params }
+      )
+    );
+
+    if (!response?.id) throw new Error('Video upload succeeded but no ID was returned.');
+    return { id: response.id };
   }
 
   /**

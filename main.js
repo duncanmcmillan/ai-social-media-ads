@@ -437,6 +437,38 @@ The JSON must match this exact shape:
     return parseJsonFromResponse(text);
   });
 
+  // ── AI: generate per-card copy for a Carousel creative ────────────────
+  ipcMain.handle('ai:generate-carousel-copy', async (_event, { context }) => {
+    const raw = safeRead(AI_KEY_PATH());
+    if (!raw) throw new Error('No Claude API key configured. Add it in Workspace → AI Settings.');
+    const { default: Anthropic } = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: raw });
+    const { campaignName, objective, fileName, tones, hook, cardCount } = context;
+    const system = `You are an expert Facebook ad copywriter specialising in Carousel ads. Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation.
+
+The JSON must match this exact shape (cards array length must equal cardCount):
+{
+  "primaryText": "string (80 chars max — shared text shown above all cards)",
+  "cards": [
+    { "headline": "string (20 chars max)", "description": "string (18 chars max)" }
+  ]
+}
+
+Rules:
+- primaryText grabs attention and frames the carousel story.
+- Each card headline and description should flow as a sequence, advancing the narrative from card to card.
+- Stay within the character limits — they are enforced by Facebook.`;
+    const userMsg = `Campaign: ${campaignName}\nObjective: ${objective}\nCreative: ${fileName}\nTone: ${(tones ?? []).join(', ') || 'Professional'}\nHook: ${hook || 'None'}\nNumber of cards: ${cardCount}`;
+    const msg = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+    });
+    const text = msg.content[0]?.type === 'text' ? msg.content[0].text.trim() : '';
+    return parseJsonFromResponse(text);
+  });
+
   // ── AI: generate marketing guide for an app type and objective ────────
   ipcMain.handle('ai:generate-guide', async (_event, { ctx }) => {
     const raw = safeRead(AI_KEY_PATH());
