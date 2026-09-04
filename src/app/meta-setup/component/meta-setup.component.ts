@@ -118,6 +118,10 @@ const DEV_APP_SCREENSHOTS: LightboxImage[] = [
     src: 'meta-setup/screenshots/meta-create-app-7.png',
     caption: 'Step 7 — Copy your App ID and App Secret from App Settings → Basic',
   },
+  {
+    src: 'meta-setup/screenshots/meta-create-app-8.png',
+    caption: 'Step 8 — In Facebook Login for Business → Settings, paste the OAuth Redirect URI into the Valid OAuth Redirect URIs field',
+  },
 ];
 
 /** Screenshot walkthrough images for the Facebook Page step. */
