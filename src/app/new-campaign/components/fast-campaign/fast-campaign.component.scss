@@ -4,6 +4,9 @@
   flex-direction: column;
   gap: 20px;
   max-width: 680px;
+  margin: 0 auto;
+  align-items: center;
+  text-align: center;
 }
 
 /* ── Section ─────────────────────────────────────────────────────────── */
@@ -11,6 +14,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
+  align-items: center;
 }
 
 /* ── Labels ──────────────────────────────────────────────────────────── */
@@ -66,6 +71,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  justify-content: center;
 }
 
 .fc-pill {
@@ -112,6 +118,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  align-items: center;
 }
 
 /* ── Drop zone ───────────────────────────────────────────────────────── */

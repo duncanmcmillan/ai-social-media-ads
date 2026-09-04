@@ -16,6 +16,45 @@ import { LicenceStore } from '../../core/store/licence.store';
 /** Maximum number of campaigns allowed on the free tier. */
 const FREE_CAMPAIGN_LIMIT = 3;
 
+/**
+ * Safe fallback optimization_goal for each campaign objective.
+ * Facebook only accepts IMPRESSIONS as billing_event for all modern objectives,
+ * and each objective has a restricted set of valid optimization goals.
+ * This map is used to correct invalid AI-generated or manually-entered combinations
+ * before the API call is made.
+ */
+const OBJECTIVE_OPTIMIZATION_DEFAULTS: Record<string, string> = {
+  OUTCOME_TRAFFIC:      'LINK_CLICKS',
+  OUTCOME_SALES:        'OFFSITE_CONVERSIONS',
+  OUTCOME_LEADS:        'LEAD_GENERATION',
+  OUTCOME_ENGAGEMENT:   'PAGE_ENGAGEMENT',
+  OUTCOME_AWARENESS:    'REACH',
+  OUTCOME_APP_PROMOTION: 'APP_INSTALLS',
+};
+
+/** Valid optimization goals per objective. Any value not in this set is replaced with the default. */
+const VALID_OPTIMIZATION_GOALS: Record<string, Set<string>> = {
+  OUTCOME_TRAFFIC:       new Set(['LINK_CLICKS', 'LANDING_PAGE_VIEWS', 'REACH', 'IMPRESSIONS']),
+  OUTCOME_SALES:         new Set(['OFFSITE_CONVERSIONS', 'VALUE', 'LINK_CLICKS']),
+  OUTCOME_LEADS:         new Set(['LEAD_GENERATION', 'OFFSITE_CONVERSIONS', 'LINK_CLICKS']),
+  OUTCOME_ENGAGEMENT:    new Set(['PAGE_ENGAGEMENT', 'POST_ENGAGEMENT', 'IMPRESSIONS', 'REACH']),
+  OUTCOME_AWARENESS:     new Set(['REACH', 'IMPRESSIONS']),
+  OUTCOME_APP_PROMOTION: new Set(['APP_INSTALLS']),
+};
+
+/**
+ * Returns a valid optimization_goal for the given objective, falling back to the
+ * default if the supplied value is not permitted by Facebook.
+ * @param objective - Facebook campaign objective string.
+ * @param goal - AI-generated or user-selected optimization goal.
+ * @returns A guaranteed-valid optimization goal string.
+ */
+function resolveOptimizationGoal(objective: string, goal: string): string {
+  const valid = VALID_OPTIMIZATION_GOALS[objective];
+  if (valid && valid.has(goal)) return goal;
+  return OBJECTIVE_OPTIMIZATION_DEFAULTS[objective] ?? 'LINK_CLICKS';
+}
+
 // ── Module-level publish helpers ─────────────────────────────────────────────
 
 /**
@@ -570,8 +609,11 @@ export const NewCampaignStore = signalStore(
             campaignId,
             name: adSet.name,
             status,
-            billingEvent: adSet.billingEvent,
-            optimizationGoal: cboOptimizationGoal ?? adSet.optimizationGoal,
+            billingEvent: 'IMPRESSIONS',
+            optimizationGoal: resolveOptimizationGoal(
+              store.campaign().objective ?? '',
+              cboOptimizationGoal ?? adSet.optimizationGoal,
+            ) as import('../../core/models/ad-set.model').OptimizationGoal,
             targeting: {
               geoLocations: { countries: adSet.targeting.countries },
               ageMin: adSet.targeting.minAge,

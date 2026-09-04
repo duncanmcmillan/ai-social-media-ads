@@ -389,8 +389,8 @@ The JSON must match this exact shape:
     {
       "name": "string",
       "targeting": { "countries": ["GB"], "minAge": 18, "maxAge": 65 },
-      "optimizationGoal": "REACH | LINK_CLICKS | IMPRESSIONS | OFFSITE_CONVERSIONS | LEAD_GENERATION | PAGE_ENGAGEMENT | VALUE",
-      "billingEvent": "IMPRESSIONS | LINK_CLICKS | APP_INSTALLS"
+      "optimizationGoal": "REACH | LINK_CLICKS | LANDING_PAGE_VIEWS | IMPRESSIONS | OFFSITE_CONVERSIONS | LEAD_GENERATION | PAGE_ENGAGEMENT | VALUE",
+      "billingEvent": "IMPRESSIONS"
     }
   ]
 }
@@ -399,7 +399,15 @@ Guidelines:
 - Create 2–3 distinct ad sets targeting different audience segments
 - Choose the objective that best matches the business goal
 - Use sensible country codes (ISO 3166-1 alpha-2) and age ranges for the business type
-- Ad set names should be descriptive (e.g. "25–34 Fitness Enthusiasts UK")`;
+- Ad set names should be descriptive (e.g. "25–34 Fitness Enthusiasts UK")
+- billingEvent must always be IMPRESSIONS — this is the only valid value for all modern Facebook campaign objectives
+- Valid optimizationGoal per objective:
+  OUTCOME_TRAFFIC    → LINK_CLICKS or LANDING_PAGE_VIEWS or REACH or IMPRESSIONS
+  OUTCOME_SALES      → OFFSITE_CONVERSIONS or VALUE or LINK_CLICKS
+  OUTCOME_LEADS      → LEAD_GENERATION or OFFSITE_CONVERSIONS or LINK_CLICKS
+  OUTCOME_ENGAGEMENT → PAGE_ENGAGEMENT or POST_ENGAGEMENT or IMPRESSIONS or REACH
+  OUTCOME_AWARENESS  → REACH or IMPRESSIONS
+  OUTCOME_APP_PROMOTION → APP_INSTALLS`;
     const msg = await client.messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 1024,

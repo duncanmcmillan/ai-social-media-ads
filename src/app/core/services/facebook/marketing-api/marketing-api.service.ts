@@ -261,7 +261,7 @@ export class MarketingApiService {
             value: { link: card.link },
           },
         };
-        if (card.imageHash) attachment['picture'] = card.imageHash;
+        if (card.imageHash) attachment['image_hash'] = card.imageHash;
         if (card.videoId)   attachment['video_id'] = card.videoId;
         return attachment;
       });

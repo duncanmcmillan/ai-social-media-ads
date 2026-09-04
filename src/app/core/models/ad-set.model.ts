@@ -32,6 +32,7 @@ export type OptimizationGoal =
   | 'ENGAGED_USERS'
   | 'EVENT_RESPONSES'
   | 'IMPRESSIONS'
+  | 'LANDING_PAGE_VIEWS'
   | 'LEAD_GENERATION'
   | 'LINK_CLICKS'
   | 'OFFSITE_CONVERSIONS'
