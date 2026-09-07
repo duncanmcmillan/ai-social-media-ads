@@ -18,6 +18,7 @@ const OPTIMIZATION_LABELS: Record<OptimizationGoal, string> = {
   ENGAGED_USERS:         'Engaged Users',
   EVENT_RESPONSES:       'Event Responses',
   IMPRESSIONS:           'Impressions',
+  LANDING_PAGE_VIEWS:    'Landing Page Views',
   LEAD_GENERATION:       'Lead Generation',
   LINK_CLICKS:           'Link Clicks',
   OFFSITE_CONVERSIONS:   'Conversions',

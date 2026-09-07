@@ -7,6 +7,17 @@
   overflow: auto;
 }
 
+/* ── Back link ───────────────────────────────────────────────────────── */
+.ms-back-link {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover { text-decoration: underline; }
+}
+
 /* ── Page header ─────────────────────────────────────────────────────── */
 .page-header {
   flex-shrink: 0;

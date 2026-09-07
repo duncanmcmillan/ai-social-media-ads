@@ -48,6 +48,107 @@
   max-width: 680px;
 }
 
+/* ── Meta Connection card ────────────────────────────────────────────── */
+.ws-conn-badge {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  vertical-align: middle;
+
+  &--ok   { background: #dcfce7; color: #15803d; }
+  &--warn { background: #fef9c3; color: #a16207; }
+}
+
+.ws-conn-card {
+  border-radius: 6px;
+  padding: 14px 16px;
+
+  &--complete {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+  }
+
+  &--setup {
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+}
+
+.ws-conn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.ws-conn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ws-conn-label {
+  font-size: 12px;
+  color: var(--neutral-500);
+  white-space: nowrap;
+}
+
+.ws-conn-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ws-conn-id {
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  color: var(--neutral-700);
+}
+
+.ws-conn-copy {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  background: var(--neutral-0);
+  cursor: pointer;
+  color: var(--neutral-600);
+
+  &:hover { background: var(--neutral-50); }
+}
+
+.ws-conn-user {
+  font-size: 12px;
+  color: var(--neutral-500);
+  margin-bottom: 10px;
+}
+
+.ws-conn-reopen {
+  font-size: 12px;
+  color: var(--color-primary);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.ws-conn-cta-text {
+  font-size: 13px;
+  color: var(--neutral-600);
+  line-height: 1.5;
+}
+
+.ws-conn-cta-btn {
+  align-self: flex-start;
+  text-decoration: none;
+}
+
 /* ── Sections ────────────────────────────────────────────────────────── */
 .ws-section {
   margin-bottom: 8px;

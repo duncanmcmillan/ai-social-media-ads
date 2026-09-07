@@ -11,6 +11,114 @@
   <!-- ── Main panels ──────────────────────────────────────────────────── -->
   <div class="ws-main">
 
+    <!-- Meta Connection -->
+    <section class="ws-section" id="ws-connection">
+      <div class="ws-section-header" (click)="toggle('ws-connection')">
+        <h2 class="ws-section-title">
+          Meta Connection
+          @if (setupStore.isComplete()) {
+            <span class="ws-conn-badge ws-conn-badge--ok">&#10003; Connected</span>
+          } @else {
+            <span class="ws-conn-badge ws-conn-badge--warn">Setup required</span>
+          }
+        </h2>
+        <button
+          class="ws-chevron-btn"
+          type="button"
+          [class.ws-chevron-btn--open]="!isCollapsed('ws-connection')"
+          [attr.aria-expanded]="!isCollapsed('ws-connection')"
+          aria-label="Toggle Meta Connection"
+        >&#8250;</button>
+      </div>
+      <div class="ws-section-body" [class.ws-section-body--open]="!isCollapsed('ws-connection')">
+        <div class="ws-section-body-inner">
+
+          @if (setupStore.isComplete()) {
+
+            <!-- Reference card — all IDs -->
+            <div class="ws-conn-card ws-conn-card--complete">
+              <dl class="ws-conn-list">
+                @if (setupStore.businessPortfolioId()) {
+                  <div class="ws-conn-row">
+                    <dt class="ws-conn-label">Business Portfolio ID</dt>
+                    <dd class="ws-conn-value">
+                      <span class="ws-conn-id">{{ setupStore.businessPortfolioId() }}</span>
+                      <button class="ws-conn-copy" type="button"
+                              (click)="copyToClipboard(setupStore.businessPortfolioId())"
+                              aria-label="Copy Business Portfolio ID">Copy</button>
+                    </dd>
+                  </div>
+                }
+                @if (refAppId()) {
+                  <div class="ws-conn-row">
+                    <dt class="ws-conn-label">App ID</dt>
+                    <dd class="ws-conn-value">
+                      <span class="ws-conn-id">{{ refAppId() }}</span>
+                      <button class="ws-conn-copy" type="button"
+                              (click)="copyToClipboard(refAppId())"
+                              aria-label="Copy App ID">Copy</button>
+                    </dd>
+                  </div>
+                }
+                @if (refAdAccountId()) {
+                  <div class="ws-conn-row">
+                    <dt class="ws-conn-label">Ad Account ID</dt>
+                    <dd class="ws-conn-value">
+                      <span class="ws-conn-id">{{ refAdAccountId() }}</span>
+                      <button class="ws-conn-copy" type="button"
+                              (click)="copyToClipboard(refAdAccountId())"
+                              aria-label="Copy Ad Account ID">Copy</button>
+                    </dd>
+                  </div>
+                }
+                @if (refPageId()) {
+                  <div class="ws-conn-row">
+                    <dt class="ws-conn-label">Facebook Page ID</dt>
+                    <dd class="ws-conn-value">
+                      <span class="ws-conn-id">{{ refPageId() }}</span>
+                      <button class="ws-conn-copy" type="button"
+                              (click)="copyToClipboard(refPageId())"
+                              aria-label="Copy Facebook Page ID">Copy</button>
+                    </dd>
+                  </div>
+                }
+                @if (refPixelId()) {
+                  <div class="ws-conn-row">
+                    <dt class="ws-conn-label">Dataset ID</dt>
+                    <dd class="ws-conn-value">
+                      <span class="ws-conn-id">{{ refPixelId() }}</span>
+                      <button class="ws-conn-copy" type="button"
+                              (click)="copyToClipboard(refPixelId())"
+                              aria-label="Copy Dataset ID">Copy</button>
+                    </dd>
+                  </div>
+                }
+              </dl>
+              @if (refUser()) {
+                <p class="ws-conn-user">Connected as {{ refUser() }}</p>
+              }
+              <a routerLink="/meta-setup" class="ws-conn-reopen">Reopen setup wizard ›</a>
+            </div>
+
+          } @else {
+
+            <!-- Setup CTA -->
+            <div class="ws-conn-card ws-conn-card--setup">
+              <p class="ws-conn-cta-text">
+                Complete the Meta Setup wizard to connect your Facebook account and
+                configure your ad account before creating campaigns.
+              </p>
+              <a routerLink="/meta-setup" class="btn btn-primary ws-conn-cta-btn">
+                Complete Meta Setup ›
+              </a>
+            </div>
+
+          }
+
+        </div>
+      </div>
+    </section>
+
     <!-- Account Details -->
     <section class="ws-section" id="ws-account">
       <div class="ws-section-header" (click)="toggle('ws-account')">

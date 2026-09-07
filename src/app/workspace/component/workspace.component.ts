@@ -16,6 +16,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../auth';
 import { AdAccountStatus } from '../../auth';
 import { WorkspaceStore } from '../store/workspace.store';
@@ -24,6 +25,7 @@ import { SlackService } from '../../core/services/slack/slack.service';
 import { VideoModalComponent } from '../../shared/video-modal/video-modal.component';
 import { GuidesStore, MetricsGuidePanelComponent } from '../../guides';
 import { LicenceStore } from '../../core';
+import { SetupStore } from '../../meta-setup';
 import type { Gate } from '../../dashboard/model/dashboard.model';
 
 /** Metadata for each collapsible workspace section. */
@@ -33,6 +35,7 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  { id: 'ws-connection',   label: 'Meta Connection'        },
   { id: 'ws-account',      label: 'Account Details'       },
   { id: 'ws-meta',         label: 'Meta Defaults'         },
   { id: 'ws-placements',   label: 'Placements & Audience' },
@@ -49,14 +52,15 @@ const SECTIONS: Section[] = [
  */
 @Component({
   selector: 'app-workspace',
-  imports: [VideoModalComponent, MetricsGuidePanelComponent],
+  imports: [RouterLink, VideoModalComponent, MetricsGuidePanelComponent],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkspaceComponent implements AfterViewInit {
-  protected readonly authStore = inject(AuthStore);
+  protected readonly authStore      = inject(AuthStore);
   protected readonly workspaceStore = inject(WorkspaceStore);
+  protected readonly setupStore     = inject(SetupStore);
   private readonly aiService = inject(AiService);
   private readonly slackService = inject(SlackService);
   private readonly guidesStore = inject(GuidesStore);
@@ -104,6 +108,33 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Expose enum to template for status comparisons. */
   protected readonly AdAccountStatus = AdAccountStatus;
 
+  // ── Meta Connection card ──────────────────────────────────────────────────
+
+  /** Facebook App ID for the connection reference card. */
+  protected readonly refAppId = computed(() => this.authStore.appId() ?? '');
+
+  /** Ad Account ID — from auth if available, otherwise the manually-entered value. */
+  protected readonly refAdAccountId = computed(
+    () => this.authStore.selectedAccount()?.id ?? this.setupStore.manualAdAccountId()
+  );
+
+  /** Facebook Page ID shown in the reference card. */
+  protected readonly refPageId = computed(() => this.workspaceStore.metaDefaults().facebookPageId);
+
+  /** Meta Pixel / Dataset ID shown in the reference card. */
+  protected readonly refPixelId = computed(() => this.workspaceStore.metaDefaults().pixelId);
+
+  /** Name of the authenticated Facebook user. */
+  protected readonly refUser = computed(() => this.authStore.user()?.name ?? '');
+
+  /**
+   * Copies the given text to the clipboard.
+   * @param text - The string to copy.
+   */
+  protected copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+
   /** Literal token reference shown beneath the naming template fields. */
   protected readonly namingTokens =
     '{{campaign.name}} · {{adset.name}} · {{creative.id}} · {{ad.id}} · {{targeting.location}} · {{date}}';
@@ -150,6 +181,7 @@ export class WorkspaceComponent implements AfterViewInit {
    * Example: 'ws-account': 'videos/account-details.mp4'
    */
   private readonly sectionVideos: Record<string, string | null> = {
+    'ws-connection':   null,
     'ws-account':      'videos/account-details.mov',
     'ws-meta':         'videos/workspace-meta-defaults.mov',
     'ws-placements':   'videos/workspace-placements-audience.mov',

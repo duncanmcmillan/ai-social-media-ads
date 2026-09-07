@@ -18,6 +18,7 @@ import { VideoModalComponent } from '../../shared/video-modal/video-modal.compon
 import { ImageModalComponent } from '../../shared/image-modal/image-modal.component';
 import type { LightboxImage } from '../../shared/image-modal/image-modal.component';
 import { ScreenshotStripComponent } from '../../shared/screenshot-strip/screenshot-strip.component';
+import { RouterLink } from '@angular/router';
 import { LicenceStore } from '../../core';
 import { AuthStore } from '../../auth';
 import { WorkspaceStore } from '../../workspace';
@@ -247,7 +248,7 @@ const AD_ACCOUNT_SCREENSHOTS: LightboxImage[] = [
 /** Meta Setup tab — wizard, reference card, video walkthroughs, and licence management. */
 @Component({
   selector: 'app-meta-setup',
-  imports: [VideoModalComponent, ImageModalComponent, ScreenshotStripComponent, FormsModule],
+  imports: [RouterLink, VideoModalComponent, ImageModalComponent, ScreenshotStripComponent, FormsModule],
   templateUrl: './meta-setup.component.html',
   styleUrl: './meta-setup.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
