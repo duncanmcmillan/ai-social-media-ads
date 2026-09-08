@@ -16,8 +16,10 @@
       <div class="ws-section-header" (click)="toggle('ws-connection')">
         <h2 class="ws-section-title">
           Meta Connection
-          @if (setupStore.isComplete()) {
+          @if (setupStore.isComplete() && authStore.isAuthenticated()) {
             <span class="ws-conn-badge ws-conn-badge--ok">&#10003; Connected</span>
+          } @else if (setupStore.isComplete() && !authStore.isAuthenticated()) {
+            <span class="ws-conn-badge ws-conn-badge--warn">Reconnect required</span>
           } @else {
             <span class="ws-conn-badge ws-conn-badge--warn">Setup required</span>
           }

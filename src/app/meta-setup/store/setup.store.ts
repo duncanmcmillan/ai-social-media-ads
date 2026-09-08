@@ -120,6 +120,18 @@ export const SetupStore = signalStore(
       },
 
       /**
+       * Marks the OAuth connect step as incomplete without affecting steps 1–5.
+       * Called on sign-out so the user only needs to reconnect, not re-acknowledge
+       * all the prerequisite steps.
+       */
+      disconnectStep(): void {
+        const completedSteps = store.completedSteps().filter(k => k !== 'connect');
+        const next: SetupState = { ...snapshot(), completedSteps, openStep: 'connect' };
+        patchState(store, next);
+        persist(next);
+      },
+
+      /**
        * Clears all wizard progress and re-opens the first step.
        * Used by the "Reopen wizard" button on the reference card.
        */

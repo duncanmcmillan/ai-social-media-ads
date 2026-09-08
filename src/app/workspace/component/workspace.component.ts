@@ -450,6 +450,7 @@ export class WorkspaceComponent implements AfterViewInit {
 
   protected async signOut(): Promise<void> {
     await this.authStore.signOut();
+    this.setupStore.disconnectStep();
   }
 
   // ── AI Settings ───────────────────────────────────────────────────────────
