@@ -536,31 +536,26 @@ Required shape:
     return parseJsonFromResponse(text);
   });
 
-  // ── Licence: activate a LemonSqueezy licence key on this machine ─────
+  // ── Licence: activate a Paddle transaction ID as a Pro licence ────────
+  // The transaction ID (e.g. txn_01abc…) serves as the licence key.
+  // Validation is done server-side via our Next.js /api/licence endpoint
+  // so the Paddle API key is never shipped inside the app.
   ipcMain.handle('licence:activate', async (_event, { key }) => {
-    // Owner bypass — skips LemonSqueezy entirely, stores locally.
+    // Owner bypass — skips Paddle entirely, stores locally.
     if (key === 'OWNER') {
-      safeWrite(LICENCE_PATH(), { key: 'OWNER', instanceId: 'owner', tier: 'pro', validatedAt: new Date().toISOString(), expiresAt: null });
+      safeWrite(LICENCE_PATH(), { key: 'OWNER', tier: 'pro', validatedAt: new Date().toISOString(), expiresAt: null });
       return { tier: 'pro', expiresAt: null };
     }
 
-    const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/activate', {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ license_key: key, instance_name: os.hostname() }),
-    });
+    const res = await fetch(`https://ai-social-media-ads.online/api/licence?txn=${encodeURIComponent(key)}`);
     const data = await res.json();
 
-    if (!res.ok || !data.activated) {
-      const msg = data.error ?? data.license_key?.status ?? 'Invalid licence key.';
-      throw new Error(msg);
+    if (!data.valid) {
+      throw new Error(data.error ?? 'Invalid licence key.');
     }
 
-    const instanceId = data.instance?.id;
-    const expiresAt  = data.license_key?.expires_at ?? null;
-
-    safeWrite(LICENCE_PATH(), { key, instanceId, tier: 'pro', validatedAt: new Date().toISOString(), expiresAt });
-    return { tier: 'pro', expiresAt };
+    safeWrite(LICENCE_PATH(), { key, tier: 'pro', validatedAt: new Date().toISOString(), expiresAt: data.expiresAt ?? null });
+    return { tier: 'pro', expiresAt: data.expiresAt ?? null };
   });
 
   // ── Licence: validate stored key on launch (with 7-day offline grace) ─
@@ -579,14 +574,10 @@ Required shape:
     }
 
     try {
-      const res = await fetch('https://api.lemonsqueezy.com/v1/licenses/validate', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ license_key: cached.key, instance_id: cached.instanceId }),
-      });
+      const res = await fetch(`https://ai-social-media-ads.online/api/licence?txn=${encodeURIComponent(cached.key)}`);
       const data = await res.json();
 
-      if (!res.ok || !data.valid) {
+      if (!data.valid) {
         safeDelete(LICENCE_PATH());
         return { tier: 'free', expiresAt: null };
       }
@@ -606,21 +597,9 @@ Required shape:
   });
 
   // ── Licence: deactivate on this machine (for moving to another device) ─
-  ipcMain.handle('licence:deactivate', async () => {
-    const json = safeRead(LICENCE_PATH());
-    if (!json) return;
-    let cached;
-    try { cached = JSON.parse(json); } catch { safeDelete(LICENCE_PATH()); return; }
-
-    try {
-      await fetch('https://api.lemonsqueezy.com/v1/licenses/deactivate', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ license_key: cached.key, instance_id: cached.instanceId }),
-      });
-    } finally {
-      safeDelete(LICENCE_PATH());
-    }
+  // Paddle has no per-machine activation concept so we just delete locally.
+  ipcMain.handle('licence:deactivate', () => {
+    safeDelete(LICENCE_PATH());
   });
 
   // ── Licence: read cached status without a network call ────────────────
