@@ -74,7 +74,21 @@
   tr:hover td { background: var(--neutral-50, #fafafa); }
 }
 
-.col-name { font-weight: 400; }
+.col-name {
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ad-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--neutral-200);
+  flex-shrink: 0;
+}
 .col-meta, .col-date { color: var(--neutral-500); }
 .col-actions { width: 90px; }
 

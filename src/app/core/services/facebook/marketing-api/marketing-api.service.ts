@@ -403,12 +403,31 @@ export class MarketingApiService {
   async getAds(adSetId: string): Promise<Ad[]> {
     const params = this.authParams().set(
       'fields',
-      'id,name,adset_id,campaign_id,status,creative,created_time,updated_time'
+      'id,name,adset_id,campaign_id,status,creative{thumbnail_url},created_time,updated_time'
     );
     const result = await firstValueFrom(
-      this.http.get<GraphApiList<Ad>>(`${GRAPH_API_BASE}/${adSetId}/ads`, { params })
+      this.http.get<GraphApiList<{
+        id: string;
+        name: string;
+        adset_id: string;
+        campaign_id: string;
+        status: Ad['status'];
+        creative?: { id: string; thumbnail_url?: string };
+        created_time: string;
+        updated_time: string;
+      }>>(`${GRAPH_API_BASE}/${adSetId}/ads`, { params })
     );
-    return result.data;
+    return result.data.map(raw => ({
+      id:           raw.id,
+      adSetId:      raw.adset_id,
+      campaignId:   raw.campaign_id,
+      name:         raw.name,
+      status:       raw.status,
+      creativeId:   raw.creative?.id ?? '',
+      thumbnailUrl: raw.creative?.thumbnail_url,
+      createdTime:  raw.created_time,
+      updatedTime:  raw.updated_time,
+    }));
   }
 
   /**

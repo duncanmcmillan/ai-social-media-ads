@@ -26,6 +26,8 @@ export interface Ad {
   status: AdStatus;
   /** ID of the associated creative. */
   creativeId: string;
+  /** Thumbnail URL for the creative, fetched via creative{thumbnail_url} field expansion. */
+  thumbnailUrl?: string;
   /** ISO 8601 creation timestamp. */
   createdTime: string;
   /** ISO 8601 last-update timestamp. */
