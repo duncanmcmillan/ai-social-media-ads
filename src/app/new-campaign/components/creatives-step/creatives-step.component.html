@@ -549,10 +549,12 @@
 
                 <!-- Media (4:5) -->
                 <div class="fb-media-wrap">
-                  @if (c.fileType === 'image') {
-                    <img class="fb-media" [src]="c.objectUrl" [alt]="c.fileName" />
-                  } @else {
-                    <video class="fb-media" [src]="c.objectUrl" muted playsinline></video>
+                  @if (c.objectUrl) {
+                    @if (c.fileType === 'image') {
+                      <img class="fb-media" [src]="c.objectUrl" [alt]="c.fileName" />
+                    } @else {
+                      <video class="fb-media" [src]="c.objectUrl" muted playsinline></video>
+                    }
                   }
                 </div>
 

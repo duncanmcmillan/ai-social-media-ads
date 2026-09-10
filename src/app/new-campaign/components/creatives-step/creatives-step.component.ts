@@ -252,8 +252,6 @@ export class CreativesStepComponent {
   protected onCarouselCardFileSelected(creativeIndex: number, cardIndex: number, event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    const card = this.store.creatives()[creativeIndex]?.carouselCards[cardIndex];
-    if (card?.objectUrl) URL.revokeObjectURL(card.objectUrl);
     const objectUrl = URL.createObjectURL(file);
     this.store.updateCarouselCard(creativeIndex, cardIndex, {
       file,
@@ -276,12 +274,8 @@ export class CreativesStepComponent {
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
     if (isCover) {
-      const old = this.store.creatives()[creativeIndex];
-      if (old?.objectUrl) URL.revokeObjectURL(old.objectUrl);
       this.store.updateCreative(creativeIndex, { file, objectUrl, fileName: file.name, fileType: file.type.startsWith('video') ? 'video' : 'image' });
     } else {
-      const card = this.store.creatives()[creativeIndex]?.collectionCards[cardIndex];
-      if (card?.objectUrl) URL.revokeObjectURL(card.objectUrl);
       this.store.updateCollectionCard(creativeIndex, cardIndex, { file, objectUrl, fileName: file.name, fileType: file.type.startsWith('video') ? 'video' : 'image' });
     }
     (event.target as HTMLInputElement).value = '';
@@ -315,8 +309,6 @@ export class CreativesStepComponent {
   protected onReplaceFile(index: number, event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    const old = this.store.creatives()[index];
-    if (old?.objectUrl) URL.revokeObjectURL(old.objectUrl);
     const objectUrl = URL.createObjectURL(file);
     this.store.updateCreative(index, {
       file,
