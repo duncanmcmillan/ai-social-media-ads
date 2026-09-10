@@ -112,7 +112,13 @@ export class CampaignStepComponent {
     this.store.updateCampaign(template.campaign);
     this.store.setAdSets(template.adSets);
     for (const c of template.creatives) {
-      this.store.addCreative({ ...c, file: undefined, objectUrl: '' });
+      this.store.addCreative({
+        ...c,
+        file: undefined,
+        objectUrl: '',
+        carouselCards:   (c.carouselCards ?? []).map(card => ({ ...card, file: undefined, objectUrl: '' })),
+        collectionCards: (c.collectionCards ?? []).map(card => ({ ...card, file: undefined, objectUrl: '' })),
+      });
     }
     void this.router.navigateByUrl('/new-campaign/review');
   }

@@ -336,7 +336,11 @@ export class ReviewStepComponent {
     this.templateStore.save(name, {
       campaign:  this.store.campaign(),
       adSets:    this.store.adSets(),
-      creatives: this.store.creatives().map(({ file: _file, objectUrl: _url, ...rest }) => rest),
+      creatives: this.store.creatives().map(({ file: _file, objectUrl: _url, ...rest }) => ({
+        ...rest,
+        carouselCards:   rest.carouselCards.map(({ file: _f, objectUrl: _o, ...card }) => card),
+        collectionCards: rest.collectionCards.map(({ file: _f, objectUrl: _o, ...card }) => card),
+      })),
     });
     this.savingTemplate.set(false);
   }

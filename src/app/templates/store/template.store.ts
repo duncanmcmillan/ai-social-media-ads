@@ -5,8 +5,8 @@
  */
 import { signalStore, withState, withMethods, withComputed, patchState } from '@ngrx/signals';
 import { computed } from '@angular/core';
-import type { CampaignTemplate } from '../model/template.model';
-import type { DraftCampaign, DraftAdSet, DraftCreative } from '../../new-campaign/model/draft.model';
+import type { CampaignTemplate, SerializableCreative } from '../model/template.model';
+import type { DraftCampaign, DraftAdSet } from '../../new-campaign/model/draft.model';
 
 const STORAGE_KEY = 'ai-fb-ads:templates';
 
@@ -65,7 +65,7 @@ export const TemplateStore = signalStore(
       draft: {
         campaign: DraftCampaign;
         adSets: DraftAdSet[];
-        creatives: Omit<DraftCreative, 'file' | 'objectUrl'>[];
+        creatives: SerializableCreative[];
       }
     ): void {
       const template: CampaignTemplate = {
