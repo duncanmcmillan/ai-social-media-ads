@@ -79,8 +79,8 @@
                 <span class="file-thumb-icon file-thumb-icon--carousel">&#9783;</span>
               } @else if (creative.adFormat === 'COLLECTION') {
                 <span class="file-thumb-icon file-thumb-icon--collection">&#9783;</span>
-              } @else if (creative.fileType === 'image' && creative.objectUrl) {
-                <img [src]="creative.objectUrl" [alt]="creative.fileName" class="file-thumb-img" />
+              } @else if (creative.fileType === 'image' && (creative.thumbnailUrl || creative.objectUrl)) {
+                <img [src]="creative.thumbnailUrl || creative.objectUrl" [alt]="creative.fileName" class="file-thumb-img" />
               } @else {
                 <span class="file-thumb-icon">&#9654;</span>
               }
@@ -149,16 +149,18 @@
                 class="file-input"
                 (change)="onCarouselCardFileSelected(creativeIndex, ci, $event)"
               />
-              @if (card.objectUrl) {
-                @if (card.fileType === 'image') {
-                  <img class="card-slot-thumb" [src]="card.objectUrl" [alt]="card.fileName" />
+              @if (card.thumbnailUrl || card.objectUrl) {
+                @if (card.thumbnailUrl || card.fileType === 'image') {
+                  <img class="card-slot-thumb" [src]="card.thumbnailUrl || card.objectUrl" [alt]="card.fileName" />
                 } @else {
                   <video class="card-slot-thumb" [src]="card.objectUrl" muted playsinline></video>
                 }
               } @else {
                 <div class="card-slot-empty">
                   <span class="card-slot-empty-icon" aria-hidden="true">&#9707;</span>
-                  <span class="card-slot-empty-label">Upload card {{ ci + 1 }} media</span>
+                  <span class="card-slot-empty-label">
+                    {{ card.imageHash || card.videoId ? 'Replace card ' + (ci + 1) + ' media' : 'Upload card ' + (ci + 1) + ' media' }}
+                  </span>
                   <span class="card-slot-empty-hint">1:1 · JPG, PNG, MP4</span>
                 </div>
               }
@@ -236,9 +238,9 @@
               accept="image/jpeg,image/png,video/mp4,video/mov"
               class="file-input"
               (change)="onCollectionCardFileSelected(creativeIndex, 0, $event, true)" />
-            @if (creative.objectUrl) {
-              @if (creative.fileType === 'image') {
-                <img class="card-slot-thumb" [src]="creative.objectUrl" [alt]="creative.fileName" />
+            @if (creative.thumbnailUrl || creative.objectUrl) {
+              @if (creative.thumbnailUrl || creative.fileType === 'image') {
+                <img class="card-slot-thumb" [src]="creative.thumbnailUrl || creative.objectUrl" [alt]="creative.fileName" />
               } @else {
                 <video class="card-slot-thumb" [src]="creative.objectUrl" muted playsinline></video>
               }
@@ -318,13 +320,13 @@
 
         <!-- Preview thumbnail -->
         <div class="copy-preview">
-          @if (creative.objectUrl && creative.fileType === 'image') {
-            <img [src]="creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
+          @if (creative.thumbnailUrl || (creative.objectUrl && creative.fileType === 'image')) {
+            <img [src]="creative.thumbnailUrl || creative.objectUrl" [alt]="creative.fileName" class="copy-preview-img" />
           }
           <span class="copy-preview-name">{{ creative.fileName }}</span>
         </div>
 
-        <!-- Re-upload prompt for template-loaded creatives with no file -->
+        <!-- Upload / replace prompt when no local file is present -->
         @if (!creative.file) {
           <label class="cs-reupload">
             <input
@@ -333,8 +335,14 @@
               accept="image/*,video/*"
               (change)="onReplaceFile(store.activeCreativeIndex(), $event)"
             />
-            <span class="cs-reupload-btn" aria-hidden="true">Upload file</span>
-            <span class="cs-reupload-hint">Loaded from template — upload an image or video to enable launch</span>
+            <span class="cs-reupload-btn" aria-hidden="true">
+              {{ creative.imageHash || creative.videoId ? 'Replace file' : 'Upload file' }}
+            </span>
+            <span class="cs-reupload-hint">
+              {{ creative.imageHash || creative.videoId
+                 ? 'Using Facebook-hosted media — upload a new file to replace it'
+                 : 'Loaded from template — upload an image or video to enable launch' }}
+            </span>
           </label>
         }
 
@@ -549,9 +557,9 @@
 
                 <!-- Media (4:5) -->
                 <div class="fb-media-wrap">
-                  @if (c.objectUrl) {
-                    @if (c.fileType === 'image') {
-                      <img class="fb-media" [src]="c.objectUrl" [alt]="c.fileName" />
+                  @if (c.thumbnailUrl || c.objectUrl) {
+                    @if (c.thumbnailUrl || c.fileType === 'image') {
+                      <img class="fb-media" [src]="c.thumbnailUrl || c.objectUrl" [alt]="c.fileName" />
                     } @else {
                       <video class="fb-media" [src]="c.objectUrl" muted playsinline></video>
                     }
