@@ -82,6 +82,12 @@ export interface CarouselCard {
   url: string;
   /** Per-card call to action. */
   cta: string;
+  /** Facebook image hash for an already-uploaded image; allows relaunch without re-upload. */
+  imageHash?: string;
+  /** Facebook video ID for an already-uploaded video; allows relaunch without re-upload. */
+  videoId?: string;
+  /** Permanent HTTPS thumbnail URL from Facebook for preview in edit mode. */
+  thumbnailUrl?: string;
 }
 
 /** A single collection product card within a creative. */
@@ -139,6 +145,12 @@ export interface DraftCreative {
   collectionCards: CollectionCard[];
   /** Instant Experience ID for Collection ads, created in Meta Ads Manager. */
   instantExperienceId: string;
+  /** Facebook image hash for an already-uploaded image; allows relaunch without re-upload. */
+  imageHash?: string;
+  /** Facebook video ID for an already-uploaded video; allows relaunch without re-upload. */
+  videoId?: string;
+  /** Permanent HTTPS thumbnail URL from Facebook for preview in edit or template-reload mode. */
+  thumbnailUrl?: string;
 }
 
 /** URL source for the creatives step. */

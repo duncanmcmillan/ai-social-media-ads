@@ -8,6 +8,7 @@ import { computed, inject } from '@angular/core';
 import type { DraftCampaign, DraftAdSet, DraftCreative, WebsiteUrlMode, CarouselCard, CollectionCard } from '../model/draft.model';
 import type { CampaignObjective, CampaignPayload, AdSetPayload, AdCreativePayload, CarouselChildAttachment, AdPayload, PromotedObject, AttributionSpec } from '../../core/models/index';
 import { MarketingApiService } from '../../core/services/facebook/marketing-api/marketing-api.service';
+import type { CampaignEditData } from '../../core/services/facebook/marketing-api/marketing-api.service';
 import { WorkspaceStore } from '../../workspace';
 import { AiService } from '../../core/services/ai/ai.service';
 import type { GeneratedCarouselCard } from '../../core/services/ai/ai.service';
@@ -113,6 +114,8 @@ interface NewCampaignState {
    * -1 means not yet loaded (auth not ready or call failed).
    */
   campaignCount: number;
+  /** Whether a campaign is currently being loaded from Facebook for editing. */
+  isLoadingFromCampaign: boolean;
 }
 
 const DEFAULT_CAMPAIGN: DraftCampaign = {
@@ -141,6 +144,7 @@ const initialState: NewCampaignState = {
   campaignReviewed: false,
   adSetsReviewed: false,
   campaignCount: -1,
+  isLoadingFromCampaign: false,
 };
 
 /**
@@ -543,6 +547,110 @@ export const NewCampaignStore = signalStore(
     },
 
     /**
+     * Loads a published Facebook campaign into the wizard for editing and relaunch.
+     * Fetches campaign, ad-set, and creative data from the Marketing API then
+     * populates the wizard store so the user can review and relaunch as a new campaign.
+     * Media already on Facebook is referenced via imageHash / videoId — no re-upload needed
+     * unless the user replaces the file.
+     *
+     * @param campaignId - Facebook campaign ID to load.
+     */
+    async loadFromCampaign(campaignId: string): Promise<void> {
+      patchState(store, { isLoadingFromCampaign: true, error: null });
+      try {
+        const data: CampaignEditData = await marketingApi.getCampaignForEdit(campaignId);
+
+        const campaign: DraftCampaign = {
+          name:                data.campaign.name + ' (edited)',
+          objective:           data.campaign.objective as CampaignObjective,
+          budgetType:          'campaign',
+          budgetPeriod:        data.campaign.dailyBudget ? 'daily' : 'lifetime',
+          budgetAmount:        Math.round((data.campaign.dailyBudget ?? data.campaign.lifetimeBudget ?? 0) / 100) || 100,
+          utmParameters:       '',
+          activateImmediately: false,
+        };
+
+        const adSets: DraftAdSet[] = data.adSets.map(a => ({
+          id:               crypto.randomUUID(),
+          name:             a.name,
+          status:           'PAUSED' as const,
+          placementMode:    'advantage' as const,
+          optimizationGoal: a.optimizationGoal as DraftAdSet['optimizationGoal'],
+          billingEvent:     a.billingEvent     as DraftAdSet['billingEvent'],
+          budgetPeriod:     a.dailyBudget ? 'daily' : 'lifetime' as const,
+          budgetAmount:     a.dailyBudget    ? Math.round(a.dailyBudget / 100)
+                          : a.lifetimeBudget ? Math.round(a.lifetimeBudget / 100)
+                          : null,
+          scheduleMode:  (a.startTime || a.endTime) ? 'scheduled' : 'continuous' as const,
+          startDate:     a.startTime ?? null,
+          endDate:       a.endTime   ?? null,
+          targeting: {
+            countries: a.targeting.countries,
+            minAge:    a.targeting.ageMin,
+            maxAge:    a.targeting.ageMax,
+            interests: [],
+          },
+        }));
+
+        const creatives: DraftCreative[] = data.creatives.map(c => {
+          const carouselCards: CarouselCard[] = c.carouselCards.map(card => ({
+            id:          crypto.randomUUID(),
+            objectUrl:   '',
+            fileName:    '',
+            fileType:    card.videoId ? 'video' as const : 'image' as const,
+            headline:    card.headline,
+            description: card.description,
+            url:         card.link,
+            cta:         card.cta,
+            imageHash:   card.imageHash ?? undefined,
+            videoId:     card.videoId   ?? undefined,
+          }));
+
+          return {
+            id:                  crypto.randomUUID(),
+            fileName:            c.name,
+            fileType:            c.videoId ? 'video' as const : 'image' as const,
+            objectUrl:           '',
+            tones:               [],
+            hook:                '',
+            length:              'Medium' as const,
+            primaryText:         c.primaryText,
+            headline:            c.headline,
+            description:         c.description,
+            cta:                 c.cta,
+            launchStatus:        'paused' as const,
+            adCreationMode:      'separate' as const,
+            adFormat:            c.adFormat,
+            carouselCards,
+            collectionCards:     [],
+            instantExperienceId: '',
+            imageHash:    c.imageHash   ?? undefined,
+            videoId:      c.videoId     ?? undefined,
+            thumbnailUrl: c.thumbnailUrl || undefined,
+          };
+        });
+
+        patchState(store, {
+          campaign,
+          adSets,
+          activeAdSetIndex:    0,
+          creatives,
+          activeCreativeIndex: 0,
+          reviewedCreativeIds: [],
+          campaignReviewed:    false,
+          adSetsReviewed:      false,
+          isLoadingFromCampaign: false,
+          error: null,
+        });
+      } catch (e: unknown) {
+        patchState(store, {
+          error: e instanceof Error ? e.message : 'Failed to load campaign for editing',
+          isLoadingFromCampaign: false,
+        });
+      }
+    },
+
+    /**
      * Publishes the wizard draft to the Facebook Marketing API.
      *
      * Sequence:
@@ -641,16 +749,23 @@ export const NewCampaignStore = signalStore(
           let creativePayload: AdCreativePayload;
 
           if (creative.adFormat === 'CAROUSEL') {
-            // 3a — Upload each carousel card's media
+            // 3a — Upload each carousel card's media (skip upload when hash/id already on Facebook)
             const childAttachments: CarouselChildAttachment[] = [];
             for (const card of creative.carouselCards) {
-              if (!card.file) throw new Error(`No file data for carousel card "${card.fileName}". Re-upload the card.`);
-              if (card.fileType === 'video') {
-                const { id: videoId } = await marketingApi.uploadVideo(card.file);
-                childAttachments.push({ videoId, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+              if (card.imageHash) {
+                childAttachments.push({ imageHash: card.imageHash, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+              } else if (card.videoId) {
+                childAttachments.push({ videoId: card.videoId, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+              } else if (card.file) {
+                if (card.fileType === 'video') {
+                  const { id: videoId } = await marketingApi.uploadVideo(card.file);
+                  childAttachments.push({ videoId, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+                } else {
+                  const { hash: imageHash } = await marketingApi.uploadImage(card.file);
+                  childAttachments.push({ imageHash, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+                }
               } else {
-                const { hash: imageHash } = await marketingApi.uploadImage(card.file);
-                childAttachments.push({ imageHash, link: card.url || meta.websiteUrl, name: card.headline, description: card.description, callToActionType: card.cta });
+                throw new Error(`No file data for carousel card "${card.fileName}". Re-upload the card.`);
               }
             }
             creativePayload = {
@@ -663,12 +778,17 @@ export const NewCampaignStore = signalStore(
             };
 
           } else if (creative.adFormat === 'COLLECTION') {
-            // 3a — Validate instant experience and upload cover
+            // 3a — Validate instant experience and upload cover (skip upload when hash already on Facebook)
             if (!creative.instantExperienceId) {
               throw new Error(`Collection creative "${creative.fileName}" requires an Instant Experience ID. Set it in the creatives editor before publishing.`);
             }
-            if (!creative.file) throw new Error(`No file data for collection cover "${creative.fileName}". Re-upload the cover.`);
-            const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
+            let imageHash: string;
+            if (creative.imageHash) {
+              imageHash = creative.imageHash;
+            } else {
+              if (!creative.file) throw new Error(`No file data for collection cover "${creative.fileName}". Re-upload the cover.`);
+              ({ hash: imageHash } = await marketingApi.uploadImage(creative.file));
+            }
             creativePayload = {
               name: `${creative.fileName} — ${draft.name}`,
               pageId: meta.facebookPageId,
@@ -680,9 +800,14 @@ export const NewCampaignStore = signalStore(
             };
 
           } else if (creative.adFormat === 'SINGLE_VIDEO') {
-            // 3a — Upload video
-            if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the video.`);
-            const { id: videoId } = await marketingApi.uploadVideo(creative.file);
+            // 3a — Upload video (skip upload when videoId already on Facebook)
+            let videoId: string;
+            if (creative.videoId) {
+              videoId = creative.videoId;
+            } else {
+              if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the video.`);
+              ({ id: videoId } = await marketingApi.uploadVideo(creative.file));
+            }
             creativePayload = {
               name: `${creative.fileName} — ${draft.name}`,
               pageId: meta.facebookPageId,
@@ -695,9 +820,14 @@ export const NewCampaignStore = signalStore(
             };
 
           } else {
-            // SINGLE_IMAGE (default)
-            if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
-            const { hash: imageHash } = await marketingApi.uploadImage(creative.file);
+            // SINGLE_IMAGE (default) — skip upload when imageHash already on Facebook
+            let imageHash: string;
+            if (creative.imageHash) {
+              imageHash = creative.imageHash;
+            } else {
+              if (!creative.file) throw new Error(`No file data for creative "${creative.fileName}". Re-upload the image.`);
+              ({ hash: imageHash } = await marketingApi.uploadImage(creative.file));
+            }
             creativePayload = {
               name: `${creative.fileName} — ${draft.name}`,
               pageId: meta.facebookPageId,

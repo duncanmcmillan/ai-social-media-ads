@@ -144,17 +144,19 @@ export class ReviewStepComponent {
   );
 
   /**
-   * Whether all creatives have actual file objects attached (not just template placeholders).
-   * For Carousel creatives, all cards must have a file. For all other formats,
-   * the top-level creative file is checked.
+   * Whether all creatives have media ready to publish.
+   * Accepts either a local File object (new upload) or a Facebook image hash / video ID
+   * (edit-mode creatives that already have media on Facebook).
+   * For Carousel creatives, all cards must satisfy this condition.
    */
   protected readonly hasFilesAttached = computed(() =>
     this.store.creatives().length > 0 &&
     this.store.creatives().every(c => {
       if (c.adFormat === 'CAROUSEL') {
-        return c.carouselCards.length >= 2 && c.carouselCards.every(card => !!card.file);
+        return c.carouselCards.length >= 2 &&
+          c.carouselCards.every(card => !!card.file || !!card.imageHash || !!card.videoId);
       }
-      return !!c.file;
+      return !!c.file || !!c.imageHash || !!c.videoId;
     })
   );
 

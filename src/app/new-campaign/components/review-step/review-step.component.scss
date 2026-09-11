@@ -1,9 +1,33 @@
+/* ── Loading overlay (Edit & Relaunch) ───────────────────────────────── */
+.rs-loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: var(--neutral-500);
+}
+
+.rs-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--neutral-200);
+  border-top-color: var(--color-primary, #1877f2);
+}
+
+.rs-loading-text {
+  font-size: 13px;
+}
+
 /* ── Two-column layout ───────────────────────────────────────────────── */
 /* nc-body handles scrolling — do not constrain height here */
 .review-layout {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+
+  &--obscured { visibility: hidden; }
 }
 
 /* ── Left column ─────────────────────────────────────────────────────── */

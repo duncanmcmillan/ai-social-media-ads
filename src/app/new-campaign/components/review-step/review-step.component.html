@@ -1,4 +1,11 @@
-<div class="review-layout">
+@if (store.isLoadingFromCampaign()) {
+  <div class="rs-loading-overlay" role="status" aria-live="polite" aria-label="Loading campaign from Facebook">
+    <span class="spinner rs-loading-spinner" aria-hidden="true"></span>
+    <span class="rs-loading-text">Loading campaign from Facebook…</span>
+  </div>
+}
+
+<div class="review-layout" [class.review-layout--obscured]="store.isLoadingFromCampaign()">
 
   <!-- ── Left column ──────────────────────────────────────────────────── -->
   <div class="review-main">
@@ -75,6 +82,10 @@
                             } @else {
                               <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
                             }
+                          } @else if (card.videoId) {
+                            <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
+                          } @else if (card.imageHash) {
+                            <div class="mini-carousel-media-ph" aria-hidden="true">&#128444;</div>
                           } @else {
                             <div class="mini-carousel-media-ph" aria-hidden="true">{{ ci + 1 }}</div>
                           }
@@ -137,7 +148,14 @@
                 } @else {
                   <!-- Single Image / Video -->
                   <div class="mini-fb-image-wrap">
-                    @if (creative.objectUrl) {
+                    @if (creative.thumbnailUrl) {
+                      <!-- Permanent HTTPS thumbnail from Facebook (edit mode) -->
+                      <img
+                        [src]="creative.thumbnailUrl"
+                        [alt]="creative.fileName"
+                        class="mini-fb-image"
+                      />
+                    } @else if (creative.objectUrl) {
                       @if (creative.fileType === 'image') {
                         <img
                           [src]="creative.objectUrl"
@@ -152,6 +170,12 @@
                           <span aria-hidden="true">&#9654;</span>
                         </div>
                       }
+                    } @else if (creative.imageHash || creative.videoId) {
+                      <!-- Media already on Facebook — no local preview available -->
+                      <div class="mini-fb-no-preview" aria-label="Media already uploaded to Facebook">
+                        <span aria-hidden="true">{{ creative.videoId ? '&#9654;' : '&#128444;' }}</span>
+                        <span class="mini-fb-no-preview-text">Uploaded to Facebook</span>
+                      </div>
                     } @else {
                       <div class="mini-fb-no-preview" aria-label="No preview — re-upload file to launch">
                         <span aria-hidden="true">&#128444;</span>

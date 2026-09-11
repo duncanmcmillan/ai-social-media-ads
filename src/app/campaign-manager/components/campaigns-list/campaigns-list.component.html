@@ -58,10 +58,23 @@
                 <button
                   class="action-btn"
                   type="button"
-                  [disabled]="store.togglingId() === c.id"
+                  [disabled]="store.togglingId() === c.id || !!loadingEditId()"
                   (click)="toggleStatus(c)"
                 >{{ c.status === 'ACTIVE' ? 'Pause' : 'Activate' }}</button>
               }
+              <button
+                class="action-btn action-btn--edit"
+                type="button"
+                [disabled]="!!loadingEditId()"
+                (click)="editCampaign(c.id)"
+                [attr.aria-label]="'Edit and relaunch ' + c.name"
+              >
+                @if (loadingEditId() === c.id) {
+                  <span class="spinner spinner--dark" aria-hidden="true"></span>
+                } @else {
+                  Edit
+                }
+              </button>
             </td>
           </tr>
         }

@@ -92,7 +92,7 @@
 .col-name { font-weight: 400; }
 .col-obj, .col-date { color: var(--neutral-500); }
 .col-budget { white-space: nowrap; color: var(--neutral-500); }
-.col-actions { width: 90px; }
+.col-actions { width: 140px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
 
 /* ── Action button ───────────────────────────────────────────────────── */
 .action-btn {
@@ -135,6 +135,15 @@
 .status-in_process  { background: #fef9c3; color: #713f12; }
 .status-with_issues { background: #fee2e2; color: #991b1b; }
 
+/* ── Action button variant ───────────────────────────────────────────── */
+.action-btn--edit {
+  min-width: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 /* ── Spinner ─────────────────────────────────────────────────────────── */
 .spinner {
   display: inline-block;
@@ -144,6 +153,11 @@
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+.spinner--dark {
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: var(--neutral-600);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -25,6 +25,97 @@ interface GraphApiList<T> {
   paging?: { cursors: { before: string; after: string }; next?: string };
 }
 
+/** A single creative extracted from a live campaign for the Edit & Relaunch flow. */
+export interface CampaignEditCreative {
+  /** Facebook creative ID. */
+  id: string;
+  /** Creative name. */
+  name: string;
+  /** Primary ad copy text. */
+  primaryText: string;
+  /** Ad headline. */
+  headline: string;
+  /** Ad description. */
+  description: string;
+  /** Permanent HTTPS thumbnail URL for preview — may be empty for some formats. */
+  thumbnailUrl: string;
+  /** Facebook image hash, or null for video creatives. */
+  imageHash: string | null;
+  /** Facebook video ID, or null for image creatives. */
+  videoId: string | null;
+  /** Default call-to-action type. */
+  cta: string;
+  /** Detected ad format. */
+  adFormat: 'SINGLE_IMAGE' | 'SINGLE_VIDEO' | 'CAROUSEL' | 'COLLECTION';
+  /** Carousel card data — populated for CAROUSEL format only. */
+  carouselCards: Array<{
+    /** Facebook image hash for this card, or null. */
+    imageHash: string | null;
+    /** Facebook video ID for this card, or null. */
+    videoId: string | null;
+    /** Card destination URL. */
+    link: string;
+    /** Per-card headline. */
+    headline: string;
+    /** Per-card description. */
+    description: string;
+    /** Per-card call-to-action type. */
+    cta: string;
+  }>;
+}
+
+/**
+ * Full campaign data returned by getCampaignForEdit,
+ * ready to be mapped into the New Campaign wizard state.
+ */
+export interface CampaignEditData {
+  /** Campaign-level fields. */
+  campaign: {
+    /** Facebook campaign ID. */
+    id: string;
+    /** Campaign name. */
+    name: string;
+    /** Campaign objective enum string. */
+    objective: string;
+    /** Daily budget in minor currency units (e.g. pence), or null. */
+    dailyBudget: number | null;
+    /** Lifetime budget in minor currency units, or null. */
+    lifetimeBudget: number | null;
+  };
+  /** Ad sets belonging to this campaign. */
+  adSets: Array<{
+    /** Facebook ad set ID. */
+    id: string;
+    /** Ad set name. */
+    name: string;
+    /** Effective status. */
+    status: string;
+    /** Optimisation goal enum string. */
+    optimizationGoal: string;
+    /** Billing event enum string. */
+    billingEvent: string;
+    /** Daily budget in minor units, or null. */
+    dailyBudget: number | null;
+    /** Lifetime budget in minor units, or null. */
+    lifetimeBudget: number | null;
+    /** ISO 8601 start time, or null for continuous. */
+    startTime: string | null;
+    /** ISO 8601 end time, or null for no end. */
+    endTime: string | null;
+    /** Targeting parameters. */
+    targeting: {
+      /** Targeted ISO country codes. */
+      countries: string[];
+      /** Minimum age. */
+      ageMin: number;
+      /** Maximum age. */
+      ageMax: number;
+    };
+  }>;
+  /** Unique creatives used by ads in this campaign. */
+  creatives: CampaignEditCreative[];
+}
+
 /**
  * Service wrapping the Facebook Marketing API.
  * Use this service from stores — never inject it directly into components.
@@ -447,6 +538,171 @@ export class MarketingApiService {
     return firstValueFrom(
       this.http.post<{ success: boolean }>(`${GRAPH_API_BASE}/${adId}`, body, { params })
     );
+  }
+
+  /**
+   * Fetches all data needed to re-edit a published campaign in the wizard.
+   * Makes three parallel-safe Graph API calls:
+   *   1. Campaign details (name, objective, budget)
+   *   2. Ad sets for the campaign (targeting, schedule, budget)
+   *   3. Ads for the campaign with creatives expanded inline
+   * Creatives are deduplicated by creative ID so a creative shared across ad sets
+   * is only loaded once.
+   *
+   * @param campaignId - Facebook campaign ID to load.
+   * @returns Promise resolving to the structured edit data.
+   * @throws When not authenticated or any API call fails.
+   */
+  async getCampaignForEdit(campaignId: string): Promise<CampaignEditData> {
+    const params = this.authParams();
+
+    // 1 — Campaign details
+    const campaignParams = params.set(
+      'fields',
+      'id,name,objective,status,daily_budget,lifetime_budget'
+    );
+    const rawCampaign = await firstValueFrom(
+      this.http.get<{
+        id: string;
+        name: string;
+        objective: string;
+        status: string;
+        daily_budget?: string;
+        lifetime_budget?: string;
+      }>(`${GRAPH_API_BASE}/${campaignId}`, { params: campaignParams })
+    );
+
+    // 2 — Ad sets with targeting
+    const adSetsParams = params.set(
+      'fields',
+      'id,name,status,optimization_goal,billing_event,daily_budget,lifetime_budget,start_time,end_time,targeting'
+    );
+    const adSetsResult = await firstValueFrom(
+      this.http.get<GraphApiList<{
+        id: string;
+        name: string;
+        status: string;
+        optimization_goal: string;
+        billing_event: string;
+        daily_budget?: string;
+        lifetime_budget?: string;
+        start_time?: string;
+        end_time?: string;
+        targeting?: {
+          geo_locations?: { countries?: string[] };
+          age_min?: number;
+          age_max?: number;
+        };
+      }>>(`${GRAPH_API_BASE}/${campaignId}/adsets`, { params: adSetsParams })
+    );
+
+    // 3 — Ads with creatives expanded (all ads for the campaign in one call)
+    const adsParams = params.set(
+      'fields',
+      'id,name,creative{id,name,body,title,description,thumbnail_url,image_hash,object_story_spec}'
+    );
+    const adsResult = await firstValueFrom(
+      this.http.get<GraphApiList<{
+        id: string;
+        creative?: {
+          id: string;
+          name?: string;
+          body?: string;
+          title?: string;
+          description?: string;
+          thumbnail_url?: string;
+          image_hash?: string;
+          object_story_spec?: {
+            link_data?: {
+              message?: string;
+              name?: string;
+              description?: string;
+              image_hash?: string;
+              video_id?: string;
+              call_to_action?: { type?: string };
+              child_attachments?: Array<{
+                image_hash?: string;
+                video_id?: string;
+                link?: string;
+                name?: string;
+                description?: string;
+                call_to_action?: { type?: string };
+              }>;
+            };
+          };
+        };
+      }>>(`${GRAPH_API_BASE}/${campaignId}/ads`, { params: adsParams })
+    );
+
+    // Deduplicate creatives (multiple ads / ad sets can share the same creative ID)
+    const seen = new Map<string, CampaignEditCreative>();
+    for (const ad of adsResult.data) {
+      if (!ad.creative || seen.has(ad.creative.id)) continue;
+      const raw = ad.creative;
+      const spec = raw.object_story_spec?.link_data;
+
+      const carouselCards: CampaignEditCreative['carouselCards'] = [];
+      let adFormat: CampaignEditCreative['adFormat'] = 'SINGLE_IMAGE';
+      const imageHash = raw.image_hash ?? spec?.image_hash ?? null;
+      const videoId = spec?.video_id ?? null;
+
+      if (spec?.child_attachments?.length) {
+        adFormat = 'CAROUSEL';
+        for (const card of spec.child_attachments) {
+          carouselCards.push({
+            imageHash: card.image_hash ?? null,
+            videoId:   card.video_id ?? null,
+            link:        card.link ?? '',
+            headline:    card.name ?? '',
+            description: card.description ?? '',
+            cta:         card.call_to_action?.type ?? 'LEARN_MORE',
+          });
+        }
+      } else if (videoId) {
+        adFormat = 'SINGLE_VIDEO';
+      }
+
+      seen.set(raw.id, {
+        id:          raw.id,
+        name:        raw.name ?? '',
+        primaryText: raw.body ?? spec?.message ?? '',
+        headline:    raw.title ?? spec?.name ?? '',
+        description: raw.description ?? spec?.description ?? '',
+        thumbnailUrl: raw.thumbnail_url ?? '',
+        imageHash,
+        videoId,
+        cta:          spec?.call_to_action?.type ?? 'LEARN_MORE',
+        adFormat,
+        carouselCards,
+      });
+    }
+
+    return {
+      campaign: {
+        id:             rawCampaign.id,
+        name:           rawCampaign.name,
+        objective:      rawCampaign.objective,
+        dailyBudget:    rawCampaign.daily_budget    ? parseInt(rawCampaign.daily_budget, 10)    : null,
+        lifetimeBudget: rawCampaign.lifetime_budget ? parseInt(rawCampaign.lifetime_budget, 10) : null,
+      },
+      adSets: adSetsResult.data.map(a => ({
+        id:               a.id,
+        name:             a.name,
+        status:           a.status,
+        optimizationGoal: a.optimization_goal,
+        billingEvent:     a.billing_event,
+        dailyBudget:    a.daily_budget    ? parseInt(a.daily_budget, 10)    : null,
+        lifetimeBudget: a.lifetime_budget ? parseInt(a.lifetime_budget, 10) : null,
+        startTime: a.start_time ?? null,
+        endTime:   a.end_time   ?? null,
+        targeting: {
+          countries: a.targeting?.geo_locations?.countries ?? [],
+          ageMin:    a.targeting?.age_min ?? 18,
+          ageMax:    a.targeting?.age_max ?? 65,
+        },
+      })),
+      creatives: Array.from(seen.values()),
+    };
   }
 
   /**
