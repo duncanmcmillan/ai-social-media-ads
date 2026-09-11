@@ -55,13 +55,13 @@ Strict mode is enabled. Angular-specific strict options are on: `strictTemplates
 
 | Route | Module | Purpose |
 |---|---|---|
-| `/campaigns` | `campaigns/` | Facebook Campaign CRUD and status |
-| `/ad-sets` | `ad-sets/` | AdSet targeting and budget config |
-| `/ads` | `ads/` | Individual ad management |
-| `/ad-creatives` | `ad-creatives/` | Creative assets and copy |
-| `/optimisation` | `optimisation/` | Performance insights and recommendations |
-| `/preview` | `preview/` | Ad preview via Facebook AdPreview API |
-| `/auth` | `auth/` | Facebook OAuth login/logout |
+| `/workspace` | `workspace/` | Home screen — connected accounts and quick actions |
+| `/new-campaign` | `new-campaign/` | Multi-step campaign creation wizard (Campaign → Ad Sets → Creatives → Review) |
+| `/campaign-manager` | `campaign-manager/` | Live campaign list with Edit & Relaunch |
+| `/dashboard` | `dashboard/` | Performance insights, metrics, and recommendations |
+| `/meta-setup` | `meta-setup/` | Facebook App credentials and OAuth configuration |
+| `/optimisation` | — | Redirects to `/dashboard` |
+| `/monitoring` | — | Redirects to `/dashboard` |
 
 ## Core Services
 
