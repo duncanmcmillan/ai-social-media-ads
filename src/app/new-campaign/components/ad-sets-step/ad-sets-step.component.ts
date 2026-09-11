@@ -2,10 +2,15 @@
  * @fileoverview Step 2 — Ad Sets.
  * Tab-per-ad-set navigation with audience, placement, and budget fields.
  */
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NewCampaignStore } from '../../store/new-campaign.store';
+import { LicenceStore } from '../../../core/store/licence.store';
 import { VideoModalComponent } from '../../../shared/video-modal/video-modal.component';
+import { UpgradePromptComponent } from '../../../shared/upgrade-prompt/upgrade-prompt.component';
 import type { DraftAdSet } from '../../model/draft.model';
+
+/** Free-tier limit: one ad set per campaign. */
+const FREE_AD_SET_LIMIT = 1;
 
 /** Generates a client-side UUID for draft objects. */
 function uuid(): string {
@@ -40,16 +45,22 @@ const BILLING_EVENTS = ['IMPRESSIONS', 'LINK_CLICKS', 'APP_INSTALLS'] as const;
 /** Step 2 of the New Campaign wizard — Ad Set configuration. */
 @Component({
   selector: 'app-ad-sets-step',
-  imports: [VideoModalComponent],
+  imports: [VideoModalComponent, UpgradePromptComponent],
   templateUrl: './ad-sets-step.component.html',
   styleUrl: './ad-sets-step.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdSetsStepComponent {
   protected readonly store = inject(NewCampaignStore);
+  private readonly licenceStore = inject(LicenceStore);
 
   /** Controls the help video modal. */
   protected readonly videoOpen = signal(false);
+
+  /** True when a free-tier user already has the maximum allowed ad sets. */
+  protected readonly atAdSetLimit = computed(() =>
+    this.licenceStore.tier() === 'free' && this.store.adSets().length >= FREE_AD_SET_LIMIT
+  );
 
   protected readonly optimizationGoals = OPTIMIZATION_GOALS;
   protected readonly billingEvents = BILLING_EVENTS;

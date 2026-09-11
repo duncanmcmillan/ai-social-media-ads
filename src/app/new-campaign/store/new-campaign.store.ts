@@ -683,6 +683,13 @@ export const NewCampaignStore = signalStore(
             });
             return;
           }
+          if (store.adSets().length > 1) {
+            patchState(store, {
+              isPublishing: false,
+              error: 'Free plan is limited to 1 ad set per campaign. Upgrade to Pro for multiple ad sets.',
+            });
+            return;
+          }
         }
 
         const draft = store.campaign();

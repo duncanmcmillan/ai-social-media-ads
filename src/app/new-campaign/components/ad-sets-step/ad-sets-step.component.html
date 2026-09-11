@@ -2,7 +2,10 @@
   <div class="empty-state">
     <p class="empty-title">No ad sets yet</p>
     <p class="empty-hint">Use "Build draft" on the Campaign step to generate ad sets with AI, or add one manually.</p>
-    <button class="btn btn-primary" (click)="addAdSet()" type="button">+ Add ad set</button>
+    <button class="btn btn-primary" (click)="addAdSet()" type="button" [disabled]="atAdSetLimit()">+ Add ad set</button>
+    @if (atAdSetLimit()) {
+      <app-upgrade-prompt />
+    }
   </div>
 } @else {
   <div class="step-card">
@@ -47,8 +50,16 @@
           }
         </div>
       }
-      <button class="adset-tab adset-tab--add" (click)="addAdSet()" type="button" aria-label="Add ad set">+ Add</button>
+      @if (!atAdSetLimit()) {
+        <button class="adset-tab adset-tab--add" (click)="addAdSet()" type="button" aria-label="Add ad set">+ Add</button>
+      }
     </div>
+    @if (atAdSetLimit()) {
+      <div class="adset-limit-banner">
+        <span>Free plan: 1 ad set per campaign.</span>
+        <app-upgrade-prompt />
+      </div>
+    }
 
     @if (store.activeAdSet(); as adSet) {
       <div class="adset-body" role="tabpanel">
