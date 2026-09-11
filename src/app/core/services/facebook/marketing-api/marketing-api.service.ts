@@ -599,7 +599,7 @@ export class MarketingApiService {
     // 3 — Ads with creatives expanded (all ads for the campaign in one call)
     const adsParams = params.set(
       'fields',
-      'id,name,creative{id,name,body,title,description,thumbnail_url,image_hash,object_story_spec}'
+      'id,name,creative{id,name,body,title,thumbnail_url,image_hash,object_story_spec}'
     );
     const adsResult = await firstValueFrom(
       this.http.get<GraphApiList<{
