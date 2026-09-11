@@ -594,16 +594,17 @@ export const NewCampaignStore = signalStore(
 
         const creatives: DraftCreative[] = data.creatives.map(c => {
           const carouselCards: CarouselCard[] = c.carouselCards.map(card => ({
-            id:          crypto.randomUUID(),
-            objectUrl:   '',
-            fileName:    '',
-            fileType:    card.videoId ? 'video' as const : 'image' as const,
-            headline:    card.headline,
-            description: card.description,
-            url:         card.link,
-            cta:         card.cta,
-            imageHash:   card.imageHash ?? undefined,
-            videoId:     card.videoId   ?? undefined,
+            id:           crypto.randomUUID(),
+            objectUrl:    '',
+            fileName:     '',
+            fileType:     card.videoId ? 'video' as const : 'image' as const,
+            headline:     card.headline,
+            description:  card.description,
+            url:          card.link,
+            cta:          card.cta,
+            imageHash:    card.imageHash    ?? undefined,
+            videoId:      card.videoId      ?? undefined,
+            thumbnailUrl: card.thumbnailUrl || undefined,
           }));
 
           return {

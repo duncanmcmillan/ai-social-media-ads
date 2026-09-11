@@ -53,6 +53,8 @@ export interface CampaignEditCreative {
     imageHash: string | null;
     /** Facebook video ID for this card, or null. */
     videoId: string | null;
+    /** Resolved image URL for preview (from adimages lookup), or empty string. */
+    thumbnailUrl: string;
     /** Card destination URL. */
     link: string;
     /** Per-card headline. */
@@ -650,8 +652,9 @@ export class MarketingApiService {
         adFormat = 'CAROUSEL';
         for (const card of spec.child_attachments) {
           carouselCards.push({
-            imageHash: card.image_hash ?? null,
-            videoId:   card.video_id ?? null,
+            imageHash:   card.image_hash ?? null,
+            videoId:     card.video_id   ?? null,
+            thumbnailUrl: '',   // resolved below via adimages lookup
             link:        card.link ?? '',
             headline:    card.name ?? '',
             description: card.description ?? '',
@@ -663,18 +666,60 @@ export class MarketingApiService {
       }
 
       seen.set(raw.id, {
-        id:          raw.id,
-        name:        raw.name ?? '',
-        primaryText: raw.body ?? spec?.message ?? '',
-        headline:    raw.title ?? spec?.name ?? '',
-        description: raw.description ?? spec?.description ?? '',
-        thumbnailUrl: raw.thumbnail_url ?? '',
+        id:           raw.id,
+        name:         raw.name ?? '',
+        primaryText:  raw.body ?? spec?.message ?? '',
+        headline:     raw.title ?? spec?.name ?? '',
+        description:  raw.description ?? spec?.description ?? '',
+        thumbnailUrl: raw.thumbnail_url ?? '',   // reliable for videos; filled below for images
         imageHash,
         videoId,
-        cta:          spec?.call_to_action?.type ?? 'LEARN_MORE',
+        cta:      spec?.call_to_action?.type ?? 'LEARN_MORE',
         adFormat,
         carouselCards,
       });
+    }
+
+    // 4 — Resolve image hashes → permanent CDN URLs via the adimages endpoint.
+    //     thumbnail_url is often absent for image creatives so we look up the
+    //     actual URL from the ad account's image library instead.
+    const adAccountId = this.authStore.adAccountId();
+    if (adAccountId) {
+      const allHashes = new Set<string>();
+      for (const c of seen.values()) {
+        if (c.imageHash)   allHashes.add(c.imageHash);
+        for (const card of c.carouselCards) {
+          if (card.imageHash) allHashes.add(card.imageHash);
+        }
+      }
+
+      if (allHashes.size > 0) {
+        try {
+          const imgParams = params
+            .set('hashes', JSON.stringify(Array.from(allHashes)))
+            .set('fields', 'hash,url');
+          const imgResult = await firstValueFrom(
+            this.http.get<{ data: Array<{ hash: string; url: string }> }>(
+              `${GRAPH_API_BASE}/${adAccountId}/adimages`,
+              { params: imgParams }
+            )
+          );
+          const hashToUrl = new Map(imgResult.data.map(img => [img.hash, img.url]));
+
+          // Back-fill thumbnailUrl on creatives and carousel cards
+          for (const [id, c] of seen) {
+            const creativeUrl = (!c.thumbnailUrl && c.imageHash) ? (hashToUrl.get(c.imageHash) ?? '') : c.thumbnailUrl;
+            const updatedCards = c.carouselCards.map(card =>
+              (!card.thumbnailUrl && card.imageHash && hashToUrl.has(card.imageHash))
+                ? { ...card, thumbnailUrl: hashToUrl.get(card.imageHash)! }
+                : card
+            );
+            seen.set(id, { ...c, thumbnailUrl: creativeUrl, carouselCards: updatedCards });
+          }
+        } catch {
+          // Image URL resolution is best-effort — proceed without thumbnails if it fails.
+        }
+      }
     }
 
     return {

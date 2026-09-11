@@ -76,12 +76,12 @@
                     @for (card of creative.carouselCards; track card.id; let ci = $index) {
                       <div class="mini-carousel-card">
                         <div class="mini-carousel-img-wrap">
-                          @if (card.objectUrl) {
-                            @if (card.fileType === 'image') {
-                              <img class="mini-carousel-img" [src]="card.objectUrl" [alt]="card.fileName || 'Card ' + (ci + 1)" />
-                            } @else {
-                              <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
-                            }
+                          @if (card.thumbnailUrl || card.objectUrl) {
+                            <img
+                              class="mini-carousel-img"
+                              [src]="card.thumbnailUrl || card.objectUrl"
+                              [alt]="card.fileName || 'Card ' + (ci + 1)"
+                            />
                           } @else if (card.videoId) {
                             <div class="mini-carousel-media-ph" aria-hidden="true">&#9654;</div>
                           } @else if (card.imageHash) {
