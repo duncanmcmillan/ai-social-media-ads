@@ -12,7 +12,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../../../auth';
-import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload, CarouselChildAttachment } from '../../../models/index';
+import type { Campaign, CampaignPayload, AdSet, AdSetPayload, Ad, AdPayload, AdCreative, AdCreativePayload, CarouselChildAttachment, MetaRecommendation } from '../../../models/index';
 
 /** Base URL for the Facebook Graph API. */
 const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
@@ -748,6 +748,111 @@ export class MarketingApiService {
       })),
       creatives: Array.from(seen.values()),
     };
+  }
+
+  // ── Performance Recommendations ──────────────────────────────────────────
+
+  /** Raw shape returned by the Meta Performance Recommendations API. */
+  private declare _rawRec: {
+    recommendation_signature: string;
+    type: string;
+    body: string;
+    lift_estimate: string;
+    opportunity_score_lift: number;
+    object_ids: string[];
+    level: string;
+  };
+
+  /**
+   * Fetches performance recommendations from the Meta Performance Recommendations API.
+   * Returns an empty array when the account has no recommendations or on any API failure —
+   * recommendations are best-effort and should never block the dashboard from loading.
+   * @returns Promise resolving to an array of mapped recommendations.
+   */
+  async getRecommendations(): Promise<MetaRecommendation[]> {
+    const adAccountId = this.authStore.adAccountId();
+    if (!adAccountId) return [];
+    try {
+      type RawRec = typeof this._rawRec;
+      const params = this.authParams().set(
+        'fields',
+        'recommendation_signature,type,body,lift_estimate,opportunity_score_lift,object_ids,level'
+      );
+      const result = await firstValueFrom(
+        this.http.get<GraphApiList<RawRec>>(
+          `${GRAPH_API_BASE}/${adAccountId}/recommendations`,
+          { params }
+        )
+      );
+      return (result.data ?? []).map(r => ({
+        signature:    r.recommendation_signature,
+        type:         r.type,
+        body:         r.body ?? '',
+        liftEstimate: r.lift_estimate ?? '',
+        scoreLift:    r.opportunity_score_lift ?? 0,
+        objectIds:    r.object_ids ?? [],
+        level:        r.level ?? '',
+        status:       'pending' as const,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Increases the daily (or lifetime) budget of an ad set by 20%.
+   * Fetches the current budget from the API before updating to avoid stale-data errors.
+   * @param adSetId - The ad set to update.
+   * @throws When the ad set has no budget or the update fails.
+   */
+  async applyBudgetRecommendation(adSetId: string): Promise<void> {
+    const params = this.authParams().set('fields', 'daily_budget,lifetime_budget');
+    const raw = await firstValueFrom(
+      this.http.get<{ daily_budget?: string; lifetime_budget?: string }>(
+        `${GRAPH_API_BASE}/${adSetId}`,
+        { params }
+      )
+    );
+    const currentDaily    = raw.daily_budget    ? parseInt(raw.daily_budget, 10)    : null;
+    const currentLifetime = raw.lifetime_budget ? parseInt(raw.lifetime_budget, 10) : null;
+    if (currentDaily) {
+      await this.updateAdSet(adSetId, { dailyBudget: Math.round(currentDaily * 1.2) });
+    } else if (currentLifetime) {
+      await this.updateAdSet(adSetId, { lifetimeBudget: Math.round(currentLifetime * 1.2) });
+    } else {
+      throw new Error('Ad set has no budget configured.');
+    }
+  }
+
+  /**
+   * Switches an ad set to Advantage+ placements by removing all manual placement
+   * restrictions from its targeting spec.
+   * @param adSetId - The ad set to update.
+   * @throws When the API call fails.
+   */
+  async applyPlacementRecommendation(adSetId: string): Promise<void> {
+    const fetchParams = this.authParams().set('fields', 'targeting');
+    const raw = await firstValueFrom(
+      this.http.get<{ targeting?: Record<string, unknown> }>(
+        `${GRAPH_API_BASE}/${adSetId}`,
+        { params: fetchParams }
+      )
+    );
+    // Strip manual placement keys — Meta will auto-select placements (Advantage+).
+    const targeting = { ...(raw.targeting ?? {}) };
+    for (const key of [
+      'publisher_platforms', 'facebook_positions', 'instagram_positions',
+      'audience_network_positions', 'messenger_positions', 'device_platforms',
+    ]) {
+      delete targeting[key];
+    }
+    await firstValueFrom(
+      this.http.post<{ success: boolean }>(
+        `${GRAPH_API_BASE}/${adSetId}`,
+        { targeting },
+        { params: this.authParams() }
+      )
+    );
   }
 
   /**

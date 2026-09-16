@@ -10,6 +10,7 @@ import { WorkspaceStore } from '../../workspace';
 import { DashboardStore } from '../store/dashboard.store';
 import { GuidePanelComponent, MetricsGuidePanelComponent, GuidesStore } from '../../guides';
 import { ChartModalComponent } from '../components/chart-modal/chart-modal.component';
+import { MetaRecommendationsComponent } from '../components/meta-recommendations/meta-recommendations.component';
 import {
   gateKey,
   worstVerdict,
@@ -86,7 +87,7 @@ const VERDICT_COLORS: Partial<Record<Verdict, string>> = {
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [GuidePanelComponent, MetricsGuidePanelComponent, ChartModalComponent],
+  imports: [GuidePanelComponent, MetricsGuidePanelComponent, ChartModalComponent, MetaRecommendationsComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

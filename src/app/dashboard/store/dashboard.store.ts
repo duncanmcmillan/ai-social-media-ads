@@ -21,6 +21,7 @@ import {
   type GateSlackStatus,
   type Recommendation,
 } from '../model/dashboard.model';
+import type { MetaRecommendation } from '../../core/models/index';
 
 /** Date presets available to all users. */
 const FREE_PRESETS: DatePreset[] = ['today', 'yesterday', 'last_7d'];
@@ -69,6 +70,12 @@ interface DashboardState {
   selectedFunnelLevel: FunnelLevel;
   /** Slack delivery status keyed by gate key. Cleared at the start of each sync. */
   gateSlackStatuses: Record<string, GateSlackStatus>;
+  /** Recommendations from the Meta Performance Recommendations API. */
+  metaRecommendations: MetaRecommendation[];
+  /** True while meta recommendations are being fetched. */
+  isLoadingMetaRecs: boolean;
+  /** The budget recommendation awaiting user confirmation, or null. */
+  pendingBudgetConfirm: MetaRecommendation | null;
 }
 
 const initialState: DashboardState = {
@@ -81,6 +88,9 @@ const initialState: DashboardState = {
   selectedCampaignId: null,
   selectedFunnelLevel: 'all',
   gateSlackStatuses: {},
+  metaRecommendations: [],
+  isLoadingMetaRecs: false,
+  pendingBudgetConfirm: null,
 };
 
 /**
@@ -456,6 +466,13 @@ export const DashboardStore = signalStore(
           ...(hasResults ? { campaigns, ads } : {}),
           isLoading: false,
         });
+        // Load Meta recommendations independently — failure must not affect the main sync.
+        patchState(store, { isLoadingMetaRecs: true });
+        marketingApi.getRecommendations().then(recs => {
+          patchState(store, { metaRecommendations: recs, isLoadingMetaRecs: false });
+        }).catch(() => {
+          patchState(store, { isLoadingMetaRecs: false });
+        });
       } catch (e: unknown) {
         patchState(store, {
           error:     extractFacebookError(e, 'Failed to load dashboard data.'),
@@ -471,6 +488,104 @@ export const DashboardStore = signalStore(
      */
     setGateSlackStatus(key: string, status: GateSlackStatus): void {
       patchState(store, { gateSlackStatuses: { ...store.gateSlackStatuses(), [key]: status } });
+    },
+
+    /**
+     * Fetches Meta Performance Recommendations for the connected ad account.
+     * Silently ignored on failure — recommendations are best-effort.
+     */
+    async loadMetaRecommendations(): Promise<void> {
+      patchState(store, { isLoadingMetaRecs: true });
+      const recs = await marketingApi.getRecommendations();
+      patchState(store, { metaRecommendations: recs, isLoadingMetaRecs: false });
+    },
+
+    /**
+     * Applies a placement recommendation instantly (no confirm step).
+     * Marks the recommendation as 'applying' then 'applied' on success,
+     * or restores it to 'pending' on failure.
+     * @param rec - The recommendation to apply.
+     */
+    async applyPlacementRecommendation(rec: MetaRecommendation): Promise<void> {
+      const adSetId = rec.objectIds[0];
+      if (!adSetId) return;
+      patchState(store, {
+        metaRecommendations: store.metaRecommendations().map(r =>
+          r.signature === rec.signature ? { ...r, status: 'applying' as const } : r
+        ),
+      });
+      try {
+        await marketingApi.applyPlacementRecommendation(adSetId);
+        patchState(store, {
+          metaRecommendations: store.metaRecommendations().map(r =>
+            r.signature === rec.signature ? { ...r, status: 'applied' as const } : r
+          ),
+        });
+      } catch {
+        patchState(store, {
+          metaRecommendations: store.metaRecommendations().map(r =>
+            r.signature === rec.signature ? { ...r, status: 'pending' as const } : r
+          ),
+        });
+      }
+    },
+
+    /**
+     * Stages a budget recommendation for user confirmation.
+     * Sets `pendingBudgetConfirm` which triggers the confirm UI in the card.
+     * @param rec - The budget recommendation to confirm.
+     */
+    requestBudgetConfirm(rec: MetaRecommendation): void {
+      patchState(store, { pendingBudgetConfirm: rec });
+    },
+
+    /** Clears the pending budget confirm without applying. */
+    cancelBudgetConfirm(): void {
+      patchState(store, { pendingBudgetConfirm: null });
+    },
+
+    /**
+     * Applies the currently pending budget recommendation.
+     * Increases the ad set daily (or lifetime) budget by 20%.
+     * Clears `pendingBudgetConfirm` on both success and failure.
+     */
+    async confirmBudgetApply(): Promise<void> {
+      const rec = store.pendingBudgetConfirm();
+      if (!rec) return;
+      const adSetId = rec.objectIds[0];
+      if (!adSetId) { patchState(store, { pendingBudgetConfirm: null }); return; }
+      patchState(store, {
+        pendingBudgetConfirm: null,
+        metaRecommendations: store.metaRecommendations().map(r =>
+          r.signature === rec.signature ? { ...r, status: 'applying' as const } : r
+        ),
+      });
+      try {
+        await marketingApi.applyBudgetRecommendation(adSetId);
+        patchState(store, {
+          metaRecommendations: store.metaRecommendations().map(r =>
+            r.signature === rec.signature ? { ...r, status: 'applied' as const } : r
+          ),
+        });
+      } catch {
+        patchState(store, {
+          metaRecommendations: store.metaRecommendations().map(r =>
+            r.signature === rec.signature ? { ...r, status: 'pending' as const } : r
+          ),
+        });
+      }
+    },
+
+    /**
+     * Dismisses a Meta recommendation — hidden from the UI for the session.
+     * @param signature - The recommendation signature to dismiss.
+     */
+    dismissMetaRecommendation(signature: string): void {
+      patchState(store, {
+        metaRecommendations: store.metaRecommendations().map(r =>
+          r.signature === signature ? { ...r, status: 'dismissed' as const } : r
+        ),
+      });
     },
 
     /**

@@ -1,0 +1,91 @@
+@if (hasContent()) {
+  <section class="meta-recs" aria-label="Meta performance recommendations" aria-live="polite">
+    <div class="meta-recs-header">
+      <span class="meta-recs-title">Recommended Changes</span>
+      @if (store.isLoadingMetaRecs()) {
+        <span class="meta-recs-loading">
+          <span class="spinner spinner--sm" aria-hidden="true"></span> Fetching recommendations…
+        </span>
+      }
+    </div>
+
+    <div class="meta-recs-strip" role="list">
+      @for (rec of visibleRecs(); track rec.signature) {
+        <div
+          class="rec-card rec-card--{{ rec.status }}"
+          role="listitem"
+          [attr.aria-label]="rec.body"
+        >
+          <!-- Body -->
+          <p class="rec-card-body">{{ rec.body }}</p>
+
+          <!-- Lift estimate -->
+          @if (rec.liftEstimate) {
+            <p class="rec-card-lift">&#128200; {{ rec.liftEstimate }}</p>
+          }
+
+          <!-- Applied state -->
+          @if (rec.status === 'applied') {
+            <span class="rec-card-applied" aria-label="Recommendation applied">Applied ✓</span>
+          }
+
+          <!-- Applying spinner -->
+          @else if (rec.status === 'applying') {
+            <span class="rec-card-applying">
+              <span class="spinner spinner--sm" aria-hidden="true"></span> Applying…
+            </span>
+          }
+
+          <!-- Confirm step (budget only) -->
+          @else if (isPendingConfirm(rec)) {
+            <div class="rec-card-confirm" role="region" aria-label="Confirm budget increase">
+              <span class="rec-card-confirm-text">Increase budget by 20%?</span>
+              <div class="rec-card-confirm-btns">
+                <button
+                  class="btn btn--confirm"
+                  type="button"
+                  (click)="store.confirmBudgetApply()"
+                  aria-label="Confirm budget increase"
+                >Confirm</button>
+                <button
+                  class="btn btn--cancel"
+                  type="button"
+                  (click)="store.cancelBudgetConfirm()"
+                  aria-label="Cancel"
+                >Cancel</button>
+              </div>
+            </div>
+          }
+
+          <!-- Action row -->
+          @else {
+            <div class="rec-card-actions">
+              @if (isActionable(rec.type)) {
+                <button
+                  class="btn btn--apply"
+                  type="button"
+                  (click)="onApply(rec)"
+                  [attr.aria-label]="'Apply: ' + rec.body"
+                >Apply</button>
+              } @else {
+                <a
+                  class="btn btn--guide"
+                  href="https://www.facebook.com/adsmanager/manage/campaigns"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View in Ads Manager"
+                >View in Ads Manager ↗</a>
+              }
+              <button
+                class="rec-card-dismiss"
+                type="button"
+                (click)="store.dismissMetaRecommendation(rec.signature)"
+                aria-label="Dismiss recommendation"
+              >✕</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+}

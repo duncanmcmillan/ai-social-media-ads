@@ -94,6 +94,11 @@
   </div>
 }
 
+<!-- Meta Performance Recommendations strip -->
+@if (hasCampaigns()) {
+  <app-meta-recommendations />
+}
+
 <!-- Dashboard 4-column grid -->
 @if (hasCampaigns()) {
   <div class="grid-wrapper">
